@@ -1,863 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nested-CES Economy Equilibrium Simulator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-        }
-        
-        h1 {
-            text-align: center;
-            color: #2d3748;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-        
-        .main-grid {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 30px;
-            margin-top: 20px;
-        }
-        
-        .controls-panel {
-            background: #f8fafc;
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid #e2e8f0;
-            height: fit-content;
-        }
-        
-        .charts-panel {
-            background: #f8fafc;
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .parameter-group {
-            margin-bottom: 25px;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        
-        .parameter-group h3 {
-            margin: 0 0 15px 0;
-            color: #2d3748;
-            font-size: 1.2em;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 8px;
-        }
-        
-        .slider-container {
-            margin-bottom: 20px;
-        }
-        
-        .slider-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #4a5568;
-        }
-        
-        .slider-value {
-            background: #667eea;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.9em;
-            min-width: 60px;
-            text-align: center;
-        }
-        
-        .slider {
-            width: 100%;
-            height: 8px;
-            border-radius: 4px;
-            background: #e2e8f0;
-            outline: none;
-            -webkit-appearance: none;
-            margin-bottom: 8px;
-        }
-        
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #667eea;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        
-        .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #667eea;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        
-        .description {
-            font-size: 0.9em;
-            color: #666;
-            line-height: 1.4;
-            margin-top: 5px;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 250px;
-            margin-bottom: 30px;
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
-            font-weight: 600;
-        }
-        
-        .error {
-            display: none;
-            background: #fed7d7;
-            color: #c53030;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-        }
-        
-        .model-info {
-            background: #e6fffa;
-            border: 1px solid #81e6d9;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        
-        .model-info h3 {
-            color: #234e52;
-            margin: 0 0 10px 0;
-        }
-        
-        .model-info p {
-            color: #2d3748;
-            margin: 0;
-            line-height: 1.5;
-        }
-        
-        .update-btn {
-            width: 100%;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: transform 0.2s;
-        }
-        
-        .update-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        
-        .status {
-            text-align: center;
-            padding: 10px;
-            margin-top: 15px;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-        
-        .status.success {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-        
-        .status.error {
-            background: #fed7d7;
-            color: #c53030;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <title>Two‑Sector AI‑Economy Simulator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Chart.js for plotting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.4.2/chart.umd.min.js"></script>
+  <!-- numeric.js for optimisation / root‑finding -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+  <style>
+    body{font-family:system-ui,Arial,sans-serif;margin:20px;line-height:1.4;background:#f8f9fa;color:#333}
+    h1{font-size:1.6rem;margin-bottom:1rem}
+    h2{font-size:1.2rem;margin:26px 0 8px}
+    .controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:20px}
+    .param label{display:flex;justify-content:space-between;font-weight:600;margin-bottom:2px}
+    .param input[type=range]{width:100%}
+    button{background:#0066ff;color:#fff;border:none;padding:8px 16px;font-size:1rem;border-radius:6px;cursor:pointer}
+    button:hover{background:#0044cc}
+    canvas{max-width:100%;height:280px}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Nested-CES Economy Simulator</h1>
-        <p class="subtitle">Baseline labour as free endowment - only hired labour is paid</p>
-        
-        <div class="model-info">
-            <h3>Model Overview</h3>
-            <p>This economy has two firm types with different baseline endowments. <strong>Key insight</strong>: Baseline labour (L₀) is free - firms only pay wages for <em>hired</em> labour. Type-A firms have no baseline endowment (L₀ₐ=0), while Type-B firms get free baseline labour L₀ᵦ=10. The model solves for equilibrium in hired labour markets with fixed supply L̄.</p>
-        </div>
-        
-        <div class="main-grid">
-            <div class="controls-panel">
-                <div class="parameter-group">
-                    <h3>Production Function Parameters</h3>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>θ (theta)</span>
-                            <span class="slider-value" id="theta-value">0.8</span>
-                        </div>
-                        <input type="range" class="slider" id="theta" min="0.1" max="2.0" step="0.05" value="0.8">
-                        <div class="description">S-curve exponent: σ(L) = L^θ / (1+L^θ). Controls how fast returns to labour saturate.</div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>ρₕ (rho_h)</span>
-                            <span class="slider-value" id="rho_h-value">0.4</span>
-                        </div>
-                        <input type="range" class="slider" id="rho_h" min="0.1" max="0.9" step="0.05" value="0.4">
-                        <div class="description">Upper-level CES parameter (firm aggregation). σₕ = 1/(1-ρₕ) ≈ 1.67 with default value.</div>
-                    </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <h3>Mini-CES Parameters</h3>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>ρₗ (rho_L)</span>
-                            <span class="slider-value" id="rho_L-value">0.3</span>
-                        </div>
-                        <input type="range" class="slider" id="rho_L" min="0.1" max="0.9" step="0.05" value="0.3">
-                        <div class="description">Labour mini-CES parameter. Controls substitution between baseline (free) and hired labour. σₗ ≈ 1.43.</div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>ρₖ (rho_K)</span>
-                            <span class="slider-value" id="rho_K-value">0.5</span>
-                        </div>
-                        <input type="range" class="slider" id="rho_K" min="0.1" max="0.9" step="0.05" value="0.5">
-                        <div class="description">Capital mini-CES parameter. Controls substitution between baseline and hired capital. σₖ = 2.</div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>αₗ (alpha_L)</span>
-                            <span class="slider-value" id="alpha_L-value">0.5</span>
-                        </div>
-                        <input type="range" class="slider" id="alpha_L" min="0.1" max="0.9" step="0.05" value="0.5">
-                        <div class="description">Share of baseline labour in labour aggregation. Higher values give more weight to free baseline labour.</div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>αₖ (alpha_K)</span>
-                            <span class="slider-value" id="alpha_K-value">0.5</span>
-                        </div>
-                        <input type="range" class="slider" id="alpha_K" min="0.1" max="0.9" step="0.05" value="0.5">
-                        <div class="description">Share of baseline capital in capital aggregation. Higher values emphasize free baseline capital.</div>
-                    </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <h3>Market Structure</h3>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>N (firms)</span>
-                            <span class="slider-value" id="N-value">100</span>
-                        </div>
-                        <input type="range" class="slider" id="N" min="10" max="500" step="10" value="100">
-                        <div class="description">Total number of firms. Each has equal weight βᵢ = 1/N in upper-level CES aggregation.</div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>κ₀ (kappa0)</span>
-                            <span class="slider-value" id="kappa0-value">3.0</span>
-                        </div>
-                        <input type="range" class="slider" id="kappa0" min="0.5" max="10.0" step="0.5" value="3.0">
-                        <div class="description">Baseline K/L ratio for Type-B firms. Determines free capital endowment K₀ᵦ = κ₀ × L₀ᵦ.</div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>L₀ᵦ (L0_B)</span>
-                            <span class="slider-value" id="L0_B-value">10</span>
-                        </div>
-                        <input type="range" class="slider" id="L0_B" min="1" max="50" step="1" value="10">
-                        <div class="description">Free baseline labour for Type-B firms. Type-A firms get zero baseline endowment.</div>
-                    </div>
-                    
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>L̄ (L_BAR)</span>
-                            <span class="slider-value" id="L_BAR-value">100</span>
-                        </div>
-                        <input type="range" class="slider" id="L_BAR" min="10" max="500" step="10" value="100">
-                        <div class="description">Total supply of hired labour. This is exogenous and independent of baseline endowments.</div>
-                    </div>
-                </div>
-                
-                <button class="update-btn" onclick="updateSimulation()">Update Simulation</button>
-                <div class="status" id="status"></div>
-            </div>
-            
-            <div class="charts-panel">
-                <div class="chart-container">
-                    <canvas id="wageChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <canvas id="outputChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <canvas id="derivativeChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
+  <h1>Two‑Sector AI Economy Simulator</h1>
+  <p>Adjust any primitive below (all <em>except</em> the computational‑sector share β<sub>C</sub>). Then click <strong>Run Simulation</strong>. The page solves for equilibrium wage <em>w</em> and total output <em>Y</em> over β<sub>C</sub> ∈ [0.05, 0.95] and draws the curves.</p>
 
-    <script>
-        // Global variables for charts and parameters
-        let wageChart, outputChart, derivativeChart;
-        let theta, rho_h, rho_L, rho_K, alpha_L, alpha_K, N, kappa0, L0_B, L_BAR;
-        let m_h, m_L, m_K, beta;
-        
-        // Mathematical functions - exactly matching Python version
-        function sigma(L) {
-            if (L <= 0) return 0;
-            const Lt = Math.pow(L, theta);
-            return Lt / (1.0 + Lt);
-        }
-        
-        function safePow(base, exp) {
-            if (!isFinite(base) || !isFinite(exp) || base <= 0) return 1e-10;
-            if (exp === 0) return 1;
-            const result = Math.pow(Math.max(1e-10, base), exp);
-            return isFinite(result) ? result : 1e-10;
-        }
-        
-        // Levenberg-Marquardt solver with bounds - matching scipy least_squares
-        function levenbergMarquardtSolve(func, x0, bounds, maxIter = 500, tol = 1e-12) {
-            let x = [...x0];
-            const [lb, ub] = bounds;
-            let lambda = 0.01;
-            let bestX = [...x];
-            let bestError = Infinity;
-            
-            // Ensure initial guess is within bounds
-            for (let i = 0; i < x.length; i++) {
-                x[i] = Math.max(lb[i], Math.min(ub[i], x[i]));
-            }
-            
-            for (let iter = 0; iter < maxIter; iter++) {
-                try {
-                    const f = func(x);
-                    const fnorm = Math.sqrt(f.reduce((s, v) => s + v*v, 0));
-                    
-                    if (fnorm < bestError) {
-                        bestX = [...x];
-                        bestError = fnorm;
-                    }
-                    
-                    if (fnorm < tol) {
-                        return { x: bestX, success: true, iterations: iter, error: fnorm };
-                    }
-                    
-                    if (f.some(val => !isFinite(val))) {
-                        lambda = Math.min(lambda * 10, 1.0);
-                        continue;
-                    }
-                    
-                    // Compute Jacobian
-                    const J = [];
-                    const h = 1e-8;
-                    
-                    for (let i = 0; i < x.length; i++) {
-                        const xh = [...x];
-                        xh[i] = Math.max(lb[i], Math.min(ub[i], xh[i] + h));
-                        try {
-                            const fh = func(xh);
-                            if (fh.some(val => !isFinite(val))) {
-                                // Use identity column if Jacobian computation fails
-                                const col = new Array(f.length).fill(0);
-                                col[i % f.length] = 1;
-                                J.push(col);
-                            } else {
-                                J.push(fh.map((val, j) => (val - f[j]) / h));
-                            }
-                        } catch (e) {
-                            const col = new Array(f.length).fill(0);
-                            col[i % f.length] = 1;
-                            J.push(col);
-                        }
-                    }
-                    
-                    // Levenberg-Marquardt step: (J^T J + λI) dx = -J^T f
-                    const JT = [];
-                    for (let i = 0; i < f.length; i++) {
-                        JT.push(J.map(row => row[i]));
-                    }
-                    
-                    const JTJ = [];
-                    for (let i = 0; i < x.length; i++) {
-                        JTJ.push([]);
-                        for (let j = 0; j < x.length; j++) {
-                            let sum = 0;
-                            for (let k = 0; k < f.length; k++) {
-                                sum += JT[k][i] * JT[k][j];
-                            }
-                            JTJ[i][j] = sum + (i === j ? lambda : 0);
-                        }
-                    }
-                    
-                    const JTf = [];
-                    for (let i = 0; i < x.length; i++) {
-                        let sum = 0;
-                        for (let j = 0; j < f.length; j++) {
-                            sum += JT[j][i] * f[j];
-                        }
-                        JTf.push(-sum);
-                    }
-                    
-                    const dx = solveLMSystem(JTJ, JTf);
-                    
-                    if (!dx) {
-                        lambda *= 10;
-                        continue;
-                    }
-                    
-                    // Line search with bounds enforcement
-                    let alpha = 1.0;
-                    let xNew, fNew, fnormNew;
-                    
-                    for (let ls = 0; ls < 8; ls++) {
-                        xNew = x.map((val, i) => {
-                            const newVal = val + alpha * dx[i];
-                            return Math.max(lb[i], Math.min(ub[i], newVal));
-                        });
-                        
-                        try {
-                            fNew = func(xNew);
-                            if (fNew.some(val => !isFinite(val))) {
-                                alpha *= 0.5;
-                                continue;
-                            }
-                            fnormNew = Math.sqrt(fNew.reduce((s, v) => s + v*v, 0));
-                            break;
-                        } catch (e) {
-                            alpha *= 0.5;
-                        }
-                        
-                        if (alpha < 1e-10) break;
-                    }
-                    
-                    if (fnormNew < fnorm) {
-                        x = xNew;
-                        lambda = Math.max(lambda / 3, 1e-10);
-                    } else {
-                        lambda = Math.min(lambda * 2, 1e6);
-                    }
-                    
-                } catch (error) {
-                    lambda = Math.min(lambda * 5, 1.0);
-                }
-            }
-            
-            return { x: bestX, success: bestError < tol * 100, iterations: maxIter, error: bestError };
-        }
-        
-        function solveLMSystem(A, b) {
-            const n = A.length;
-            const augmented = A.map((row, i) => [...row, b[i]]);
-            
-            // Gaussian elimination with partial pivoting
-            for (let i = 0; i < n; i++) {
-                let maxRow = i;
-                for (let k = i + 1; k < n; k++) {
-                    if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
-                        maxRow = k;
-                    }
-                }
-                [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
-                
-                if (Math.abs(augmented[i][i]) < 1e-12) {
-                    return null;
-                }
-                
-                for (let k = i + 1; k < n; k++) {
-                    const factor = augmented[k][i] / augmented[i][i];
-                    for (let j = i; j <= n; j++) {
-                        augmented[k][j] -= factor * augmented[i][j];
-                    }
-                }
-            }
-            
-            const x = new Array(n);
-            for (let i = n - 1; i >= 0; i--) {
-                x[i] = augmented[i][n];
-                for (let j = i + 1; j < n; j++) {
-                    x[i] -= augmented[i][j] * x[j];
-                }
-                x[i] /= augmented[i][i];
-                
-                if (!isFinite(x[i])) {
-                    return null;
-                }
-            }
-            
-            return x;
-        }
-        
-        // Equilibrium solver - updated for hired labour only
-        function solveEquilibrium(p, z0) {
-            // Firm counts
-            let N_A = Math.max(1, Math.round(p * N));
-            let N_B = N - N_A;
-            if (N_B <= 0) {
-                N_B = 1;
-                N_A = N - N_B;
-            }
-            
-            // Baseline inputs
-            const L0_A = 0.0, K0_A = 0.0;
-            const K0_B = kappa0 * L0_B;
-            
-            // Residual function in log space - matching Python exactly
-            function residuals(z) {
-                const [lnw, lnLA, lnKA, lnLB, lnKB] = z;
-                const w = Math.exp(Math.max(-15, Math.min(15, lnw)));
-                const L_A = Math.exp(Math.max(-15, Math.min(15, lnLA)));
-                const K_A = Math.exp(Math.max(-15, Math.min(15, lnKA)));
-                const L_B = Math.exp(Math.max(-15, Math.min(15, lnLB)));
-                const K_B = Math.exp(Math.max(-15, Math.min(15, lnKB)));
-                
-                // mini-CES aggregates
-                const tL_A = safePow((1 - alpha_L) * safePow(L_A, m_L), 1.0 / m_L);
-                const tL_B = safePow(alpha_L * safePow(L0_B, m_L) + (1 - alpha_L) * safePow(L_B, m_L), 1.0 / m_L);
-                const tK_A = safePow((1 - alpha_K) * safePow(K_A, m_K), 1.0 / m_K);
-                const tK_B = safePow(alpha_K * safePow(K0_B, m_K) + (1 - alpha_K) * safePow(K_B, m_K), 1.0 / m_K);
-                
-                // low-level composites
-                const C_A = tK_A * sigma(tL_A);
-                const C_B = tK_B * sigma(tL_B);
-                
-                // upper-level CES objects
-                const S_tot = N_A * safePow(C_A, m_h) + N_B * safePow(C_B, m_h);
-                const Y = safePow(beta * S_tot, 1.0 / m_h);
-                const s_A = safePow(C_A, m_h) / Math.max(1e-15, S_tot);
-                const s_B = safePow(C_B, m_h) / Math.max(1e-15, S_tot);
-                
-                // marginal products
-                const denom_A = 1 + safePow(tL_A, theta);
-                const denom_B = 1 + safePow(tL_B, theta);
-                
-                const wL_A = Y * s_A * theta * (1 - alpha_L) * safePow(L_A, m_L - 1) * safePow(tL_A, -m_L) / denom_A;
-                const wL_B = Y * s_B * theta * (1 - alpha_L) * safePow(L_B, m_L - 1) * safePow(tL_B, -m_L) / denom_B;
-                const wK_A = Y * s_A * sigma(tL_A) * (1 - alpha_K) * safePow(K_A, m_K - 1) * safePow(tK_A, 1 - m_K);
-                const wK_B = Y * s_B * sigma(tL_B) * (1 - alpha_K) * safePow(K_B, m_K - 1) * safePow(tK_B, 1 - m_K);
-                
-                // labour-market clearing (ONLY hired labour counts)
-                const hired_lab = N_A * L_A + N_B * L_B;
-                
-                // return scaled residuals (relative errors)
-                const w_safe = Math.max(1e-15, w);
-                const L_BAR_safe = Math.max(1e-15, L_BAR);
-                
-                return [
-                    (w - wL_A) / w_safe,
-                    (w - wK_A) / w_safe,
-                    (w - wL_B) / w_safe,
-                    (w - wK_B) / w_safe,
-                    (hired_lab - L_BAR) / L_BAR_safe
-                ];
-            }
-            
-            // Set up bounds for log-space variables
-            const lb = new Array(5).fill(Math.log(1e-8));
-            const ub = new Array(5).fill(Math.log(1e8));
-            
-            // Solve the system
-            const result = levenbergMarquardtSolve(residuals, z0, [lb, ub]);
-            
-            if (!result.success) {
-                if (result.error > 1e-3) {
-                    throw new Error(`Failed to converge at p=${p.toFixed(3)} (error: ${result.error.toExponential(2)})`);
-                }
-            }
-            
-            const [lnw, lnLA, lnKA, lnLB, lnKB] = result.x;
-            const w = Math.exp(Math.max(-15, Math.min(15, lnw)));
-            const L_A = Math.exp(Math.max(-15, Math.min(15, lnLA)));
-            const K_A = Math.exp(Math.max(-15, Math.min(15, lnKA)));
-            const L_B = Math.exp(Math.max(-15, Math.min(15, lnLB)));
-            const K_B = Math.exp(Math.max(-15, Math.min(15, lnKB)));
-            
-            // Compute Y for output using safe functions
-            const tL_A = safePow((1 - alpha_L) * safePow(L_A, m_L), 1.0 / m_L);
-            const tL_B = safePow(alpha_L * safePow(L0_B, m_L) + (1 - alpha_L) * safePow(L_B, m_L), 1.0 / m_L);
-            const tK_A = safePow((1 - alpha_K) * safePow(K_A, m_K), 1.0 / m_K);
-            const tK_B = safePow(alpha_K * safePow(K0_B, m_K) + (1 - alpha_K) * safePow(K_B, m_K), 1.0 / m_K);
-            const C_A = tK_A * sigma(tL_A);
-            const C_B = tK_B * sigma(tL_B);
-            const S_tot = N_A * safePow(C_A, m_h) + N_B * safePow(C_B, m_h);
-            const Y = safePow(beta * S_tot, 1.0 / m_h);
-            
-            // Compute dY/dK0_B (derivative of output w.r.t. baseline capital)
-            const s_B = safePow(C_B, m_h) / Math.max(1e-15, S_tot);
-            const Z_B = alpha_K * safePow(K0_B, m_K) + (1 - alpha_K) * safePow(K_B, m_K);
-            const dC_dK0 = (C_B * alpha_K * safePow(K0_B, m_K - 1)) / Math.max(1e-15, safePow(tK_B, 2));
-            const dYdK0 = Y * s_B / Math.max(1e-15, C_B) * dC_dK0;
-            
-            return { w, Y, dYdK0, z: result.x };
-        }
-        
-        // Initialize charts
-        function initializeCharts() {
-            const chartConfig = {
-                type: 'line',
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Proportion p of firms with L₀=0'
-                            }
-                        }
-                    },
-                    elements: {
-                        point: {
-                            radius: 3,
-                            hoverRadius: 6
-                        },
-                        line: {
-                            borderWidth: 2
-                        }
-                    }
-                }
-            };
-            
-            wageChart = new Chart(document.getElementById('wageChart'), {
-                ...chartConfig,
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Wage w',
-                        data: [],
-                        borderColor: '#f97316',
-                        backgroundColor: '#f9731620'
-                    }]
-                },
-                options: {
-                    ...chartConfig.options,
-                    scales: {
-                        ...chartConfig.options.scales,
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Wage w'
-                            }
-                        }
-                    }
-                }
-            });
-            
-            outputChart = new Chart(document.getElementById('outputChart'), {
-                ...chartConfig,
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Output per firm Y',
-                        data: [],
-                        borderColor: '#10b981',
-                        backgroundColor: '#10b98120'
-                    }]
-                },
-                options: {
-                    ...chartConfig.options,
-                    scales: {
-                        ...chartConfig.options.scales,
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Output per firm Y'
-                            }
-                        }
-                    }
-                }
-            });
-            
-            derivativeChart = new Chart(document.getElementById('derivativeChart'), {
-                ...chartConfig,
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'dY/dK0_B',
-                        data: [],
-                        borderColor: '#6366f1',
-                        backgroundColor: '#6366f120'
-                    }]
-                },
-                options: {
-                    ...chartConfig.options,
-                    scales: {
-                        ...chartConfig.options.scales,
-                        y: {
-                            title: {
-                                display: true,
-                                text: '∂Y / ∂K₀ᵦ'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Update slider displays
-        function updateSliderDisplays() {
-            const sliders = ['theta', 'rho_h', 'rho_L', 'rho_K', 'alpha_L', 'alpha_K', 'N', 'kappa0', 'L0_B', 'L_BAR'];
-            sliders.forEach(id => {
-                const slider = document.getElementById(id);
-                const display = document.getElementById(id + '-value');
-                const precision = (['N', 'L0_B', 'L_BAR'].includes(id)) ? 0 : 2;
-                display.textContent = parseFloat(slider.value).toFixed(precision);
-                
-                slider.addEventListener('input', () => {
-                    display.textContent = parseFloat(slider.value).toFixed(precision);
-                });
-            });
-        }
-        
-        // Main simulation function
-        function updateSimulation() {
-            const statusDiv = document.getElementById('status');
-            statusDiv.textContent = 'Computing equilibrium...';
-            statusDiv.className = 'status';
-            
-            setTimeout(() => {
-                try {
-                    // Get parameters from sliders and update globals
-                    theta = parseFloat(document.getElementById('theta').value);
-                    rho_h = parseFloat(document.getElementById('rho_h').value);
-                    rho_L = parseFloat(document.getElementById('rho_L').value);
-                    rho_K = parseFloat(document.getElementById('rho_K').value);
-                    alpha_L = parseFloat(document.getElementById('alpha_L').value);
-                    alpha_K = parseFloat(document.getElementById('alpha_K').value);
-                    N = parseInt(document.getElementById('N').value);
-                    kappa0 = parseFloat(document.getElementById('kappa0').value);
-                    L0_B = parseFloat(document.getElementById('L0_B').value);
-                    L_BAR = parseFloat(document.getElementById('L_BAR').value);
-                    
-                    // Derived parameters
-                    m_h = (rho_h - 1.0) / rho_h;
-                    m_L = (rho_L - 1.0) / rho_L;
-                    m_K = (rho_K - 1.0) / rho_K;
-                    beta = 1.0 / N;
-                    
-                    // Create p grid - exactly matching Python
-                    const p_vals = [];
-                    for (let i = 0; i <= 24; i++) {
-                        p_vals.push(i * 0.99 / 24);
-                    }
-                    
-                    const w_path = [], Y_path = [], dYdK0_path = [];
-                    
-                    // Initial guess - exactly matching Python
-                    let z_seed = [Math.log(0.5), Math.log(1.0), Math.log(1.0), Math.log(5.0), Math.log(15.0)];
-                    
-                    // Solve for each p value
-                    for (const p of p_vals) {
-                        try {
-                            const result = solveEquilibrium(p, z_seed);
-                            w_path.push(result.w);
-                            Y_path.push(result.Y);
-                            dYdK0_path.push(result.dYdK0);
-                            z_seed = result.z; // Use as warm start for next iteration
-                        } catch (error) {
-                            throw new Error(`Failed at p=${p}: ${error.message}`);
-                        }
-                    }
-                    
-                    // Update charts
-                    const labels = p_vals.map(p => p.toFixed(2));
-                    
-                    wageChart.data.labels = labels;
-                    wageChart.data.datasets[0].data = w_path;
-                    wageChart.update();
-                    
-                    outputChart.data.labels = labels;
-                    outputChart.data.datasets[0].data = Y_path;
-                    outputChart.update();
-                    
-                    derivativeChart.data.labels = labels;
-                    derivativeChart.data.datasets[0].data = dYdK0_path;
-                    derivativeChart.update();
-                    
-                    statusDiv.textContent = 'Simulation completed successfully!';
-                    statusDiv.className = 'status success';
-                    
-                } catch (error) {
-                    console.error('Simulation error:', error);
-                    statusDiv.textContent = 'Error: ' + error.message;
-                    statusDiv.className = 'status error';
-                }
-            }, 100);
-        }
-        
-        // Initialize everything when page loads
-        window.addEventListener('load', () => {
-            initializeCharts();
-            updateSliderDisplays();
-            updateSimulation(); // Run initial simulation
+  <div class="controls" id="controls">
+    <div class="param"><label>σ<sub>Y</sub>: <span id="sigmaYVal">1</span></label><input type="range" id="sigmaY" min="0.5" max="2" step="0.05" value="1" oninput="sigmaYVal.textContent=this.value"/></div>
+    <div class="param"><label>α<sub>p</sub>: <span id="alphaPVal">0.4</span></label><input type="range" id="alphaP" min="0" max="1" step="0.05" value="0.4" oninput="alphaPVal.textContent=this.value"/></div>
+    <div class="param"><label>α<sub>i</sub>: <span id="alphaIVal">0.6</span></label><input type="range" id="alphaI" min="0" max="1" step="0.05" value="0.6" oninput="alphaIVal.textContent=this.value"/></div>
+    <div class="param"><label>ρ<sub>p</sub>: <span id="rhoPVal">-0.5</span></label><input type="range" id="rhoP" min="-0.9" max="0" step="0.05" value="-0.5" oninput="rhoPVal.textContent=this.value"/></div>
+    <div class="param"><label>ρ<sub>i</sub>: <span id="rhoIVal">0.5</span></label><input type="range" id="rhoI" min="0" max="0.9" step="0.05" value="0.5" oninput="rhoIVal.textContent=this.value"/></div>
+    <div class="param"><label>K<sub>Bp</sub>: <span id="K_BpVal">1</span></label><input type="range" id="K_Bp" min="0.2" max="3" step="0.1" value="1" oninput="K_BpVal.textContent=this.value"/></div>
+    <div class="param"><label>K<sub>Cp</sub>: <span id="K_CpVal">1</span></label><input type="range" id="K_Cp" min="0.2" max="3" step="0.1" value="1" oninput="K_CpVal.textContent=this.value"/></div>
+    <div class="param"><label>K<sub>Bi</sub>: <span id="K_BiVal">0.001</span></label><input type="range" id="K_Bi" min="0" max="0.1" step="0.001" value="0.001" oninput="K_BiVal.textContent=this.value"/></div>
+    <div class="param"><label>K<sub>Ci</sub>: <span id="K_CiVal">1</span></label><input type="range" id="K_Ci" min="0.1" max="5" step="0.1" value="1" oninput="K_CiVal.textContent=this.value"/></div>
+    <div class="param"><label>η: <span id="etaVal">1</span></label><input type="range" id="eta" min="0.1" max="3" step="0.1" value="1" oninput="etaVal.textContent=this.value"/></div>
+    <div class="param"><label>a<sub>σ</sub>: <span id="aSigmaVal">1</span></label><input type="range" id="aSigma" min="0.1" max="5" step="0.1" value="1" oninput="aSigmaVal.textContent=this.value"/></div>
+    <div class="param"><label>L<sub>tot</sub>: <span id="L_totVal">1</span></label><input type="range" id="L_tot" min="0.5" max="5" step="0.1" value="1" oninput="L_totVal.textContent=this.value"/></div>
+  </div>
+
+  <button id="runBtn">Run Simulation</button>
+
+  <h2>Equilibrium Wage</h2>
+  <canvas id="wageChart"></canvas>
+
+  <h2>Total Output</h2>
+  <canvas id="outputChart"></canvas>
+
+  <script>
+    /* ---------------- Helper math ---------------- */
+    const sigmaFun = (r, eta, a) => Math.pow(r, eta) / (a + Math.pow(r, eta));
+    const sigmaPrime = (r, eta, a) => (eta * a * Math.pow(r, eta - 1)) / Math.pow(a + Math.pow(r, eta), 2);
+
+    /* Collect slider positions as a parameter object */
+    function getParams(){
+      return {
+        sigma_Y: parseFloat(sigmaY.value),
+        alpha_p: parseFloat(alphaP.value),
+        alpha_i: parseFloat(alphaI.value),
+        rho_p:  parseFloat(rhoP.value),
+        rho_i:  parseFloat(rhoI.value),
+        K_Bp:   parseFloat(K_Bp.value),
+        K_Cp:   parseFloat(K_Cp.value),
+        K_Bi:   parseFloat(K_Bi.value),
+        K_Ci:   parseFloat(K_Ci.value),
+        eta:    parseFloat(eta.value),
+        a_sigma:parseFloat(aSigma.value),
+        L_tot:  parseFloat(L_tot.value)
+      };
+    }
+
+    /* Core equilibrium solver (numeric.uncmin) */
+    function solveEquilibrium(betaC, p){
+      const q = (p.sigma_Y - 1) / p.sigma_Y;
+      const eq = v => {
+        const [logw, logLBp, logLBi, logLCp, logLCi] = v;
+        const w = Math.exp(logw);
+        const LBp = Math.exp(logLBp), LBi = Math.exp(logLBi),
+              LCp = Math.exp(logLCp), LCi = Math.exp(logLCi);
+
+        const PB = Math.pow(p.alpha_p*Math.pow(p.K_Bp,p.rho_p)+(1-p.alpha_p)*Math.pow(LBp,p.rho_p),1/p.rho_p);
+        const IB = Math.pow(p.alpha_i*Math.pow(p.K_Bi,p.rho_i)+(1-p.alpha_i)*Math.pow(LBi,p.rho_i),1/p.rho_i);
+        const rB = IB/PB;
+        const yB = PB * sigmaFun(rB,p.eta,p.a_sigma);
+
+        const PC = Math.pow(p.alpha_p*Math.pow(p.K_Cp,p.rho_p)+(1-p.alpha_p)*Math.pow(LCp,p.rho_p),1/p.rho_p);
+        const IC = Math.pow(p.alpha_i*Math.pow(p.K_Ci,p.rho_i)+(1-p.alpha_i)*Math.pow(LCi,p.rho_i),1/p.rho_i);
+        const rC = IC/PC;
+        const yC = PC * sigmaFun(rC,p.eta,p.a_sigma);
+
+        const Y = Math.abs(p.sigma_Y-1)<1e-8 ? Math.pow(yB,1-betaC)*Math.pow(yC,betaC)
+                  : Math.pow((1-betaC)*Math.pow(yB,q)+betaC*Math.pow(yC,q),1/q);
+
+        const pB = (1-betaC)*Math.pow(yB/Y,-1/p.sigma_Y);
+        const pC = betaC     *Math.pow(yC/Y,-1/p.sigma_Y);
+
+        const sigB  = sigmaFun(rB,p.eta,p.a_sigma);
+        const sigpB = sigmaPrime(rB,p.eta,p.a_sigma);
+        const sigC  = sigmaFun(rC,p.eta,p.a_sigma);
+        const sigpC = sigmaPrime(rC,p.eta,p.a_sigma);
+
+        const MPL_Bp = pB*(sigB-rB*sigpB)*(1-p.alpha_p)*Math.pow(LBp,p.rho_p-1)*Math.pow(PB,1-p.rho_p);
+        const MPL_Bi = pB*sigpB            * (1-p.alpha_i)*Math.pow(LBi,p.rho_i-1)*Math.pow(IB,1-p.rho_i);
+        const MPL_Cp = pC*(sigC-rC*sigpC)*(1-p.alpha_p)*Math.pow(LCp,p.rho_p-1)*Math.pow(PC,1-p.rho_p);
+        const MPL_Ci = pC*sigpC            * (1-p.alpha_i)*Math.pow(LCi,p.rho_i-1)*Math.pow(IC,1-p.rho_i);
+
+        return [
+          Math.log(MPL_Bp)-Math.log(w),
+          Math.log(MPL_Bi)-Math.log(w),
+          Math.log(MPL_Cp)-Math.log(w),
+          Math.log(MPL_Ci)-Math.log(w),
+          LBp+LBi+LCp+LCi-p.L_tot
+        ];
+      };
+
+      /* minimise squared residuals */
+      const x0=[Math.log(0.1),Math.log(p.L_tot/4),Math.log(p.L_tot/4),Math.log(p.L_tot/4),Math.log(p.L_tot/4)];
+      const sol=numeric.uncmin(v=>{const e=eq(v);return e.reduce((s,x)=>s+x*x,0)},x0,1e-10);
+      const residual=eq(sol.solution).reduce((s,x)=>s+Math.abs(x),0);
+      if(residual>1e-6||!isFinite(sol.solution[0]))return null; // no convergence
+
+      // extract wage & recompute Y
+      const [logw,logLBp,logLBi,logLCp,logLCi]=sol.solution;
+      const w=Math.exp(logw);
+      const LBp=Math.exp(logLBp),LBi=Math.exp(logLBi),LCp=Math.exp(logLCp),LCi=Math.exp(logLCi);
+
+      const PB=Math.pow(p.alpha_p*Math.pow(p.K_Bp,p.rho_p)+(1-p.alpha_p)*Math.pow(LBp,p.rho_p),1/p.rho_p);
+      const IB=Math.pow(p.alpha_i*Math.pow(p.K_Bi,p.rho_i)+(1-p.alpha_i)*Math.pow(LBi,p.rho_i),1/p.rho_i);
+      const yB=PB*sigmaFun(IB/PB,p.eta,p.a_sigma);
+      const PC=Math.pow(p.alpha_p*Math.pow(p.K_Cp,p.rho_p)+(1-p.alpha_p)*Math.pow(LCp,p.rho_p),1/p.rho_p);
+      const IC=Math.pow(p.alpha_i*Math.pow(p.K_Ci,p.rho_i)+(1-p.alpha_i)*Math.pow(LCi,p.rho_i),1/p.rho_i);
+      const yC=PC*sigmaFun(IC/PC,p.eta,p.a_sigma);
+      const Y=Math.abs(p.sigma_Y-1)<1e-8?Math.pow(yB,1-betaC)*Math.pow(yC,betaC):Math.pow((1-betaC)*Math.pow(yB,q)+betaC*Math.pow(yC,q),1/q);
+
+      return {w,Y};
+    }
+
+    /* Iterate over β_C grid and collect results */
+    function runSimulation(){
+      const p=getParams();
+      const betas=[],wages=[],outputs=[];
+      for(let beta=0.05;beta<=0.95;beta+=0.05){
+        const res=solveEquilibrium(beta,p);
+        if(res){betas.push(beta.toFixed(2));wages.push(res.w);outputs.push(res.Y);} // skip non‑convergent points
+      }
+      updateCharts(betas,wages,outputs);
+    }
+
+    /* Chart.js refresher */
+    let wageChart,outputChart;
+    function updateCharts(xs,ws,Ys){
+      if(!wageChart){
+        wageChart=new Chart(document.getElementById('wageChart'),{
+          type:'line',data:{labels:xs,datasets:[{label:'Wage',data:ws,fill:false,tension:0.1}]},
+          options:{scales:{x:{title:{display:true,text:'β_C'}},y:{title:{display:true,text:'w'}}}}
         });
-    </script>
+      }else{
+        wageChart.data.labels=xs;wageChart.data.datasets[0].data=ws;wageChart.update();
+      }
+      if(!outputChart){
+        outputChart=new Chart(document.getElementById('outputChart'),{
+          type:'line',data:{labels:xs,datasets:[{label:'Aggregate Output Y',data: Ys,fill:false,tension:0.1}]},
+          options:{scales:{x:{title:{display:true,text:'β_C'}},y:{title:{display:true,text:'Y'}}}}
+        });
+      }else{
+        outputChart.data.labels=xs;outputChart.data.datasets[0].data=Ys;outputChart.update();
+      }
+    }
+
+    document.getElementById('runBtn').addEventListener('click',runSimulation);
+    window.addEventListener('load',()=>setTimeout(runSimulation,100));
+  </script>
 </body>
 </html>
