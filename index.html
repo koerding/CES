@@ -1,175 +1,786 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Two‑Sector AI‑Economy Simulator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Chart.js for plotting -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/4.4.2/chart.umd.min.js"></script>
-  <!-- numeric.js for optimisation / root‑finding -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-  <style>
-    body{font-family:system-ui,Arial,sans-serif;margin:20px;line-height:1.4;background:#f8f9fa;color:#333}
-    h1{font-size:1.6rem;margin-bottom:1rem}
-    h2{font-size:1.2rem;margin:26px 0 8px}
-    .controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:20px}
-    .param label{display:flex;justify-content:space-between;font-weight:600;margin-bottom:2px}
-    .param input[type=range]{width:100%}
-    button{background:#0066ff;color:#fff;border:none;padding:8px 16px;font-size:1rem;border-radius:6px;cursor:pointer}
-    button:hover{background:#0044cc}
-    canvas{max-width:100%;height:280px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CES Economic Model</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+        
+        .controls {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .charts {
+            display: grid;
+            gap: 30px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            height: 400px;
+        }
+        
+        .parameter-group {
+            margin-bottom: 25px;
+        }
+        
+        .parameter-label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .parameter-description {
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider {
+            flex: 1;
+            height: 6px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .slider-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9em;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status.error {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>Two‑Sector AI Economy Simulator</h1>
-  <p>Adjust any primitive below (all <em>except</em> the computational‑sector share β<sub>C</sub>). Then click <strong>Run Simulation</strong>. The page solves for equilibrium wage <em>w</em> and total output <em>Y</em> over β<sub>C</sub> ∈ [0.05, 0.95] and draws the curves.</p>
+    <div class="container">
+        <h1>CES Economic Model Interactive</h1>
+        
+        <div class="main-content">
+            <div class="controls">
+                <div class="parameter-group">
+                    <label class="parameter-label">Elasticity Across Sectors (σ_Y)</label>
+                    <div class="parameter-description">Substitutability between different sectors in the economy</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="sigma_Y" min="0.1" max="3.0" step="0.1" value="1.0">
+                        <span class="slider-value" id="sigma_Y_value">1.0</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">Physical Capital Share (α_p)</label>
+                    <div class="parameter-description">Share of physical capital in production function</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="alpha_p" min="0.1" max="0.9" step="0.05" value="0.4">
+                        <span class="slider-value" id="alpha_p_value">0.4</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">AI Capital Share (α_i)</label>
+                    <div class="parameter-description">Share of AI/intellectual capital in production</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="alpha_i" min="0.1" max="0.9" step="0.05" value="0.6">
+                        <span class="slider-value" id="alpha_i_value">0.6</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">Physical Tasks Elasticity (ρ_p)</label>
+                    <div class="parameter-description">CES exponent for physical tasks (elasticity ≈ 1/(1-ρ))</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="rho_p" min="-0.9" max="0.9" step="0.1" value="-0.5">
+                        <span class="slider-value" id="rho_p_value">-0.5</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">Intelligence Tasks Elasticity (ρ_i)</label>
+                    <div class="parameter-description">CES exponent for intelligence tasks</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="rho_i" min="-0.9" max="0.9" step="0.1" value="0.5">
+                        <span class="slider-value" id="rho_i_value">0.5</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">Physical Capital in B (K_Bp)</label>
+                    <div class="parameter-description">Amount of physical capital in sector B</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="K_Bp" min="0.1" max="3.0" step="0.1" value="1.0">
+                        <span class="slider-value" id="K_Bp_value">1.0</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">Physical Capital in C (K_Cp)</label>
+                    <div class="parameter-description">Amount of physical capital in sector C</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="K_Cp" min="0.1" max="3.0" step="0.1" value="1.0">
+                        <span class="slider-value" id="K_Cp_value">1.0</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">AI Capital in B (K_Bi)</label>
+                    <div class="parameter-description">Amount of AI capital in sector B (≈ 0)</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="K_Bi" min="0.001" max="2.0" step="0.001" value="0.001">
+                        <span class="slider-value" id="K_Bi_value">0.001</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">AI Capital in C (K_Ci)</label>
+                    <div class="parameter-description">Amount of AI capital in sector C</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="K_Ci" min="0.1" max="3.0" step="0.1" value="1.0">
+                        <span class="slider-value" id="K_Ci_value">1.0</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">Curvature (η)</label>
+                    <div class="parameter-description">Curvature parameter in σ(x) function</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="eta" min="0.1" max="3.0" step="0.1" value="1.0">
+                        <span class="slider-value" id="eta_value">1.0</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">Shift Parameter (a_σ)</label>
+                    <div class="parameter-description">Shift parameter in σ(x) function</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="a_sigma" min="0.1" max="3.0" step="0.1" value="1.0">
+                        <span class="slider-value" id="a_sigma_value">1.0</span>
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <label class="parameter-label">Total Labor (L_tot)</label>
+                    <div class="parameter-description">Total labor endowment (normalization)</div>
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="L_tot" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <span class="slider-value" id="L_tot_value">1.0</span>
+                    </div>
+                </div>
+                
+                <div class="status" id="status"></div>
+            </div>
+            
+            <div class="charts">
+                <div class="chart-container">
+                    <canvas id="wageChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="outputChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <div class="controls" id="controls">
-    <div class="param"><label>σ<sub>Y</sub>: <span id="sigmaYVal">1</span></label><input type="range" id="sigmaY" min="0.5" max="2" step="0.05" value="1" oninput="sigmaYVal.textContent=this.value"/></div>
-    <div class="param"><label>α<sub>p</sub>: <span id="alphaPVal">0.4</span></label><input type="range" id="alphaP" min="0" max="1" step="0.05" value="0.4" oninput="alphaPVal.textContent=this.value"/></div>
-    <div class="param"><label>α<sub>i</sub>: <span id="alphaIVal">0.6</span></label><input type="range" id="alphaI" min="0" max="1" step="0.05" value="0.6" oninput="alphaIVal.textContent=this.value"/></div>
-    <div class="param"><label>ρ<sub>p</sub>: <span id="rhoPVal">-0.5</span></label><input type="range" id="rhoP" min="-0.9" max="0" step="0.05" value="-0.5" oninput="rhoPVal.textContent=this.value"/></div>
-    <div class="param"><label>ρ<sub>i</sub>: <span id="rhoIVal">0.5</span></label><input type="range" id="rhoI" min="0" max="0.9" step="0.05" value="0.5" oninput="rhoIVal.textContent=this.value"/></div>
-    <div class="param"><label>K<sub>Bp</sub>: <span id="K_BpVal">1</span></label><input type="range" id="K_Bp" min="0.2" max="3" step="0.1" value="1" oninput="K_BpVal.textContent=this.value"/></div>
-    <div class="param"><label>K<sub>Cp</sub>: <span id="K_CpVal">1</span></label><input type="range" id="K_Cp" min="0.2" max="3" step="0.1" value="1" oninput="K_CpVal.textContent=this.value"/></div>
-    <div class="param"><label>K<sub>Bi</sub>: <span id="K_BiVal">0.001</span></label><input type="range" id="K_Bi" min="0" max="0.1" step="0.001" value="0.001" oninput="K_BiVal.textContent=this.value"/></div>
-    <div class="param"><label>K<sub>Ci</sub>: <span id="K_CiVal">1</span></label><input type="range" id="K_Ci" min="0.1" max="5" step="0.1" value="1" oninput="K_CiVal.textContent=this.value"/></div>
-    <div class="param"><label>η: <span id="etaVal">1</span></label><input type="range" id="eta" min="0.1" max="3" step="0.1" value="1" oninput="etaVal.textContent=this.value"/></div>
-    <div class="param"><label>a<sub>σ</sub>: <span id="aSigmaVal">1</span></label><input type="range" id="aSigma" min="0.1" max="5" step="0.1" value="1" oninput="aSigmaVal.textContent=this.value"/></div>
-    <div class="param"><label>L<sub>tot</sub>: <span id="L_totVal">1</span></label><input type="range" id="L_tot" min="0.5" max="5" step="0.1" value="1" oninput="L_totVal.textContent=this.value"/></div>
-  </div>
+    <script>
+        // Global parameters
+        let params = {};
+        
+        // Safe mathematical functions
+        function safePow(base, exp) {
+            if (!isFinite(base) || !isFinite(exp) || base <= 0) return 1e-10;
+            if (exp === 0) return 1;
+            const result = Math.pow(Math.max(1e-10, base), exp);
+            return isFinite(result) ? Math.max(1e-10, result) : 1e-10;
+        }
+        
+        function sigma_fun(r, eta, a) {
+            if (r <= 0) return 0;
+            const r_eta = safePow(r, eta);
+            return r_eta / (a + r_eta);
+        }
 
-  <button id="runBtn">Run Simulation</button>
+        function sigma_prime(r, eta, a) {
+            if (r <= 0) return 0;
+            const r_eta = safePow(r, eta);
+            const r_eta_minus_1 = safePow(r, eta - 1);
+            const denominator = safePow(a + r_eta, 2);
+            return eta * a * r_eta_minus_1 / Math.max(1e-15, denominator);
+        }
+        
+        // Levenberg-Marquardt solver with bounds (adapted from your working example)
+        function levenbergMarquardtSolve(func, x0, bounds, maxIter = 500, tol = 1e-10) {
+            let x = [...x0];
+            const [lb, ub] = bounds;
+            let lambda = 0.01;
+            let bestX = [...x];
+            let bestError = Infinity;
+            
+            // Ensure initial guess is within bounds
+            for (let i = 0; i < x.length; i++) {
+                x[i] = Math.max(lb[i], Math.min(ub[i], x[i]));
+            }
+            
+            for (let iter = 0; iter < maxIter; iter++) {
+                try {
+                    const f = func(x);
+                    
+                    if (f.some(val => !isFinite(val))) {
+                        lambda = Math.min(lambda * 10, 1.0);
+                        continue;
+                    }
+                    
+                    const fnorm = Math.sqrt(f.reduce((s, v) => s + v*v, 0));
+                    
+                    if (fnorm < bestError) {
+                        bestX = [...x];
+                        bestError = fnorm;
+                    }
+                    
+                    if (fnorm < tol) {
+                        return { x: bestX, success: true, iterations: iter, error: fnorm };
+                    }
+                    
+                    // Compute Jacobian
+                    const J = [];
+                    const h = 1e-8;
+                    
+                    for (let i = 0; i < x.length; i++) {
+                        const xh = [...x];
+                        xh[i] = Math.max(lb[i], Math.min(ub[i], xh[i] + h));
+                        try {
+                            const fh = func(xh);
+                            if (fh.some(val => !isFinite(val))) {
+                                const col = new Array(f.length).fill(0);
+                                col[i % f.length] = 1;
+                                J.push(col);
+                            } else {
+                                J.push(fh.map((val, j) => (val - f[j]) / h));
+                            }
+                        } catch (e) {
+                            const col = new Array(f.length).fill(0);
+                            col[i % f.length] = 1;
+                            J.push(col);
+                        }
+                    }
+                    
+                    // Levenberg-Marquardt step: (J^T J + λI) dx = -J^T f
+                    const JT = [];
+                    for (let i = 0; i < f.length; i++) {
+                        JT.push(J.map(row => row[i]));
+                    }
+                    
+                    const JTJ = [];
+                    for (let i = 0; i < x.length; i++) {
+                        JTJ.push([]);
+                        for (let j = 0; j < x.length; j++) {
+                            let sum = 0;
+                            for (let k = 0; k < f.length; k++) {
+                                sum += JT[k][i] * JT[k][j];
+                            }
+                            JTJ[i][j] = sum + (i === j ? lambda : 0);
+                        }
+                    }
+                    
+                    const JTf = [];
+                    for (let i = 0; i < x.length; i++) {
+                        let sum = 0;
+                        for (let j = 0; j < f.length; j++) {
+                            sum += JT[j][i] * f[j];
+                        }
+                        JTf.push(-sum);
+                    }
+                    
+                    const dx = solveLMSystem(JTJ, JTf);
+                    
+                    if (!dx) {
+                        lambda *= 10;
+                        continue;
+                    }
+                    
+                    // Line search with bounds enforcement
+                    let alpha = 1.0;
+                    let xNew, fNew, fnormNew;
+                    
+                    for (let ls = 0; ls < 8; ls++) {
+                        xNew = x.map((val, i) => {
+                            const newVal = val + alpha * dx[i];
+                            return Math.max(lb[i], Math.min(ub[i], newVal));
+                        });
+                        
+                        try {
+                            fNew = func(xNew);
+                            if (fNew.some(val => !isFinite(val))) {
+                                alpha *= 0.5;
+                                continue;
+                            }
+                            fnormNew = Math.sqrt(fNew.reduce((s, v) => s + v*v, 0));
+                            break;
+                        } catch (e) {
+                            alpha *= 0.5;
+                        }
+                        
+                        if (alpha < 1e-10) break;
+                    }
+                    
+                    if (fnormNew < fnorm) {
+                        x = xNew;
+                        lambda = Math.max(lambda / 3, 1e-10);
+                    } else {
+                        lambda = Math.min(lambda * 2, 1e6);
+                    }
+                    
+                } catch (error) {
+                    lambda = Math.min(lambda * 5, 1.0);
+                }
+            }
+            
+            return { x: bestX, success: bestError < tol * 100, iterations: maxIter, error: bestError };
+        }
+        
+        function solveLMSystem(A, b) {
+            const n = A.length;
+            const augmented = A.map((row, i) => [...row, b[i]]);
+            
+            // Gaussian elimination with partial pivoting
+            for (let i = 0; i < n; i++) {
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
+                        maxRow = k;
+                    }
+                }
+                [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
+                
+                if (Math.abs(augmented[i][i]) < 1e-12) {
+                    return null;
+                }
+                
+                for (let k = i + 1; k < n; k++) {
+                    const factor = augmented[k][i] / augmented[i][i];
+                    for (let j = i; j <= n; j++) {
+                        augmented[k][j] -= factor * augmented[i][j];
+                    }
+                }
+            }
+            
+            const x = new Array(n);
+            for (let i = n - 1; i >= 0; i--) {
+                x[i] = augmented[i][n];
+                for (let j = i + 1; j < n; j++) {
+                    x[i] -= augmented[i][j] * x[j];
+                }
+                x[i] /= augmented[i][i];
+                
+                if (!isFinite(x[i])) {
+                    return null;
+                }
+            }
+            
+            return x;
+        }
 
-  <h2>Equilibrium Wage</h2>
-  <canvas id="wageChart"></canvas>
+        function solveEquilibrium(beta_C, p) {
+            const { sigma_Y, alpha_p, alpha_i, rho_p, rho_i, K_Bp, K_Cp, K_Bi, K_Ci, eta, a_sigma, L_tot } = p;
+            const q = (sigma_Y - 1.0) / sigma_Y;
 
-  <h2>Total Output</h2>
-  <canvas id="outputChart"></canvas>
+            function residuals(logvars) {
+                try {
+                    const [logw, logLBp, logLBi, logLCp, logLCi] = logvars;
+                    const w = Math.exp(Math.max(-15, Math.min(15, logw)));
+                    const LBp = Math.exp(Math.max(-15, Math.min(15, logLBp)));
+                    const LBi = Math.exp(Math.max(-15, Math.min(15, logLBi)));
+                    const LCp = Math.exp(Math.max(-15, Math.min(15, logLCp)));
+                    const LCi = Math.exp(Math.max(-15, Math.min(15, logLCi)));
 
-  <script>
-    /* ---------------- Helper math ---------------- */
-    const sigmaFun = (r, eta, a) => Math.pow(r, eta) / (a + Math.pow(r, eta));
-    const sigmaPrime = (r, eta, a) => (eta * a * Math.pow(r, eta - 1)) / Math.pow(a + Math.pow(r, eta), 2);
+                    // Sector B
+                    const PB = safePow(alpha_p * safePow(K_Bp, rho_p) + (1 - alpha_p) * safePow(LBp, rho_p), 1 / rho_p);
+                    const IB = safePow(alpha_i * safePow(K_Bi, rho_i) + (1 - alpha_i) * safePow(LBi, rho_i), 1 / rho_i);
+                    const rB = IB / Math.max(1e-15, PB);
+                    const yB = PB * sigma_fun(rB, eta, a_sigma);
 
-    /* Collect slider positions as a parameter object */
-    function getParams(){
-      return {
-        sigma_Y: parseFloat(sigmaY.value),
-        alpha_p: parseFloat(alphaP.value),
-        alpha_i: parseFloat(alphaI.value),
-        rho_p:  parseFloat(rhoP.value),
-        rho_i:  parseFloat(rhoI.value),
-        K_Bp:   parseFloat(K_Bp.value),
-        K_Cp:   parseFloat(K_Cp.value),
-        K_Bi:   parseFloat(K_Bi.value),
-        K_Ci:   parseFloat(K_Ci.value),
-        eta:    parseFloat(eta.value),
-        a_sigma:parseFloat(aSigma.value),
-        L_tot:  parseFloat(L_tot.value)
-      };
-    }
+                    // Sector C
+                    const PC = safePow(alpha_p * safePow(K_Cp, rho_p) + (1 - alpha_p) * safePow(LCp, rho_p), 1 / rho_p);
+                    const IC = safePow(alpha_i * safePow(K_Ci, rho_i) + (1 - alpha_i) * safePow(LCi, rho_i), 1 / rho_i);
+                    const rC = IC / Math.max(1e-15, PC);
+                    const yC = PC * sigma_fun(rC, eta, a_sigma);
 
-    /* Core equilibrium solver (numeric.uncmin) */
-    function solveEquilibrium(betaC, p){
-      const q = (p.sigma_Y - 1) / p.sigma_Y;
-      const eq = v => {
-        const [logw, logLBp, logLBi, logLCp, logLCi] = v;
-        const w = Math.exp(logw);
-        const LBp = Math.exp(logLBp), LBi = Math.exp(logLBi),
-              LCp = Math.exp(logLCp), LCi = Math.exp(logLCi);
+                    if (yB <= 0 || yC <= 0) {
+                        return [1e6, 1e6, 1e6, 1e6, 1e6];
+                    }
 
-        const PB = Math.pow(p.alpha_p*Math.pow(p.K_Bp,p.rho_p)+(1-p.alpha_p)*Math.pow(LBp,p.rho_p),1/p.rho_p);
-        const IB = Math.pow(p.alpha_i*Math.pow(p.K_Bi,p.rho_i)+(1-p.alpha_i)*Math.pow(LBi,p.rho_i),1/p.rho_i);
-        const rB = IB/PB;
-        const yB = PB * sigmaFun(rB,p.eta,p.a_sigma);
+                    // Aggregate output & sector prices
+                    let Y, pB, pC;
+                    if (Math.abs(sigma_Y - 1.0) < 1e-8) {
+                        Y = safePow(yB, 1 - beta_C) * safePow(yC, beta_C);
+                        pB = (1 - beta_C) / yB;
+                        pC = beta_C / yC;
+                    } else {
+                        const inner = (1 - beta_C) * safePow(yB, q) + beta_C * safePow(yC, q);
+                        if (inner <= 0) return [1e6, 1e6, 1e6, 1e6, 1e6];
+                        Y = safePow(inner, 1 / q);
+                        pB = (1 - beta_C) * safePow(yB / Math.max(1e-15, Y), -1 / sigma_Y);
+                        pC = beta_C * safePow(yC / Math.max(1e-15, Y), -1 / sigma_Y);
+                    }
 
-        const PC = Math.pow(p.alpha_p*Math.pow(p.K_Cp,p.rho_p)+(1-p.alpha_p)*Math.pow(LCp,p.rho_p),1/p.rho_p);
-        const IC = Math.pow(p.alpha_i*Math.pow(p.K_Ci,p.rho_i)+(1-p.alpha_i)*Math.pow(LCi,p.rho_i),1/p.rho_i);
-        const rC = IC/PC;
-        const yC = PC * sigmaFun(rC,p.eta,p.a_sigma);
+                    const sigB = sigma_fun(rB, eta, a_sigma);
+                    const sigpB = sigma_prime(rB, eta, a_sigma);
+                    const sigC = sigma_fun(rC, eta, a_sigma);
+                    const sigpC = sigma_prime(rC, eta, a_sigma);
 
-        const Y = Math.abs(p.sigma_Y-1)<1e-8 ? Math.pow(yB,1-betaC)*Math.pow(yC,betaC)
-                  : Math.pow((1-betaC)*Math.pow(yB,q)+betaC*Math.pow(yC,q),1/q);
+                    // Marginal products of labour
+                    const MPL_Bp = pB * (sigB - rB * sigpB) * (1 - alpha_p) * safePow(LBp, rho_p - 1) * safePow(PB, 1 - rho_p);
+                    const MPL_Bi = pB * sigpB * (1 - alpha_i) * safePow(LBi, rho_i - 1) * safePow(IB, 1 - rho_i);
+                    const MPL_Cp = pC * (sigC - rC * sigpC) * (1 - alpha_p) * safePow(LCp, rho_p - 1) * safePow(PC, 1 - rho_p);
+                    const MPL_Ci = pC * sigpC * (1 - alpha_i) * safePow(LCi, rho_i - 1) * safePow(IC, 1 - rho_i);
 
-        const pB = (1-betaC)*Math.pow(yB/Y,-1/p.sigma_Y);
-        const pC = betaC     *Math.pow(yC/Y,-1/p.sigma_Y);
+                    if (MPL_Bp <= 0 || MPL_Bi <= 0 || MPL_Cp <= 0 || MPL_Ci <= 0) {
+                        return [1e6, 1e6, 1e6, 1e6, 1e6];
+                    }
 
-        const sigB  = sigmaFun(rB,p.eta,p.a_sigma);
-        const sigpB = sigmaPrime(rB,p.eta,p.a_sigma);
-        const sigC  = sigmaFun(rC,p.eta,p.a_sigma);
-        const sigpC = sigmaPrime(rC,p.eta,p.a_sigma);
+                    const w_safe = Math.max(1e-15, w);
+                    const L_tot_safe = Math.max(1e-15, L_tot);
 
-        const MPL_Bp = pB*(sigB-rB*sigpB)*(1-p.alpha_p)*Math.pow(LBp,p.rho_p-1)*Math.pow(PB,1-p.rho_p);
-        const MPL_Bi = pB*sigpB            * (1-p.alpha_i)*Math.pow(LBi,p.rho_i-1)*Math.pow(IB,1-p.rho_i);
-        const MPL_Cp = pC*(sigC-rC*sigpC)*(1-p.alpha_p)*Math.pow(LCp,p.rho_p-1)*Math.pow(PC,1-p.rho_p);
-        const MPL_Ci = pC*sigpC            * (1-p.alpha_i)*Math.pow(LCi,p.rho_i-1)*Math.pow(IC,1-p.rho_i);
+                    return [
+                        (MPL_Bp - w) / w_safe,
+                        (MPL_Bi - w) / w_safe,
+                        (MPL_Cp - w) / w_safe,
+                        (MPL_Ci - w) / w_safe,
+                        (LBp + LBi + LCp + LCi - L_tot) / L_tot_safe
+                    ];
+                } catch (e) {
+                    return [1e6, 1e6, 1e6, 1e6, 1e6];
+                }
+            }
 
-        return [
-          Math.log(MPL_Bp)-Math.log(w),
-          Math.log(MPL_Bi)-Math.log(w),
-          Math.log(MPL_Cp)-Math.log(w),
-          Math.log(MPL_Ci)-Math.log(w),
-          LBp+LBi+LCp+LCi-p.L_tot
-        ];
-      };
+            // Set up bounds for log-space variables
+            const lb = new Array(5).fill(Math.log(1e-8));
+            const ub = new Array(5).fill(Math.log(1e8));
+            
+            // Better initial guess
+            const x0 = [Math.log(0.5), Math.log(L_tot / 4), Math.log(L_tot / 4), Math.log(L_tot / 4), Math.log(L_tot / 4)];
 
-      /* minimise squared residuals */
-      const x0=[Math.log(0.1),Math.log(p.L_tot/4),Math.log(p.L_tot/4),Math.log(p.L_tot/4),Math.log(p.L_tot/4)];
-      const sol=numeric.uncmin(v=>{const e=eq(v);return e.reduce((s,x)=>s+x*x,0)},x0,1e-10);
-      const residual=eq(sol.solution).reduce((s,x)=>s+Math.abs(x),0);
-      if(residual>1e-6||!isFinite(sol.solution[0]))return null; // no convergence
+            const result = levenbergMarquardtSolve(residuals, x0, [lb, ub]);
+            
+            if (!result.success) {
+                throw new Error(`Failed to converge at beta_C=${beta_C.toFixed(3)} (error: ${result.error.toExponential(2)})`);
+            }
 
-      // extract wage & recompute Y
-      const [logw,logLBp,logLBi,logLCp,logLCi]=sol.solution;
-      const w=Math.exp(logw);
-      const LBp=Math.exp(logLBp),LBi=Math.exp(logLBi),LCp=Math.exp(logLCp),LCi=Math.exp(logLCi);
+            try {
+                const [logw, logLBp, logLBi, logLCp, logLCi] = result.x;
+                const w = Math.exp(Math.max(-15, Math.min(15, logw)));
+                const LBp = Math.exp(Math.max(-15, Math.min(15, logLBp)));
+                const LBi = Math.exp(Math.max(-15, Math.min(15, logLBi)));
+                const LCp = Math.exp(Math.max(-15, Math.min(15, logLCp)));
+                const LCi = Math.exp(Math.max(-15, Math.min(15, logLCi)));
 
-      const PB=Math.pow(p.alpha_p*Math.pow(p.K_Bp,p.rho_p)+(1-p.alpha_p)*Math.pow(LBp,p.rho_p),1/p.rho_p);
-      const IB=Math.pow(p.alpha_i*Math.pow(p.K_Bi,p.rho_i)+(1-p.alpha_i)*Math.pow(LBi,p.rho_i),1/p.rho_i);
-      const yB=PB*sigmaFun(IB/PB,p.eta,p.a_sigma);
-      const PC=Math.pow(p.alpha_p*Math.pow(p.K_Cp,p.rho_p)+(1-p.alpha_p)*Math.pow(LCp,p.rho_p),1/p.rho_p);
-      const IC=Math.pow(p.alpha_i*Math.pow(p.K_Ci,p.rho_i)+(1-p.alpha_i)*Math.pow(LCi,p.rho_i),1/p.rho_i);
-      const yC=PC*sigmaFun(IC/PC,p.eta,p.a_sigma);
-      const Y=Math.abs(p.sigma_Y-1)<1e-8?Math.pow(yB,1-betaC)*Math.pow(yC,betaC):Math.pow((1-betaC)*Math.pow(yB,q)+betaC*Math.pow(yC,q),1/q);
+                // Recompute aggregate output
+                const PB = safePow(alpha_p * safePow(K_Bp, rho_p) + (1 - alpha_p) * safePow(LBp, rho_p), 1 / rho_p);
+                const IB = safePow(alpha_i * safePow(K_Bi, rho_i) + (1 - alpha_i) * safePow(LBi, rho_i), 1 / rho_i);
+                const rB = IB / Math.max(1e-15, PB);
+                const yB = PB * sigma_fun(rB, eta, a_sigma);
 
-      return {w,Y};
-    }
+                const PC = safePow(alpha_p * safePow(K_Cp, rho_p) + (1 - alpha_p) * safePow(LCp, rho_p), 1 / rho_p);
+                const IC = safePow(alpha_i * safePow(K_Ci, rho_i) + (1 - alpha_i) * safePow(LCi, rho_i), 1 / rho_i);
+                const rC = IC / Math.max(1e-15, PC);
+                const yC = PC * sigma_fun(rC, eta, a_sigma);
 
-    /* Iterate over β_C grid and collect results */
-    function runSimulation(){
-      const p=getParams();
-      const betas=[],wages=[],outputs=[];
-      for(let beta=0.05;beta<=0.95;beta+=0.05){
-        const res=solveEquilibrium(beta,p);
-        if(res){betas.push(beta.toFixed(2));wages.push(res.w);outputs.push(res.Y);} // skip non‑convergent points
-      }
-      updateCharts(betas,wages,outputs);
-    }
+                let Y;
+                if (Math.abs(sigma_Y - 1.0) < 1e-8) {
+                    Y = safePow(yB, 1 - beta_C) * safePow(yC, beta_C);
+                } else {
+                    const q = (sigma_Y - 1.0) / sigma_Y;
+                    const inner = (1 - beta_C) * safePow(yB, q) + beta_C * safePow(yC, q);
+                    Y = safePow(inner, 1 / q);
+                }
 
-    /* Chart.js refresher */
-    let wageChart,outputChart;
-    function updateCharts(xs,ws,Ys){
-      if(!wageChart){
-        wageChart=new Chart(document.getElementById('wageChart'),{
-          type:'line',data:{labels:xs,datasets:[{label:'Wage',data:ws,fill:false,tension:0.1}]},
-          options:{scales:{x:{title:{display:true,text:'β_C'}},y:{title:{display:true,text:'w'}}}}
+                return { w, Y };
+            } catch (e) {
+                throw new Error("Error computing final output: " + e.message);
+            }
+        }
+
+        // Chart setup
+        const wageCtx = document.getElementById('wageChart').getContext('2d');
+        const outputCtx = document.getElementById('outputChart').getContext('2d');
+
+        const wageChart = new Chart(wageCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Equilibrium Wage',
+                    data: [],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Wage vs Computational-sector Share',
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Computational-sector share (β_C)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Equilibrium wage (w)'
+                        }
+                    }
+                }
+            }
         });
-      }else{
-        wageChart.data.labels=xs;wageChart.data.datasets[0].data=ws;wageChart.update();
-      }
-      if(!outputChart){
-        outputChart=new Chart(document.getElementById('outputChart'),{
-          type:'line',data:{labels:xs,datasets:[{label:'Aggregate Output Y',data: Ys,fill:false,tension:0.1}]},
-          options:{scales:{x:{title:{display:true,text:'β_C'}},y:{title:{display:true,text:'Y'}}}}
-        });
-      }else{
-        outputChart.data.labels=xs;outputChart.data.datasets[0].data=Ys;outputChart.update();
-      }
-    }
 
-    document.getElementById('runBtn').addEventListener('click',runSimulation);
-    window.addEventListener('load',()=>setTimeout(runSimulation,100));
-  </script>
+        const outputChart = new Chart(outputCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Aggregate Output',
+                    data: [],
+                    borderColor: '#764ba2',
+                    backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Output vs Computational-sector Share',
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Computational-sector share (β_C)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Aggregate output (Y)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Parameter management
+        function getParams() {
+            return {
+                sigma_Y: parseFloat(document.getElementById('sigma_Y').value),
+                alpha_p: parseFloat(document.getElementById('alpha_p').value),
+                alpha_i: parseFloat(document.getElementById('alpha_i').value),
+                rho_p: parseFloat(document.getElementById('rho_p').value),
+                rho_i: parseFloat(document.getElementById('rho_i').value),
+                K_Bp: parseFloat(document.getElementById('K_Bp').value),
+                K_Cp: parseFloat(document.getElementById('K_Cp').value),
+                K_Bi: parseFloat(document.getElementById('K_Bi').value),
+                K_Ci: parseFloat(document.getElementById('K_Ci').value),
+                eta: parseFloat(document.getElementById('eta').value),
+                a_sigma: parseFloat(document.getElementById('a_sigma').value),
+                L_tot: parseFloat(document.getElementById('L_tot').value)
+            };
+        }
+
+        function updateCharts() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = 'Computing equilibrium...';
+            statusDiv.className = 'status';
+            
+            setTimeout(() => {
+                try {
+                    params = getParams();
+                    const beta_grid = [];
+                    const wages = [];
+                    const outputs = [];
+
+                    // Generate beta_C grid
+                    for (let i = 0; i < 19; i++) {
+                        beta_grid.push(0.05 + i * (0.95 - 0.05) / 18);
+                    }
+
+                    console.log("Computing equilibria for parameters:", params);
+
+                    // Solve for each beta_C
+                    for (const beta of beta_grid) {
+                        try {
+                            const result = solveEquilibrium(beta, params);
+                            wages.push(result.w);
+                            outputs.push(result.Y);
+                        } catch (error) {
+                            console.log(`Failed to solve for beta_C = ${beta}:`, error.message);
+                            wages.push(null);
+                            outputs.push(null);
+                        }
+                    }
+
+                    console.log("Computed wages:", wages.slice(0, 5), "...");
+                    console.log("Computed outputs:", outputs.slice(0, 5), "...");
+
+                    // Update charts
+                    wageChart.data.labels = beta_grid.map(b => b.toFixed(2));
+                    wageChart.data.datasets[0].data = wages;
+                    wageChart.update('none');
+
+                    outputChart.data.labels = beta_grid.map(b => b.toFixed(2));
+                    outputChart.data.datasets[0].data = outputs;
+                    outputChart.update('none');
+                    
+                    statusDiv.textContent = 'Simulation completed successfully!';
+                    statusDiv.className = 'status success';
+                    
+                } catch (error) {
+                    console.error('Simulation error:', error);
+                    statusDiv.textContent = 'Error: ' + error.message;
+                    statusDiv.className = 'status error';
+                }
+            }, 100);
+        }
+
+        // Event listeners for sliders
+        function setupSliders() {
+            const sliders = document.querySelectorAll('.slider');
+            sliders.forEach(slider => {
+                const valueSpan = document.getElementById(slider.id + '_value');
+                
+                // Update display value
+                slider.addEventListener('input', function() {
+                    valueSpan.textContent = this.value;
+                });
+                
+                // Update charts on change
+                slider.addEventListener('input', updateCharts);
+            });
+        }
+
+        // Initialize
+        setupSliders();
+        updateCharts();
+    </script>
 </body>
 </html>
