@@ -20,7 +20,7 @@
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -39,21 +39,60 @@
         
         .main-content {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 400px 1fr;
             gap: 30px;
             align-items: start;
         }
         
         .controls {
             background: #f8f9fa;
-            padding: 25px;
             border-radius: 15px;
             border: 1px solid #e9ecef;
+            height: fit-content;
+        }
+        
+        .tab-header {
+            display: flex;
+            background: #e9ecef;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tab-button:first-child.active {
+            border-radius: 15px 0 0 0;
+        }
+        
+        .tab-button:last-child.active {
+            border-radius: 0 15px 0 0;
+        }
+        
+        .tab-content {
+            padding: 25px;
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
         
         .charts {
             display: grid;
-            gap: 30px;
+            gap: 25px;
         }
         
         .chart-container {
@@ -62,11 +101,11 @@
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             position: relative;
-            height: 400px;
+            height: 350px;
         }
         
         .parameter-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         
         .parameter-label {
@@ -74,20 +113,20 @@
             font-weight: 600;
             color: #2c3e50;
             margin-bottom: 8px;
-            font-size: 0.95em;
+            font-size: 0.9em;
         }
         
         .parameter-description {
-            font-size: 0.8em;
+            font-size: 0.75em;
             color: #6c757d;
-            margin-bottom: 10px;
-            line-height: 1.4;
+            margin-bottom: 8px;
+            line-height: 1.3;
         }
         
         .slider-container {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
         
         .slider {
@@ -102,8 +141,8 @@
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             background: #667eea;
             cursor: pointer;
@@ -111,8 +150,8 @@
         }
         
         .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             background: #667eea;
             cursor: pointer;
@@ -121,19 +160,20 @@
         }
         
         .slider-value {
-            min-width: 60px;
+            min-width: 50px;
             text-align: right;
             font-weight: 600;
             color: #495057;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
         
         .status {
             text-align: center;
-            padding: 10px;
-            margin-top: 15px;
+            padding: 12px;
+            margin-top: 20px;
             border-radius: 8px;
             font-weight: 600;
+            font-size: 0.9em;
         }
         
         .status.success {
@@ -146,13 +186,9 @@
             color: #c53030;
         }
         
-        @media (max-width: 1024px) {
+        @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
-            }
-            
-            .container {
-                padding: 20px;
             }
         }
     </style>
@@ -163,111 +199,123 @@
         
         <div class="main-content">
             <div class="controls">
-                <div class="parameter-group">
-                    <label class="parameter-label">Elasticity Across Sectors (σ_Y)</label>
-                    <div class="parameter-description">Substitutability between different sectors in the economy</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="sigma_Y" min="0.1" max="3.0" step="0.1" value="1.0">
-                        <span class="slider-value" id="sigma_Y_value">1.0</span>
+                <div class="tab-header">
+                    <button class="tab-button active" onclick="switchTab(0)">Production</button>
+                    <button class="tab-button" onclick="switchTab(1)">Capital</button>
+                    <button class="tab-button" onclick="switchTab(2)">Structure</button>
+                </div>
+                
+                <div class="tab-content active">
+                    <div class="parameter-group">
+                        <label class="parameter-label">Cross-Sector Elasticity (σ_Y)</label>
+                        <div class="parameter-description">Substitutability between sectors in final aggregation</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="sigma_Y" min="0.1" max="3.0" step="0.1" value="1.5">
+                            <span class="slider-value" id="sigma_Y_value">1.5</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">Physical Capital Share (α_p)</label>
+                        <div class="parameter-description">Share of physical capital in CES production function</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="alpha_p" min="0.1" max="0.9" step="0.05" value="0.5">
+                            <span class="slider-value" id="alpha_p_value">0.5</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">AI Capital Share (α_i)</label>
+                        <div class="parameter-description">Share of AI/intellectual capital in CES production</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="alpha_i" min="0.1" max="0.9" step="0.05" value="0.8">
+                            <span class="slider-value" id="alpha_i_value">0.8</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">Physical Elasticity (σ_p)</label>
+                        <div class="parameter-description">Elasticity of substitution for physical tasks</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="sigma_p" min="0.1" max="3.0" step="0.1" value="0.5">
+                            <span class="slider-value" id="sigma_p_value">0.5</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">Intelligence Elasticity (σ_i)</label>
+                        <div class="parameter-description">Elasticity of substitution for intelligence tasks</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="sigma_i" min="0.1" max="3.0" step="0.1" value="2.0">
+                            <span class="slider-value" id="sigma_i_value">2.0</span>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="parameter-group">
-                    <label class="parameter-label">Physical Capital Share (α_p)</label>
-                    <div class="parameter-description">Share of physical capital in production function</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="alpha_p" min="0.1" max="0.9" step="0.05" value="0.4">
-                        <span class="slider-value" id="alpha_p_value">0.4</span>
+                <div class="tab-content">
+                    <div class="parameter-group">
+                        <label class="parameter-label">Physical Capital in B (K_Bp)</label>
+                        <div class="parameter-description">Amount of physical capital in sector B</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="K_Bp" min="0.1" max="2.0" step="0.1" value="0.5">
+                            <span class="slider-value" id="K_Bp_value">0.5</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">Physical Capital in C (K_Cp)</label>
+                        <div class="parameter-description">Amount of physical capital in sector C</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="K_Cp" min="0.1" max="2.0" step="0.1" value="0.5">
+                            <span class="slider-value" id="K_Cp_value">0.5</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">AI Capital in B (K_Bi)</label>
+                        <div class="parameter-description">Amount of AI capital in sector B (low baseline)</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="K_Bi" min="0.001" max="1.0" step="0.001" value="0.001">
+                            <span class="slider-value" id="K_Bi_value">0.001</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">AI Capital in C (K_Ci)</label>
+                        <div class="parameter-description">Amount of AI capital in sector C</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="K_Ci" min="0.1" max="2.0" step="0.1" value="1.0">
+                            <span class="slider-value" id="K_Ci_value">1.0</span>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="parameter-group">
-                    <label class="parameter-label">AI Capital Share (α_i)</label>
-                    <div class="parameter-description">Share of AI/intellectual capital in production</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="alpha_i" min="0.1" max="0.9" step="0.05" value="0.6">
-                        <span class="slider-value" id="alpha_i_value">0.6</span>
+                <div class="tab-content">
+                    <div class="parameter-group">
+                        <label class="parameter-label">S-curve Parameter (a)</label>
+                        <div class="parameter-description">Controls shape of intelligence-physical substitution</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="a_param" min="0.1" max="1.0" step="0.05" value="0.2">
+                            <span class="slider-value" id="a_param_value">0.2</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <label class="parameter-label">Physical Tasks Elasticity (ρ_p)</label>
-                    <div class="parameter-description">CES exponent for physical tasks (elasticity ≈ 1/(1-ρ))</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="rho_p" min="-0.9" max="0.9" step="0.1" value="-0.5">
-                        <span class="slider-value" id="rho_p_value">-0.5</span>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">S-curve Exponent (η)</label>
+                        <div class="parameter-description">Curvature parameter in σ(x) function</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="eta" min="0.5" max="3.0" step="0.1" value="1.2">
+                            <span class="slider-value" id="eta_value">1.2</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <label class="parameter-label">Intelligence Tasks Elasticity (ρ_i)</label>
-                    <div class="parameter-description">CES exponent for intelligence tasks</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="rho_i" min="-0.9" max="0.9" step="0.1" value="0.5">
-                        <span class="slider-value" id="rho_i_value">0.5</span>
-                    </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <label class="parameter-label">Physical Capital in B (K_Bp)</label>
-                    <div class="parameter-description">Amount of physical capital in sector B</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="K_Bp" min="0.1" max="3.0" step="0.1" value="1.0">
-                        <span class="slider-value" id="K_Bp_value">1.0</span>
-                    </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <label class="parameter-label">Physical Capital in C (K_Cp)</label>
-                    <div class="parameter-description">Amount of physical capital in sector C</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="K_Cp" min="0.1" max="3.0" step="0.1" value="1.0">
-                        <span class="slider-value" id="K_Cp_value">1.0</span>
-                    </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <label class="parameter-label">AI Capital in B (K_Bi)</label>
-                    <div class="parameter-description">Amount of AI capital in sector B (≈ 0)</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="K_Bi" min="0.001" max="2.0" step="0.001" value="0.001">
-                        <span class="slider-value" id="K_Bi_value">0.001</span>
-                    </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <label class="parameter-label">AI Capital in C (K_Ci)</label>
-                    <div class="parameter-description">Amount of AI capital in sector C</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="K_Ci" min="0.1" max="3.0" step="0.1" value="1.0">
-                        <span class="slider-value" id="K_Ci_value">1.0</span>
-                    </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <label class="parameter-label">Curvature (η)</label>
-                    <div class="parameter-description">Curvature parameter in σ(x) function</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="eta" min="0.1" max="3.0" step="0.1" value="1.0">
-                        <span class="slider-value" id="eta_value">1.0</span>
-                    </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <label class="parameter-label">Shift Parameter (a_σ)</label>
-                    <div class="parameter-description">Shift parameter in σ(x) function</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="a_sigma" min="0.1" max="3.0" step="0.1" value="1.0">
-                        <span class="slider-value" id="a_sigma_value">1.0</span>
-                    </div>
-                </div>
-                
-                <div class="parameter-group">
-                    <label class="parameter-label">Total Labor (L_tot)</label>
-                    <div class="parameter-description">Total labor endowment (normalization)</div>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="L_tot" min="0.5" max="2.0" step="0.1" value="1.0">
-                        <span class="slider-value" id="L_tot_value">1.0</span>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">Total Labor (L_tot)</label>
+                        <div class="parameter-description">Total labor endowment (normalization)</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="L_tot" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span class="slider-value" id="L_tot_value">1.0</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -276,176 +324,317 @@
             
             <div class="charts">
                 <div class="chart-container">
+                    <canvas id="outputChart"></canvas>
+                </div>
+                <div class="chart-container">
                     <canvas id="wageChart"></canvas>
                 </div>
                 <div class="chart-container">
-                    <canvas id="outputChart"></canvas>
+                    <canvas id="laborChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Global parameters
-        let params = {};
-        
-        // Safe mathematical functions
-        function safePow(base, exp) {
-            if (!isFinite(base) || !isFinite(exp) || base <= 0) return 1e-10;
-            if (exp === 0) return 1;
-            const result = Math.pow(Math.max(1e-10, base), exp);
-            return isFinite(result) ? Math.max(1e-10, result) : 1e-10;
-        }
-        
-        function sigma_fun(r, eta, a) {
-            if (r <= 0) return 0;
-            const r_eta = safePow(r, eta);
-            return r_eta / (a + r_eta);
-        }
-
-        function sigma_prime(r, eta, a) {
-            if (r <= 0) return 0;
-            const r_eta = safePow(r, eta);
-            const r_eta_minus_1 = safePow(r, eta - 1);
-            const denominator = safePow(a + r_eta, 2);
-            return eta * a * r_eta_minus_1 / Math.max(1e-15, denominator);
-        }
-        
-        // Levenberg-Marquardt solver with bounds (adapted from your working example)
-        function levenbergMarquardtSolve(func, x0, bounds, maxIter = 500, tol = 1e-10) {
-            let x = [...x0];
-            const [lb, ub] = bounds;
-            let lambda = 0.01;
-            let bestX = [...x];
-            let bestError = Infinity;
-            
-            // Ensure initial guess is within bounds
-            for (let i = 0; i < x.length; i++) {
-                x[i] = Math.max(lb[i], Math.min(ub[i], x[i]));
+        // Mathematical functions - exactly matching your working Python code
+        function ces_two(L, K, alpha, sigma) {
+            if (Math.abs(sigma - 1.0) < 1e-8) {
+                return Math.pow(L, 1 - alpha) * Math.pow(K, alpha);
             }
+            const rho = (sigma - 1.0) / sigma;
+            const inner = (1 - alpha) * Math.pow(L, rho) + alpha * Math.pow(K, rho);
+            return Math.pow(inner, 1.0 / rho);
+        }
+        
+        function ces_mpl_L(L, K, alpha, sigma) {
+            if (Math.abs(sigma - 1.0) < 1e-8) {
+                return (1 - alpha) * Math.pow(L, -alpha) * Math.pow(K, alpha);
+            }
+            const rho = (sigma - 1.0) / sigma;
+            const inner = (1 - alpha) * Math.pow(L, rho) + alpha * Math.pow(K, rho);
+            const ces = Math.pow(inner, 1.0 / rho);
+            return (1 - alpha) * Math.pow(L, rho - 1) * Math.pow(ces, 1 - rho);
+        }
+        
+        function s_curve(x, a, eta) {
+            const numerator = a * Math.pow(x, eta);
+            const denominator = 1.0 + a * Math.pow(x, eta);
+            return numerator / denominator;
+        }
+        
+        function s_curve_prime(x, a, eta) {
+            const x_eta = Math.pow(x, eta);
+            const numerator = a * eta * Math.pow(x, eta - 1);
+            const denominator = Math.pow(1.0 + a * x_eta, 2);
+            return numerator / denominator;
+        }
+        
+        function sector_output(Lp, Li, Kp, Ki, params_sector) {
+            const [alpha_p, alpha_i, sigma_p, sigma_i, a_param, eta] = params_sector;
             
-            for (let iter = 0; iter < maxIter; iter++) {
-                try {
-                    const f = func(x);
-                    
-                    if (f.some(val => !isFinite(val))) {
-                        lambda = Math.min(lambda * 10, 1.0);
-                        continue;
-                    }
-                    
-                    const fnorm = Math.sqrt(f.reduce((s, v) => s + v*v, 0));
-                    
-                    if (fnorm < bestError) {
-                        bestX = [...x];
-                        bestError = fnorm;
-                    }
-                    
-                    if (fnorm < tol) {
-                        return { x: bestX, success: true, iterations: iter, error: fnorm };
-                    }
-                    
-                    // Compute Jacobian
-                    const J = [];
-                    const h = 1e-8;
-                    
-                    for (let i = 0; i < x.length; i++) {
-                        const xh = [...x];
-                        xh[i] = Math.max(lb[i], Math.min(ub[i], xh[i] + h));
-                        try {
-                            const fh = func(xh);
-                            if (fh.some(val => !isFinite(val))) {
-                                const col = new Array(f.length).fill(0);
-                                col[i % f.length] = 1;
-                                J.push(col);
-                            } else {
-                                J.push(fh.map((val, j) => (val - f[j]) / h));
-                            }
-                        } catch (e) {
-                            const col = new Array(f.length).fill(0);
-                            col[i % f.length] = 1;
-                            J.push(col);
-                        }
-                    }
-                    
-                    // Levenberg-Marquardt step: (J^T J + λI) dx = -J^T f
-                    const JT = [];
-                    for (let i = 0; i < f.length; i++) {
-                        JT.push(J.map(row => row[i]));
-                    }
-                    
-                    const JTJ = [];
-                    for (let i = 0; i < x.length; i++) {
-                        JTJ.push([]);
-                        for (let j = 0; j < x.length; j++) {
-                            let sum = 0;
-                            for (let k = 0; k < f.length; k++) {
-                                sum += JT[k][i] * JT[k][j];
-                            }
-                            JTJ[i][j] = sum + (i === j ? lambda : 0);
-                        }
-                    }
-                    
-                    const JTf = [];
-                    for (let i = 0; i < x.length; i++) {
-                        let sum = 0;
-                        for (let j = 0; j < f.length; j++) {
-                            sum += JT[j][i] * f[j];
-                        }
-                        JTf.push(-sum);
-                    }
-                    
-                    const dx = solveLMSystem(JTJ, JTf);
-                    
-                    if (!dx) {
-                        lambda *= 10;
-                        continue;
-                    }
-                    
-                    // Line search with bounds enforcement
-                    let alpha = 1.0;
-                    let xNew, fNew, fnormNew;
-                    
-                    for (let ls = 0; ls < 8; ls++) {
-                        xNew = x.map((val, i) => {
-                            const newVal = val + alpha * dx[i];
-                            return Math.max(lb[i], Math.min(ub[i], newVal));
-                        });
-                        
-                        try {
-                            fNew = func(xNew);
-                            if (fNew.some(val => !isFinite(val))) {
-                                alpha *= 0.5;
-                                continue;
-                            }
-                            fnormNew = Math.sqrt(fNew.reduce((s, v) => s + v*v, 0));
-                            break;
-                        } catch (e) {
-                            alpha *= 0.5;
-                        }
-                        
-                        if (alpha < 1e-10) break;
-                    }
-                    
-                    if (fnormNew < fnorm) {
-                        x = xNew;
-                        lambda = Math.max(lambda / 3, 1e-10);
-                    } else {
-                        lambda = Math.min(lambda * 2, 1e6);
-                    }
-                    
-                } catch (error) {
-                    lambda = Math.min(lambda * 5, 1.0);
+            const P = ces_two(Lp, Kp, alpha_p, sigma_p);
+            const I = ces_two(Li, Ki, alpha_i, sigma_i);
+            
+            const x = I / Math.max(1e-15, P);
+            const sigma_val = s_curve(x, a_param, eta);
+            const sigma_prime_val = s_curve_prime(x, a_param, eta);
+            
+            const y = P * sigma_val;
+            
+            // Marginal products
+            const P_Lp = ces_mpl_L(Lp, Kp, alpha_p, sigma_p);
+            const I_Li = ces_mpl_L(Li, Ki, alpha_i, sigma_i);
+            
+            const yP = sigma_val - x * sigma_prime_val;
+            const yI = sigma_prime_val;
+            
+            return {
+                y: y,
+                P: P,
+                I: I,
+                x: x,
+                sigma_val: sigma_val,
+                P_Lp: P_Lp,
+                I_Li: I_Li,
+                yP: yP,
+                yI: yI
+            };
+        }
+        
+        function top_DS_correct(yB, yC, betaC, sigma_Y) {
+            // Add safety bounds
+            yB = Math.max(1e-10, yB);
+            yC = Math.max(1e-10, yC);
+            betaC = Math.max(1e-10, Math.min(1 - 1e-10, betaC));
+            
+            if (Math.abs(sigma_Y - 1.0) < 1e-8) {
+                // Cobb-Douglas limiting case
+                const Y = Math.pow(yB, 1 - betaC) * Math.pow(yC, betaC);
+                const pB = (1 - betaC) * Y / yB;
+                const pC = betaC * Y / yC;
+                return [Y, pB, pC];
+            } else {
+                // Dixit-Stiglitz CES case
+                const q = (sigma_Y - 1.0) / sigma_Y;
+                
+                // Safe computation of weights
+                const weight_B = Math.pow(1 - betaC, 1.0 / sigma_Y);
+                const weight_C = Math.pow(betaC, 1.0 / sigma_Y);
+                
+                // Safe computation of powered terms
+                const yB_q = Math.pow(yB, q);
+                const yC_q = Math.pow(yC, q);
+                
+                const inner = weight_B * yB_q + weight_C * yC_q;
+                
+                if (inner <= 0 || !isFinite(inner)) {
+                    console.log(`DS numerical issue: inner=${inner}, yB=${yB}, yC=${yC}, betaC=${betaC}, sigma_Y=${sigma_Y}`);
+                    return [1e-10, 1e-10, 1e-10];
+                }
+                
+                const Y = Math.pow(inner, sigma_Y / (sigma_Y - 1.0));
+                
+                if (!isFinite(Y) || Y <= 0) {
+                    console.log(`DS Y calculation failed: Y=${Y}`);
+                    return [1e-10, 1e-10, 1e-10];
+                }
+                
+                // DS prices from first-order conditions
+                const pB = weight_B * Math.pow(Y / yB, 1.0 / sigma_Y);
+                const pC = weight_C * Math.pow(Y / yC, 1.0 / sigma_Y);
+                
+                if (!isFinite(pB) || !isFinite(pC) || pB <= 0 || pC <= 0) {
+                    console.log(`DS price calculation failed: pB=${pB}, pC=${pC}`);
+                    return [Y, 1e-10, 1e-10];
+                }
+                
+                return [Y, pB, pC];
+            }
+        }
+        
+        // Softmax functions - exactly matching Python
+        function softmax4(z3) {
+            const z = [...z3, 0.0]; // Add implicit zero baseline
+            const maxZ = Math.max(...z);
+            const e = z.map(zi => Math.exp(zi - maxZ));
+            const sum = e.reduce((a, b) => a + b, 0);
+            return e.map(ei => ei / sum);
+        }
+        
+        function shares_to_L(s4, L_tot) {
+            return s4.map(s => s * L_tot);
+        }
+        
+        function wages_from_L(betaC, L_Bp, L_Bi, L_Cp, L_Ci, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, sigma_Y) {
+            const B = sector_output(L_Bp, L_Bi, K_Bp, K_Bi, params_sector);
+            const C = sector_output(L_Cp, L_Ci, K_Cp, K_Ci, params_sector);
+            
+            const yB = Math.max(B.y, 1e-16);
+            const yC = Math.max(C.y, 1e-16);
+            
+            const [Y, pB, pC] = top_DS_correct(yB, yC, betaC, sigma_Y);
+            
+            const wBp = L_Bp > 0 ? pB * B.yP * B.P_Lp : 0.0;
+            const wBi = L_Bi > 0 ? pB * B.yI * B.I_Li : 0.0;
+            const wCp = L_Cp > 0 ? pC * C.yP * C.P_Lp : 0.0;
+            const wCi = L_Ci > 0 ? pC * C.yI * C.I_Li : 0.0;
+            
+            return [[wBp, wBi, wCp, wCi], Y, B, C];
+        }
+        
+        function resid_LM(z3, betaC, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, L_tot, sigma_Y) {
+            try {
+                const s4 = softmax4(z3);
+                const [L_Bp, L_Bi, L_Cp, L_Ci] = shares_to_L(s4, L_tot);
+                
+                if (betaC < 0.1) { // Debug first few cases
+                    console.log(`  Labor shares: Bp=${L_Bp.toFixed(3)}, Bi=${L_Bi.toFixed(3)}, Cp=${L_Cp.toFixed(3)}, Ci=${L_Ci.toFixed(3)}`);
+                }
+                
+                const [[wBp, wBi, wCp, wCi], Y, B, C] = wages_from_L(betaC, L_Bp, L_Bi, L_Cp, L_Ci, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, sigma_Y);
+                
+                // Check for problematic values
+                if (!isFinite(Y) || Y <= 0 || !isFinite(wBp) || !isFinite(wBi) || !isFinite(wCp) || !isFinite(wCi)) {
+                    console.log(`  Numerical issue: Y=${Y}, wages=[${wBp.toFixed(6)}, ${wBi.toFixed(6)}, ${wCp.toFixed(6)}, ${wCi.toFixed(6)}]`);
+                    return [1e6, 1e6, 1e6];
+                }
+                
+                if (wBp <= 0 || wBi <= 0 || wCp <= 0 || wCi <= 0) {
+                    console.log(`  Non-positive wages: [${wBp.toFixed(6)}, ${wBi.toFixed(6)}, ${wCp.toFixed(6)}, ${wCi.toFixed(6)}]`);
+                    return [1e6, 1e6, 1e6];
+                }
+                
+                if (betaC < 0.1) { // Debug first few cases
+                    console.log(`  Wages: Bp=${wBp.toFixed(6)}, Bi=${wBi.toFixed(6)}, Cp=${wCp.toFixed(6)}, Ci=${wCi.toFixed(6)}`);
+                    console.log(`  Y=${Y.toFixed(3)}, yB=${B.y.toFixed(3)}, yC=${C.y.toFixed(3)}`);
+                }
+                
+                const eps = 1e-16;
+                const r1 = Math.log((wBi + eps) / (wBp + eps));
+                const r2 = Math.log((wCp + eps) / (wBp + eps));
+                const r3 = Math.log((wCi + eps) / (wBp + eps));
+                
+                if (betaC < 0.1) { // Debug first few cases
+                    console.log(`  Residuals: r1=${r1.toFixed(6)}, r2=${r2.toFixed(6)}, r3=${r3.toFixed(6)}`);
+                }
+                
+                return [r1, r2, r3];
+            } catch (error) {
+                console.log(`  Error in residuals: ${error.message}`);
+                return [1e6, 1e6, 1e6];
+            }
+        }
+        
+        function solve_one_sector(Kp, Ki, params_sector) {
+            const [alpha_p, alpha_i, sigma_p, sigma_i, a_param, eta] = params_sector;
+            let best = null;
+            
+            for (let i = 0; i < 500; i++) {
+                const Lp = 1e-8 + i * (1 - 2e-8) / 499;
+                const Li = 1 - Lp;
+                const S = sector_output(Lp, Li, Kp, Ki, params_sector);
+                
+                if (best === null || S.y > best.y) {
+                    best = { y: S.y, Lp: Lp, Li: Li, S: S };
                 }
             }
             
-            return { x: bestX, success: bestError < tol * 100, iterations: maxIter, error: bestError };
+            const p = 1.0;
+            const wP = p * best.S.yP * best.S.P_Lp;
+            const wI = p * best.S.yI * best.S.I_Li;
+            const w = 0.5 * (wP + wI);
+            
+            return {
+                Lp: best.Lp,
+                Li: best.Li,
+                y: best.y,
+                p: p,
+                w: w,
+                S: best.S
+            };
+        }
+        
+        // Scipy least_squares equivalent solver
+        function leastSquaresSolve(func, x0, maxIter = 200, xtol = 1e-12, ftol = 1e-12) {
+            let x = [...x0];
+            let bestX = [...x];
+            let bestError = Infinity;
+            
+            for (let iter = 0; iter < maxIter; iter++) {
+                const f = func(x);
+                const fnorm = Math.sqrt(f.reduce((s, v) => s + v*v, 0));
+                
+                if (fnorm < bestError) {
+                    bestX = [...x];
+                    bestError = fnorm;
+                }
+                
+                if (fnorm < ftol) {
+                    return { x: bestX, success: true, fun: f };
+                }
+                
+                // Compute Jacobian
+                const J = [];
+                const h = 1e-8;
+                
+                for (let i = 0; i < x.length; i++) {
+                    const xh = [...x];
+                    xh[i] += h;
+                    const fh = func(xh);
+                    J.push(fh.map((val, j) => (val - f[j]) / h));
+                }
+                
+                // Levenberg-Marquardt step
+                const JT = [];
+                for (let i = 0; i < f.length; i++) {
+                    JT.push(J.map(row => row[i]));
+                }
+                
+                const JTJ = [];
+                for (let i = 0; i < x.length; i++) {
+                    JTJ.push([]);
+                    for (let j = 0; j < x.length; j++) {
+                        let sum = 0;
+                        for (let k = 0; k < f.length; k++) {
+                            sum += JT[k][i] * JT[k][j];
+                        }
+                        JTJ[i][j] = sum + (i === j ? 1e-6 : 0); // Small regularization
+                    }
+                }
+                
+                const JTf = [];
+                for (let i = 0; i < x.length; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < f.length; j++) {
+                        sum += JT[j][i] * f[j];
+                    }
+                    JTf.push(-sum);
+                }
+                
+                const dx = solveLMSystem(JTJ, JTf);
+                if (!dx) break;
+                
+                // Update with step size control
+                const stepSize = Math.min(1.0, 1.0 / Math.max(...dx.map(Math.abs)));
+                for (let i = 0; i < x.length; i++) {
+                    x[i] += stepSize * dx[i];
+                }
+                
+                // Check convergence
+                const dxnorm = Math.sqrt(dx.reduce((s, v) => s + v*v, 0));
+                if (dxnorm < xtol) {
+                    return { x: bestX, success: true, fun: f };
+                }
+            }
+            
+            return { x: bestX, success: bestError < ftol * 100, fun: func(bestX) };
         }
         
         function solveLMSystem(A, b) {
             const n = A.length;
             const augmented = A.map((row, i) => [...row, b[i]]);
             
-            // Gaussian elimination with partial pivoting
             for (let i = 0; i < n; i++) {
                 let maxRow = i;
                 for (let k = i + 1; k < n; k++) {
@@ -482,137 +671,88 @@
             
             return x;
         }
-
-        function solveEquilibrium(beta_C, p) {
-            const { sigma_Y, alpha_p, alpha_i, rho_p, rho_i, K_Bp, K_Cp, K_Bi, K_Ci, eta, a_sigma, L_tot } = p;
-            const q = (sigma_Y - 1.0) / sigma_Y;
-
-            function residuals(logvars) {
-                try {
-                    const [logw, logLBp, logLBi, logLCp, logLCi] = logvars;
-                    const w = Math.exp(Math.max(-15, Math.min(15, logw)));
-                    const LBp = Math.exp(Math.max(-15, Math.min(15, logLBp)));
-                    const LBi = Math.exp(Math.max(-15, Math.min(15, logLBi)));
-                    const LCp = Math.exp(Math.max(-15, Math.min(15, logLCp)));
-                    const LCi = Math.exp(Math.max(-15, Math.min(15, logLCi)));
-
-                    // Sector B
-                    const PB = safePow(alpha_p * safePow(K_Bp, rho_p) + (1 - alpha_p) * safePow(LBp, rho_p), 1 / rho_p);
-                    const IB = safePow(alpha_i * safePow(K_Bi, rho_i) + (1 - alpha_i) * safePow(LBi, rho_i), 1 / rho_i);
-                    const rB = IB / Math.max(1e-15, PB);
-                    const yB = PB * sigma_fun(rB, eta, a_sigma);
-
-                    // Sector C
-                    const PC = safePow(alpha_p * safePow(K_Cp, rho_p) + (1 - alpha_p) * safePow(LCp, rho_p), 1 / rho_p);
-                    const IC = safePow(alpha_i * safePow(K_Ci, rho_i) + (1 - alpha_i) * safePow(LCi, rho_i), 1 / rho_i);
-                    const rC = IC / Math.max(1e-15, PC);
-                    const yC = PC * sigma_fun(rC, eta, a_sigma);
-
-                    if (yB <= 0 || yC <= 0) {
-                        return [1e6, 1e6, 1e6, 1e6, 1e6];
-                    }
-
-                    // Aggregate output & sector prices
-                    let Y, pB, pC;
-                    if (Math.abs(sigma_Y - 1.0) < 1e-8) {
-                        Y = safePow(yB, 1 - beta_C) * safePow(yC, beta_C);
-                        pB = (1 - beta_C) / yB;
-                        pC = beta_C / yC;
-                    } else {
-                        const inner = (1 - beta_C) * safePow(yB, q) + beta_C * safePow(yC, q);
-                        if (inner <= 0) return [1e6, 1e6, 1e6, 1e6, 1e6];
-                        Y = safePow(inner, 1 / q);
-                        pB = (1 - beta_C) * safePow(yB / Math.max(1e-15, Y), -1 / sigma_Y);
-                        pC = beta_C * safePow(yC / Math.max(1e-15, Y), -1 / sigma_Y);
-                    }
-
-                    const sigB = sigma_fun(rB, eta, a_sigma);
-                    const sigpB = sigma_prime(rB, eta, a_sigma);
-                    const sigC = sigma_fun(rC, eta, a_sigma);
-                    const sigpC = sigma_prime(rC, eta, a_sigma);
-
-                    // Marginal products of labour
-                    const MPL_Bp = pB * (sigB - rB * sigpB) * (1 - alpha_p) * safePow(LBp, rho_p - 1) * safePow(PB, 1 - rho_p);
-                    const MPL_Bi = pB * sigpB * (1 - alpha_i) * safePow(LBi, rho_i - 1) * safePow(IB, 1 - rho_i);
-                    const MPL_Cp = pC * (sigC - rC * sigpC) * (1 - alpha_p) * safePow(LCp, rho_p - 1) * safePow(PC, 1 - rho_p);
-                    const MPL_Ci = pC * sigpC * (1 - alpha_i) * safePow(LCi, rho_i - 1) * safePow(IC, 1 - rho_i);
-
-                    if (MPL_Bp <= 0 || MPL_Bi <= 0 || MPL_Cp <= 0 || MPL_Ci <= 0) {
-                        return [1e6, 1e6, 1e6, 1e6, 1e6];
-                    }
-
-                    const w_safe = Math.max(1e-15, w);
-                    const L_tot_safe = Math.max(1e-15, L_tot);
-
-                    return [
-                        (MPL_Bp - w) / w_safe,
-                        (MPL_Bi - w) / w_safe,
-                        (MPL_Cp - w) / w_safe,
-                        (MPL_Ci - w) / w_safe,
-                        (LBp + LBi + LCp + LCi - L_tot) / L_tot_safe
-                    ];
-                } catch (e) {
-                    return [1e6, 1e6, 1e6, 1e6, 1e6];
-                }
+        
+        function equilibrium_LM(betaC, z0, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, L_tot, sigma_Y, tol_meas = 1e-8) {
+            // Handle corners
+            if (betaC < tol_meas) {
+                const solB = solve_one_sector(K_Bp, K_Bi, params_sector);
+                return {
+                    success: true,
+                    betaC: betaC,
+                    L_Bp: solB.Lp,
+                    L_Bi: solB.Li,
+                    L_Cp: 0.0,
+                    L_Ci: 0.0,
+                    yB: solB.y,
+                    yC: 0.0,
+                    Y: solB.y,
+                    w: solB.w,
+                    corner: 'B'
+                };
             }
-
-            // Set up bounds for log-space variables
-            const lb = new Array(5).fill(Math.log(1e-8));
-            const ub = new Array(5).fill(Math.log(1e8));
             
-            // Better initial guess
-            const x0 = [Math.log(0.5), Math.log(L_tot / 4), Math.log(L_tot / 4), Math.log(L_tot / 4), Math.log(L_tot / 4)];
-
-            const result = levenbergMarquardtSolve(residuals, x0, [lb, ub]);
+            if ((1 - betaC) < tol_meas) {
+                const solC = solve_one_sector(K_Cp, K_Ci, params_sector);
+                return {
+                    success: true,
+                    betaC: betaC,
+                    L_Bp: 0.0,
+                    L_Bi: 0.0,
+                    L_Cp: solC.Lp,
+                    L_Ci: solC.Li,
+                    yB: 0.0,
+                    yC: solC.y,
+                    Y: solC.y,
+                    w: solC.w,
+                    corner: 'C'
+                };
+            }
             
-            if (!result.success) {
-                throw new Error(`Failed to converge at beta_C=${beta_C.toFixed(3)} (error: ${result.error.toExponential(2)})`);
+            if (!z0) {
+                z0 = [0, 0, 0];
             }
-
-            try {
-                const [logw, logLBp, logLBi, logLCp, logLCi] = result.x;
-                const w = Math.exp(Math.max(-15, Math.min(15, logw)));
-                const LBp = Math.exp(Math.max(-15, Math.min(15, logLBp)));
-                const LBi = Math.exp(Math.max(-15, Math.min(15, logLBi)));
-                const LCp = Math.exp(Math.max(-15, Math.min(15, logLCp)));
-                const LCi = Math.exp(Math.max(-15, Math.min(15, logLCi)));
-
-                // Recompute aggregate output
-                const PB = safePow(alpha_p * safePow(K_Bp, rho_p) + (1 - alpha_p) * safePow(LBp, rho_p), 1 / rho_p);
-                const IB = safePow(alpha_i * safePow(K_Bi, rho_i) + (1 - alpha_i) * safePow(LBi, rho_i), 1 / rho_i);
-                const rB = IB / Math.max(1e-15, PB);
-                const yB = PB * sigma_fun(rB, eta, a_sigma);
-
-                const PC = safePow(alpha_p * safePow(K_Cp, rho_p) + (1 - alpha_p) * safePow(LCp, rho_p), 1 / rho_p);
-                const IC = safePow(alpha_i * safePow(K_Ci, rho_i) + (1 - alpha_i) * safePow(LCi, rho_i), 1 / rho_i);
-                const rC = IC / Math.max(1e-15, PC);
-                const yC = PC * sigma_fun(rC, eta, a_sigma);
-
-                let Y;
-                if (Math.abs(sigma_Y - 1.0) < 1e-8) {
-                    Y = safePow(yB, 1 - beta_C) * safePow(yC, beta_C);
-                } else {
-                    const q = (sigma_Y - 1.0) / sigma_Y;
-                    const inner = (1 - beta_C) * safePow(yB, q) + beta_C * safePow(yC, q);
-                    Y = safePow(inner, 1 / q);
-                }
-
-                return { w, Y };
-            } catch (e) {
-                throw new Error("Error computing final output: " + e.message);
+            
+            const residualFunc = (z) => resid_LM(z, betaC, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, L_tot, sigma_Y);
+            const res = leastSquaresSolve(residualFunc, z0);
+            
+            if (!res.success) {
+                return { success: false, betaC: betaC, message: 'Failed to converge' };
             }
+            
+            const s4 = softmax4(res.x);
+            const [L_Bp, L_Bi, L_Cp, L_Ci] = shares_to_L(s4, L_tot);
+            const [[wBp, wBi, wCp, wCi], Y, B, C] = wages_from_L(betaC, L_Bp, L_Bi, L_Cp, L_Ci, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, sigma_Y);
+            
+            const w = Math.exp(([wBp, wBi, wCp, wCi].map(wi => Math.log(Math.max(1e-16, wi))).reduce((a, b) => a + b, 0)) / 4);
+            
+            return {
+                success: true,
+                betaC: betaC,
+                L_Bp: L_Bp,
+                L_Bi: L_Bi,
+                L_Cp: L_Cp,
+                L_Ci: L_Ci,
+                yB: B.y,
+                yC: C.y,
+                Y: Y,
+                w: w,
+                corner: null,
+                wvec: [wBp, wBi, wCp, wCi],
+                residuals: Math.sqrt(res.fun.reduce((s, v) => s + v*v, 0))
+            };
         }
 
         // Chart setup
-        const wageCtx = document.getElementById('wageChart').getContext('2d');
         const outputCtx = document.getElementById('outputChart').getContext('2d');
+        const wageCtx = document.getElementById('wageChart').getContext('2d');
+        const laborCtx = document.getElementById('laborChart').getContext('2d');
 
-        const wageChart = new Chart(wageCtx, {
+        const outputChart = new Chart(outputCtx, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Equilibrium Wage',
+                    label: 'Aggregate Output Y',
                     data: [],
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
@@ -627,33 +767,23 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Wage vs Computational-sector Share',
+                        text: 'Aggregate Output Y vs β_C',
                         font: { size: 16 }
                     }
                 },
                 scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Computational-sector share (β_C)'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Equilibrium wage (w)'
-                        }
-                    }
+                    x: { title: { display: true, text: 'β_C' } },
+                    y: { title: { display: true, text: 'Y' } }
                 }
             }
         });
 
-        const outputChart = new Chart(outputCtx, {
+        const wageChart = new Chart(wageCtx, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Aggregate Output',
+                    label: 'Wage w',
                     data: [],
                     borderColor: '#764ba2',
                     backgroundColor: 'rgba(118, 75, 162, 0.1)',
@@ -668,26 +798,61 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Output vs Computational-sector Share',
+                        text: 'Wage vs β_C',
                         font: { size: 16 }
                     }
                 },
                 scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Computational-sector share (β_C)'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Aggregate output (Y)'
-                        }
-                    }
+                    x: { title: { display: true, text: 'β_C' } },
+                    y: { title: { display: true, text: 'w' } }
                 }
             }
         });
+
+        const laborChart = new Chart(laborCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Physical Labor Share λ_p',
+                    data: [],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Physical Labor Share vs β_C',
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'β_C' } },
+                    y: { title: { display: true, text: 'λ_p' } }
+                }
+            }
+        });
+
+        // Tab functionality
+        function switchTab(index) {
+            const buttons = document.querySelectorAll('.tab-button');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            buttons.forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            
+            contents.forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+        }
 
         // Parameter management
         function getParams() {
@@ -695,14 +860,14 @@
                 sigma_Y: parseFloat(document.getElementById('sigma_Y').value),
                 alpha_p: parseFloat(document.getElementById('alpha_p').value),
                 alpha_i: parseFloat(document.getElementById('alpha_i').value),
-                rho_p: parseFloat(document.getElementById('rho_p').value),
-                rho_i: parseFloat(document.getElementById('rho_i').value),
+                sigma_p: parseFloat(document.getElementById('sigma_p').value),
+                sigma_i: parseFloat(document.getElementById('sigma_i').value),
                 K_Bp: parseFloat(document.getElementById('K_Bp').value),
                 K_Cp: parseFloat(document.getElementById('K_Cp').value),
                 K_Bi: parseFloat(document.getElementById('K_Bi').value),
                 K_Ci: parseFloat(document.getElementById('K_Ci').value),
+                a_param: parseFloat(document.getElementById('a_param').value),
                 eta: parseFloat(document.getElementById('eta').value),
-                a_sigma: parseFloat(document.getElementById('a_sigma').value),
                 L_tot: parseFloat(document.getElementById('L_tot').value)
             };
         }
@@ -714,45 +879,82 @@
             
             setTimeout(() => {
                 try {
-                    params = getParams();
-                    const beta_grid = [];
-                    const wages = [];
-                    const outputs = [];
-
-                    // Generate beta_C grid
-                    for (let i = 0; i < 19; i++) {
-                        beta_grid.push(0.05 + i * (0.95 - 0.05) / 18);
+                    const params = getParams();
+                    const params_sector = [params.alpha_p, params.alpha_i, params.sigma_p, params.sigma_i, params.a_param, params.eta];
+                    
+                    console.log('Parameters:', params);
+                    console.log('Sector params:', params_sector);
+                    
+                    const betas = [];
+                    for (let i = 0; i <= 20; i++) {  // Reduced for debugging
+                        betas.push(i / 20);
                     }
-
-                    console.log("Computing equilibria for parameters:", params);
-
-                    // Solve for each beta_C
-                    for (const beta of beta_grid) {
+                    
+                    const results = [];
+                    let z_prev = null;
+                    let successCount = 0;
+                    
+                    for (let idx = 0; idx < betas.length; idx++) {
+                        const beta = betas[idx];
+                        console.log(`\n=== Solving beta ${idx}: ${beta.toFixed(3)} ===`);
+                        
                         try {
-                            const result = solveEquilibrium(beta, params);
-                            wages.push(result.w);
-                            outputs.push(result.Y);
+                            const sol = equilibrium_LM(beta, z_prev, params_sector, params.K_Bp, params.K_Cp, params.K_Bi, params.K_Ci, params.L_tot, params.sigma_Y);
+                            
+                            if (sol.success) {
+                                successCount++;
+                                console.log(`✓ Success: Y=${sol.Y.toFixed(3)}, w=${sol.w.toFixed(3)}, residual=${sol.residuals?.toFixed(6)}`);
+                                
+                                // Warm start for next iteration
+                                if (!sol.corner) {
+                                    const s4 = [sol.L_Bp, sol.L_Bi, sol.L_Cp, sol.L_Ci].map(L => L / params.L_tot);
+                                    const s4_clipped = s4.map(s => Math.max(1e-12, s));
+                                    const z = s4_clipped.slice(0, 3).map((s, j) => Math.log(s / s4_clipped[3]));
+                                    z_prev = z;
+                                    console.log(`  Next warm start: [${z.map(x => x.toFixed(3)).join(', ')}]`);
+                                }
+                            } else {
+                                console.log(`✗ Failed: ${sol.message}`);
+                                // Reset warm start on failure
+                                z_prev = [0, 0, 0];
+                            }
+                            
+                            results.push(sol);
+                            
                         } catch (error) {
-                            console.log(`Failed to solve for beta_C = ${beta}:`, error.message);
-                            wages.push(null);
-                            outputs.push(null);
+                            console.log(`✗ Exception: ${error.message}`);
+                            results.push({ success: false, betaC: beta, Y: NaN, w: NaN });
+                            z_prev = [0, 0, 0]; // Reset on exception
                         }
                     }
-
-                    console.log("Computed wages:", wages.slice(0, 5), "...");
-                    console.log("Computed outputs:", outputs.slice(0, 5), "...");
-
+                    
+                    console.log(`\nOverall success rate: ${successCount}/${betas.length} (${(100*successCount/betas.length).toFixed(1)}%)`);
+                    
+                    const labels = betas.map(b => b.toFixed(2));
+                    const Y_vals = results.map(r => r.success ? r.Y : null);
+                    const w_vals = results.map(r => r.success ? r.w : null);
+                    const lambda_p_vals = results.map(r => r.success ? (r.L_Bp + r.L_Cp) / params.L_tot : null);
+                    
                     // Update charts
-                    wageChart.data.labels = beta_grid.map(b => b.toFixed(2));
-                    wageChart.data.datasets[0].data = wages;
+                    outputChart.data.labels = labels;
+                    outputChart.data.datasets[0].data = Y_vals;
+                    outputChart.update('none');
+
+                    wageChart.data.labels = labels;
+                    wageChart.data.datasets[0].data = w_vals;
                     wageChart.update('none');
 
-                    outputChart.data.labels = beta_grid.map(b => b.toFixed(2));
-                    outputChart.data.datasets[0].data = outputs;
-                    outputChart.update('none');
+                    laborChart.data.labels = labels;
+                    laborChart.data.datasets[0].data = lambda_p_vals;
+                    laborChart.update('none');
                     
-                    statusDiv.textContent = 'Simulation completed successfully!';
-                    statusDiv.className = 'status success';
+                    if (successCount > betas.length * 0.8) {
+                        statusDiv.textContent = `Simulation completed! ${successCount}/${betas.length} points converged`;
+                        statusDiv.className = 'status success';
+                    } else {
+                        statusDiv.textContent = `Partial success: ${successCount}/${betas.length} points converged`;
+                        statusDiv.className = 'status error';
+                    }
                     
                 } catch (error) {
                     console.error('Simulation error:', error);
@@ -768,12 +970,10 @@
             sliders.forEach(slider => {
                 const valueSpan = document.getElementById(slider.id + '_value');
                 
-                // Update display value
                 slider.addEventListener('input', function() {
                     valueSpan.textContent = this.value;
                 });
                 
-                // Update charts on change
                 slider.addEventListener('input', updateCharts);
             });
         }
