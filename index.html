@@ -245,8 +245,8 @@
                 
                 <div class="tab-content active">
                     <div class="parameter-group">
-                        <label class="parameter-label">Capital Endowment (K)</label>
-                        <div class="parameter-description">Total capital available for production</div>
+                        <label class="parameter-label">Physical Capital (K_P)</label>
+                        <div class="parameter-description">Physical capital stock (calibrated to 2023 capital/labor ratios)</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="K" min="0.5" max="3.0" step="0.1" value="1.5">
                             <span class="slider-value" id="K_value">1.5</span>
@@ -254,8 +254,8 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">AI Endowment (AI)</label>
-                        <div class="parameter-description">Total AI/automation capability available</div>
+                        <label class="parameter-label">AI Input Level (K_I)</label>
+                        <div class="parameter-description">Abundant AI capability available for automation</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="AI" min="1.0" max="20.0" step="0.5" value="9.0">
                             <span class="slider-value" id="AI_value">9.0</span>
@@ -287,7 +287,7 @@
                 <div class="tab-content">
                     <div class="parameter-group">
                         <label class="parameter-label">Capital Share in P-nest (ψ)</label>
-                        <div class="parameter-description">Share of capital vs labor in physical production</div>
+                        <div class="parameter-description">Calibrated to match 2023 capital share (0.42) in US economy</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="psi" min="0.1" max="0.9" step="0.05" value="0.7">
                             <span class="slider-value" id="psi_value">0.7</span>
@@ -296,7 +296,7 @@
                     
                     <div class="parameter-group">
                         <label class="parameter-label">P-nest Substitution (ρ_P)</label>
-                        <div class="parameter-description">Substitution between capital and labor in P-nest</div>
+                        <div class="parameter-description">0.6 elasticity between capital/labor (US manufacturing)</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_P" min="-1.5" max="0.9" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_P_value">-0.67</span>
@@ -305,19 +305,19 @@
                     
                     <div class="parameter-group">
                         <label class="parameter-label">I-nest Substitution (ρ_I)</label>
-                        <div class="parameter-description">Substitution between AI and labor in I-nest</div>
+                        <div class="parameter-description">Substitution between AI and labor in I-nest (2.2 elasticity baseline)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="rho_I" min="-0.5" max="0.9" step="0.05" value="0.55">
+                            <input type="range" class="slider" id="rho_I" min="-0.1" max="0.7" step="0.05" value="0.55">
                             <span class="slider-value" id="rho_I_value">0.55</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
                         <label class="parameter-label">I-nest Scaling (θ)</label>
-                        <div class="parameter-description">Nesting exponent for I-nest output scaling</div>
+                        <div class="parameter-description">Returns to scale in intelligence (decreasing returns)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="theta" min="0.5" max="1.5" step="0.02" value="0.94">
-                            <span class="slider-value" id="theta_value">0.94</span>
+                            <input type="range" class="slider" id="theta" min="0.1" max="0.9" step="0.05" value="0.5">
+                            <span class="slider-value" id="theta_value">0.5</span>
                         </div>
                     </div>
                 </div>
@@ -325,19 +325,19 @@
                 <div class="tab-content">
                     <div class="parameter-group">
                         <label class="parameter-label">P-weight in Top CES (τ)</label>
-                        <div class="parameter-description">Weight on physical nest in top-level aggregation</div>
+                        <div class="parameter-description">Share of physical earnings (manual occupations)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="tau" min="0.05" max="0.7" step="0.02" value="0.18">
+                            <input type="range" class="slider" id="tau" min="0.15" max="0.4" step="0.01" value="0.18">
                             <span class="slider-value" id="tau_value">0.18</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
                         <label class="parameter-label">Top-level Substitution (ρ)</label>
-                        <div class="parameter-description">Substitution between P and I nests</div>
+                        <div class="parameter-description">Substitution between P and I nests (0.7 elasticity baseline)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="rho" min="-1.5" max="0.9" step="0.05" value="-0.67">
-                            <span class="slider-value" id="rho_value">-0.67</span>
+                            <input type="range" class="slider" id="rho" min="-1.0" max="-0.1" step="0.05" value="-0.43">
+                            <span class="slider-value" id="rho_value">-0.43</span>
                         </div>
                     </div>
                 </div>
@@ -347,14 +347,14 @@
                         <label class="parameter-label">PSI Exponent (η)</label>
                         <div class="parameter-description">S-curve exponent (defaults to ρ if null)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="eta" min="-1.5" max="2.0" step="0.1" value="-0.67">
-                            <span class="slider-value" id="eta_value">-0.67</span>
+                            <input type="range" class="slider" id="eta" min="-1.0" max="0.5" step="0.05" value="-0.43">
+                            <span class="slider-value" id="eta_value">-0.43</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
                         <label class="parameter-label">PSI Denominator (a)</label>
-                        <div class="parameter-description">S-curve shift parameter (defaults to (1-τ)/τ)</div>
+                        <div class="parameter-description">S-curve shift parameter (defaults to (1-τ)/τ ≈ 4.56)</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="a_param" min="0.1" max="10.0" step="0.1" value="4.6">
                             <span class="slider-value" id="a_param_value">4.6</span>
