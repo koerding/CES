@@ -394,16 +394,19 @@
             return (1 - psi) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (1 / rho_P) - 1);
         }
         
-        function computeI(LI, beta_I, AI, rho_I, theta) {
-            if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-                const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I);
-                return Math.pow(inside, theta / rho_I);
-            } else {
-                const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
-                              Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
-                return Math.pow(inside, theta / rho_I);
+    function computeI(LI, beta_I, AI, rho_I, theta) {
+        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
+            // Case where labor's contribution is zero
+            return Math.pow(beta_I, theta / rho_I) * Math.pow(AI, theta);
+        } else {
+            const inside = beta_I * Math.pow(AI, rho_I) + (1 - beta_I) * Math.pow(LI, rho_I);
+            // Add a check for negative base before raising to a fractional power
+            if (inside < 0 && rho_I !== 0) {
+                return 0; // or handle as an error
             }
+            return Math.pow(inside, theta / rho_I);
         }
+    }
         
         function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
