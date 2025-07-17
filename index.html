@@ -383,7 +383,7 @@
         // Global state
         let currentAgg = 'CES';
         
-        // Mathematical functions - exactly matching Python code
+        // Mathematical functions
         function computeP(LP, K, psi, rho_P) {
             const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
             return Math.pow(inside, 1 / rho_P);
@@ -394,31 +394,31 @@
             return (1 - psi) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (1 / rho_P) - 1);
         }
         
-    function computeI(LI, beta_I, AI, rho_I, theta) {
-        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-            // Case where labor's contribution is zero
-            return Math.pow(beta_I, theta / rho_I) * Math.pow(AI, theta);
-        } else {
-            const inside = beta_I * Math.pow(AI, rho_I) + (1 - beta_I) * Math.pow(LI, rho_I);
-            // Add a check for negative base before raising to a fractional power
-            if (inside < 0 && rho_I !== 0) {
-                return 0; // or handle as an error
+        // --- CORRECTED FUNCTION ---
+        function computeI(LI, beta_I, AI, rho_I, theta) {
+             if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
+                // Case where labor's contribution is zero or negligible
+                return Math.pow(beta_I, theta / rho_I) * Math.pow(AI, theta);
+            } else {
+                const inside = beta_I * Math.pow(AI, rho_I) + (1 - beta_I) * Math.pow(LI, rho_I);
+                if (inside < 0 && rho_I !== 0) {
+                    return 0; // Avoid NaN from negative base with fractional exponent
+                }
+                return Math.pow(inside, theta / rho_I);
             }
-            return Math.pow(inside, theta / rho_I);
         }
-    }
         
-    function dI_dLI(LI, beta_I, AI, rho_I, theta) {
-        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-            return 0.0;
+        // --- CORRECTED FUNCTION ---
+        function dI_dLI(LI, beta_I, AI, rho_I, theta) {
+            if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
+                return 0.0;
+            }
+            const inside = beta_I * Math.pow(AI, rho_I) + (1 - beta_I) * Math.pow(LI, rho_I);
+             if (inside < 0 && rho_I !== 0) {
+                return 0; // Avoid NaN from negative base
+            }
+            return theta * (1 - beta_I) * Math.pow(LI, rho_I - 1) * Math.pow(inside, (theta / rho_I) - 1);
         }
-        const inside = beta_I * Math.pow(AI, rho_I) + (1 - beta_I) * Math.pow(LI, rho_I);
-        // Add a check for negative base to avoid NaN results
-        if (inside < 0 && rho_I !== 0) {
-            return 0;
-        }
-        return theta * (1 - beta_I) * Math.pow(LI, rho_I - 1) * Math.pow(inside, (theta / rho_I) - 1);
-    }
         
         function computePSI(P, I, params) {
             const x = P != 0 ? I / P : 0.0;
@@ -502,7 +502,8 @@
             let fb = func(b);
             
             if (fa * fb > 0) {
-                throw new Error("Root not bracketed");
+                // Return the closer boundary if no bracket
+                return Math.abs(fa) < Math.abs(fb) ? a : b;
             }
             
             if (Math.abs(fa) < Math.abs(fb)) {
@@ -513,14 +514,15 @@
             let c = a;
             let fc = fa;
             let mflag = true;
+            let d = b - a;
             
             for (let iter = 0; iter < maxIter; iter++) {
-                if (Math.abs(b - a) < tolerance) {
+                if (Math.abs(b - a) < tolerance || fb === 0) {
                     return b;
                 }
                 
                 let s;
-                if (Math.abs(fa - fc) > tolerance && Math.abs(fb - fc) > tolerance) {
+                if (fa !== fc && fb !== fc) {
                     // Inverse quadratic interpolation
                     s = a * fb * fc / ((fa - fb) * (fa - fc)) +
                         b * fa * fc / ((fb - fa) * (fb - fc)) +
@@ -530,14 +532,12 @@
                     s = b - fb * (b - a) / (fb - fa);
                 }
                 
-                const tmp1 = (3 * a + b) / 4;
-                const tmp2 = b;
-                const condition1 = (s < Math.min(tmp1, tmp2) || s > Math.max(tmp1, tmp2));
-                const condition2 = mflag && Math.abs(s - b) >= Math.abs(b - c) / 2;
-                const condition3 = !mflag && Math.abs(s - b) >= Math.abs(c - a) / 2;
-                const condition4 = mflag && Math.abs(b - c) < tolerance;
-                const condition5 = !mflag && Math.abs(c - a) < tolerance;
-                
+                const condition1 = (s < (3 * a + b) / 4 || s > b);
+                const condition2 = mflag && (Math.abs(s - b) >= Math.abs(b - c) / 2);
+                const condition3 = !mflag && (Math.abs(s - b) >= Math.abs(c - d) / 2);
+                const condition4 = mflag && (Math.abs(b - c) < tolerance);
+                const condition5 = !mflag && (Math.abs(c - d) < tolerance);
+
                 if (condition1 || condition2 || condition3 || condition4 || condition5) {
                     s = (a + b) / 2;
                     mflag = true;
@@ -546,15 +546,16 @@
                 }
                 
                 const fs = func(s);
-                a = b;
-                fa = fb;
-                
+                d = c;
+                c = b;
+                fc = fb;
+
                 if (fa * fs < 0) {
                     b = s;
                     fb = fs;
                 } else {
-                    c = s;
-                    fc = fs;
+                    a = s;
+                    fa = fs;
                 }
                 
                 if (Math.abs(fa) < Math.abs(fb)) {
@@ -562,7 +563,6 @@
                     [fa, fb] = [fb, fa];
                 }
             }
-            
             return b;
         }
         
@@ -574,23 +574,23 @@
             }
             
             const f = (bp) => MP_P(bp, beta_I, params) - MP_I(bp, beta_I, params);
+            
             const f_low = f(eps);
             const f_high = f(1 - eps);
             
             if (f_low * f_high > 0) {
+                 // If marginal product of P is always higher, everyone works in P.
+                 // If marginal product of I is always higher, everyone works in I.
                 return f_low > 0 ? 1.0 : 0.0;
             }
             
-            try {
-                return brentq(f, eps, 1 - eps);
-            } catch (e) {
-                return f_low > 0 ? 1.0 : 0.0;
-            }
+            return brentq(f, eps, 1 - eps);
         }
         
         function computeWage(beta_P_opt, beta_I, params) {
             if (Math.abs(beta_P_opt - 1.0) < 1e-6) return MP_P(1.0, beta_I, params);
             if (Math.abs(beta_P_opt) < 1e-6) return MP_I(0.0, beta_I, params);
+            // In equilibrium, MP_P = MP_I, so we can use either
             return MP_P(beta_P_opt, beta_I, params);
         }
         
@@ -752,10 +752,9 @@
                     
                     // Generate beta_I grid
                     const beta_I_vals = [];
-                    for (let i = 0; i < 50; i++) {
-                        beta_I_vals.push(0.01 + i * (0.9 - 0.01) / 49);
+                    for (let i = 0; i <= 50; i++) {
+                        beta_I_vals.push(i / 50.0);
                     }
-                    beta_I_vals.push(1.0);
                     
                     const wages = [];
                     const outputs = [];
