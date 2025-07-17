@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CES Economic Model</title>
+    <title>2-Nest Economic Model with Endogenous Labor Allocation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
@@ -33,13 +33,13 @@
             text-align: center;
             color: #2c3e50;
             margin-bottom: 30px;
-            font-size: 2.5em;
+            font-size: 2.2em;
             font-weight: 300;
         }
         
         .main-content {
             display: grid;
-            grid-template-columns: 400px 1fr;
+            grid-template-columns: 350px 1fr;
             gap: 30px;
             align-items: start;
         }
@@ -59,13 +59,14 @@
         
         .tab-button {
             flex: 1;
-            padding: 12px 16px;
+            padding: 10px 12px;
             background: none;
             border: none;
             cursor: pointer;
             font-weight: 600;
             color: #6c757d;
             transition: all 0.3s ease;
+            font-size: 0.85em;
         }
         
         .tab-button.active {
@@ -82,7 +83,7 @@
         }
         
         .tab-content {
-            padding: 25px;
+            padding: 20px;
             display: none;
         }
         
@@ -101,37 +102,37 @@
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             position: relative;
-            height: 350px;
+            height: 320px;
         }
         
         .parameter-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
         
         .parameter-label {
             display: block;
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 8px;
-            font-size: 0.9em;
+            margin-bottom: 6px;
+            font-size: 0.85em;
         }
         
         .parameter-description {
-            font-size: 0.75em;
+            font-size: 0.7em;
             color: #6c757d;
-            margin-bottom: 8px;
-            line-height: 1.3;
+            margin-bottom: 6px;
+            line-height: 1.2;
         }
         
         .slider-container {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         
         .slider {
             flex: 1;
-            height: 6px;
+            height: 5px;
             border-radius: 5px;
             background: #ddd;
             outline: none;
@@ -141,8 +142,8 @@
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             background: #667eea;
             cursor: pointer;
@@ -150,8 +151,8 @@
         }
         
         .slider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             background: #667eea;
             cursor: pointer;
@@ -160,20 +161,56 @@
         }
         
         .slider-value {
-            min-width: 50px;
+            min-width: 45px;
             text-align: right;
             font-weight: 600;
             color: #495057;
-            font-size: 0.85em;
+            font-size: 0.8em;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle.active {
+            background: #667eea;
+        }
+        
+        .toggle-knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        
+        .toggle.active .toggle-knob {
+            transform: translateX(26px);
         }
         
         .status {
             text-align: center;
-            padding: 12px;
-            margin-top: 20px;
+            padding: 10px;
+            margin-top: 15px;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
         
         .status.success {
@@ -195,126 +232,132 @@
 </head>
 <body>
     <div class="container">
-        <h1>CES Economic Model Interactive</h1>
+        <h1>2-Nest Economic Model with Endogenous Labor Allocation</h1>
         
         <div class="main-content">
             <div class="controls">
                 <div class="tab-header">
-                    <button class="tab-button active" onclick="switchTab(0)">Production</button>
-                    <button class="tab-button" onclick="switchTab(1)">Capital</button>
-                    <button class="tab-button" onclick="switchTab(2)">Structure</button>
+                    <button class="tab-button active" onclick="switchTab(0)">Basic</button>
+                    <button class="tab-button" onclick="switchTab(1)">Nests</button>
+                    <button class="tab-button" onclick="switchTab(2)">Top</button>
+                    <button class="tab-button" onclick="switchTab(3)">PSI</button>
                 </div>
                 
                 <div class="tab-content active">
                     <div class="parameter-group">
-                        <label class="parameter-label">Cross-Sector Elasticity (σ_Y)</label>
-                        <div class="parameter-description">Substitutability between sectors in final aggregation</div>
+                        <label class="parameter-label">Capital Endowment (K)</label>
+                        <div class="parameter-description">Total capital available for production</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="sigma_Y" min="0.1" max="3.0" step="0.1" value="1.5">
-                            <span class="slider-value" id="sigma_Y_value">1.5</span>
+                            <input type="range" class="slider" id="K" min="0.5" max="3.0" step="0.1" value="1.5">
+                            <span class="slider-value" id="K_value">1.5</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">Physical Capital Share (α_p)</label>
-                        <div class="parameter-description">Share of physical capital in CES production function</div>
+                        <label class="parameter-label">AI Endowment (AI)</label>
+                        <div class="parameter-description">Total AI/automation capability available</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="alpha_p" min="0.1" max="0.9" step="0.05" value="0.5">
-                            <span class="slider-value" id="alpha_p_value">0.5</span>
+                            <input type="range" class="slider" id="AI" min="1.0" max="20.0" step="0.5" value="9.0">
+                            <span class="slider-value" id="AI_value">9.0</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">AI Capital Share (α_i)</label>
-                        <div class="parameter-description">Share of AI/intellectual capital in CES production</div>
+                        <label class="parameter-label">Total Labor (L)</label>
+                        <div class="parameter-description">Total labor force (normalization)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="alpha_i" min="0.1" max="0.9" step="0.05" value="0.8">
-                            <span class="slider-value" id="alpha_i_value">0.8</span>
+                            <input type="range" class="slider" id="L" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span class="slider-value" id="L_value">1.0</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">Physical Elasticity (σ_p)</label>
-                        <div class="parameter-description">Elasticity of substitution for physical tasks</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="sigma_p" min="0.1" max="3.0" step="0.1" value="0.5">
-                            <span class="slider-value" id="sigma_p_value">0.5</span>
-                        </div>
-                    </div>
-                    
-                    <div class="parameter-group">
-                        <label class="parameter-label">Intelligence Elasticity (σ_i)</label>
-                        <div class="parameter-description">Elasticity of substitution for intelligence tasks</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="sigma_i" min="0.1" max="3.0" step="0.1" value="2.0">
-                            <span class="slider-value" id="sigma_i_value">2.0</span>
+                        <label class="parameter-label">Aggregation Method</label>
+                        <div class="parameter-description">CES: standard elasticity, PSI: S-curve aggregation</div>
+                        <div class="toggle-container">
+                            <span>CES</span>
+                            <div class="toggle" id="agg_toggle" onclick="toggleAggregation()">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span>PSI</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="tab-content">
                     <div class="parameter-group">
-                        <label class="parameter-label">Physical Capital in B (K_Bp)</label>
-                        <div class="parameter-description">Amount of physical capital in sector B</div>
+                        <label class="parameter-label">Capital Share in P-nest (ψ)</label>
+                        <div class="parameter-description">Share of capital vs labor in physical production</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="K_Bp" min="0.1" max="2.0" step="0.1" value="0.5">
-                            <span class="slider-value" id="K_Bp_value">0.5</span>
+                            <input type="range" class="slider" id="psi" min="0.1" max="0.9" step="0.05" value="0.7">
+                            <span class="slider-value" id="psi_value">0.7</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">Physical Capital in C (K_Cp)</label>
-                        <div class="parameter-description">Amount of physical capital in sector C</div>
+                        <label class="parameter-label">P-nest Substitution (ρ_P)</label>
+                        <div class="parameter-description">Substitution between capital and labor in P-nest</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="K_Cp" min="0.1" max="2.0" step="0.1" value="0.5">
-                            <span class="slider-value" id="K_Cp_value">0.5</span>
+                            <input type="range" class="slider" id="rho_P" min="-1.5" max="0.9" step="0.05" value="-0.67">
+                            <span class="slider-value" id="rho_P_value">-0.67</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">AI Capital in B (K_Bi)</label>
-                        <div class="parameter-description">Amount of AI capital in sector B (low baseline)</div>
+                        <label class="parameter-label">I-nest Substitution (ρ_I)</label>
+                        <div class="parameter-description">Substitution between AI and labor in I-nest</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="K_Bi" min="0.001" max="1.0" step="0.001" value="0.001">
-                            <span class="slider-value" id="K_Bi_value">0.001</span>
+                            <input type="range" class="slider" id="rho_I" min="-0.5" max="0.9" step="0.05" value="0.55">
+                            <span class="slider-value" id="rho_I_value">0.55</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">AI Capital in C (K_Ci)</label>
-                        <div class="parameter-description">Amount of AI capital in sector C</div>
+                        <label class="parameter-label">I-nest Scaling (θ)</label>
+                        <div class="parameter-description">Nesting exponent for I-nest output scaling</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="K_Ci" min="0.1" max="2.0" step="0.1" value="1.0">
-                            <span class="slider-value" id="K_Ci_value">1.0</span>
+                            <input type="range" class="slider" id="theta" min="0.5" max="1.5" step="0.02" value="0.94">
+                            <span class="slider-value" id="theta_value">0.94</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="tab-content">
                     <div class="parameter-group">
-                        <label class="parameter-label">S-curve Parameter (a)</label>
-                        <div class="parameter-description">Controls shape of intelligence-physical substitution</div>
+                        <label class="parameter-label">P-weight in Top CES (τ)</label>
+                        <div class="parameter-description">Weight on physical nest in top-level aggregation</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="a_param" min="0.1" max="1.0" step="0.05" value="0.2">
-                            <span class="slider-value" id="a_param_value">0.2</span>
+                            <input type="range" class="slider" id="tau" min="0.05" max="0.7" step="0.02" value="0.18">
+                            <span class="slider-value" id="tau_value">0.18</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">S-curve Exponent (η)</label>
-                        <div class="parameter-description">Curvature parameter in σ(x) function</div>
+                        <label class="parameter-label">Top-level Substitution (ρ)</label>
+                        <div class="parameter-description">Substitution between P and I nests</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="eta" min="0.5" max="3.0" step="0.1" value="1.2">
-                            <span class="slider-value" id="eta_value">1.2</span>
+                            <input type="range" class="slider" id="rho" min="-1.5" max="0.9" step="0.05" value="-0.67">
+                            <span class="slider-value" id="rho_value">-0.67</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content">
+                    <div class="parameter-group">
+                        <label class="parameter-label">PSI Exponent (η)</label>
+                        <div class="parameter-description">S-curve exponent (defaults to ρ if null)</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="eta" min="-1.5" max="2.0" step="0.1" value="-0.67">
+                            <span class="slider-value" id="eta_value">-0.67</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">Total Labor (L_tot)</label>
-                        <div class="parameter-description">Total labor endowment (normalization)</div>
+                        <label class="parameter-label">PSI Denominator (a)</label>
+                        <div class="parameter-description">S-curve shift parameter (defaults to (1-τ)/τ)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="L_tot" min="0.5" max="2.0" step="0.1" value="1.0">
-                            <span class="slider-value" id="L_tot_value">1.0</span>
+                            <input type="range" class="slider" id="a_param" min="0.1" max="10.0" step="0.1" value="4.6">
+                            <span class="slider-value" id="a_param_value">4.6</span>
                         </div>
                     </div>
                 </div>
@@ -324,469 +367,251 @@
             
             <div class="charts">
                 <div class="chart-container">
-                    <canvas id="outputChart"></canvas>
-                </div>
-                <div class="chart-container">
                     <canvas id="wageChart"></canvas>
                 </div>
                 <div class="chart-container">
-                    <canvas id="laborChart"></canvas>
+                    <canvas id="outputChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="allocationChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Mathematical functions - exactly matching your working Python code
-        function ces_two(L, K, alpha, sigma) {
-            if (Math.abs(sigma - 1.0) < 1e-8) {
-                return Math.pow(L, 1 - alpha) * Math.pow(K, alpha);
-            }
-            const rho = (sigma - 1.0) / sigma;
-            const inner = (1 - alpha) * Math.pow(L, rho) + alpha * Math.pow(K, rho);
-            return Math.pow(inner, 1.0 / rho);
+        // Global state
+        let currentAgg = 'CES';
+        
+        // Mathematical functions - exactly matching Python code
+        function computeP(LP, K, psi, rho_P) {
+            const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
+            return Math.pow(inside, 1 / rho_P);
         }
         
-        function ces_mpl_L(L, K, alpha, sigma) {
-            if (Math.abs(sigma - 1.0) < 1e-8) {
-                return (1 - alpha) * Math.pow(L, -alpha) * Math.pow(K, alpha);
-            }
-            const rho = (sigma - 1.0) / sigma;
-            const inner = (1 - alpha) * Math.pow(L, rho) + alpha * Math.pow(K, rho);
-            const ces = Math.pow(inner, 1.0 / rho);
-            return (1 - alpha) * Math.pow(L, rho - 1) * Math.pow(ces, 1 - rho);
+        function dP_dLP(LP, K, psi, rho_P) {
+            const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
+            return (1 - psi) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (1 / rho_P) - 1);
         }
         
-        function s_curve(x, a, eta) {
-            const numerator = a * Math.pow(x, eta);
-            const denominator = 1.0 + a * Math.pow(x, eta);
-            return numerator / denominator;
-        }
-        
-        function s_curve_prime(x, a, eta) {
-            const x_eta = Math.pow(x, eta);
-            const numerator = a * eta * Math.pow(x, eta - 1);
-            const denominator = Math.pow(1.0 + a * x_eta, 2);
-            return numerator / denominator;
-        }
-        
-        function sector_output(Lp, Li, Kp, Ki, params_sector) {
-            const [alpha_p, alpha_i, sigma_p, sigma_i, a_param, eta] = params_sector;
-            
-            const P = ces_two(Lp, Kp, alpha_p, sigma_p);
-            const I = ces_two(Li, Ki, alpha_i, sigma_i);
-            
-            const x = I / Math.max(1e-15, P);
-            const sigma_val = s_curve(x, a_param, eta);
-            const sigma_prime_val = s_curve_prime(x, a_param, eta);
-            
-            const y = P * sigma_val;
-            
-            // Marginal products
-            const P_Lp = ces_mpl_L(Lp, Kp, alpha_p, sigma_p);
-            const I_Li = ces_mpl_L(Li, Ki, alpha_i, sigma_i);
-            
-            const yP = sigma_val - x * sigma_prime_val;
-            const yI = sigma_prime_val;
-            
-            return {
-                y: y,
-                P: P,
-                I: I,
-                x: x,
-                sigma_val: sigma_val,
-                P_Lp: P_Lp,
-                I_Li: I_Li,
-                yP: yP,
-                yI: yI
-            };
-        }
-        
-        function top_DS_correct(yB, yC, betaC, sigma_Y) {
-            // Add safety bounds
-            yB = Math.max(1e-10, yB);
-            yC = Math.max(1e-10, yC);
-            betaC = Math.max(1e-10, Math.min(1 - 1e-10, betaC));
-            
-            if (Math.abs(sigma_Y - 1.0) < 1e-8) {
-                // Cobb-Douglas limiting case
-                const Y = Math.pow(yB, 1 - betaC) * Math.pow(yC, betaC);
-                const pB = (1 - betaC) * Y / yB;
-                const pC = betaC * Y / yC;
-                return [Y, pB, pC];
+        function computeI(LI, beta_I, AI, rho_I, theta) {
+            if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
+                const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I);
+                return Math.pow(inside, theta / rho_I);
             } else {
-                // Dixit-Stiglitz CES case
-                const q = (sigma_Y - 1.0) / sigma_Y;
-                
-                // Safe computation of weights
-                const weight_B = Math.pow(1 - betaC, 1.0 / sigma_Y);
-                const weight_C = Math.pow(betaC, 1.0 / sigma_Y);
-                
-                // Safe computation of powered terms
-                const yB_q = Math.pow(yB, q);
-                const yC_q = Math.pow(yC, q);
-                
-                const inner = weight_B * yB_q + weight_C * yC_q;
-                
-                if (inner <= 0 || !isFinite(inner)) {
-                    console.log(`DS numerical issue: inner=${inner}, yB=${yB}, yC=${yC}, betaC=${betaC}, sigma_Y=${sigma_Y}`);
-                    return [1e-10, 1e-10, 1e-10];
-                }
-                
-                const Y = Math.pow(inner, sigma_Y / (sigma_Y - 1.0));
-                
-                if (!isFinite(Y) || Y <= 0) {
-                    console.log(`DS Y calculation failed: Y=${Y}`);
-                    return [1e-10, 1e-10, 1e-10];
-                }
-                
-                // DS prices from first-order conditions
-                const pB = weight_B * Math.pow(Y / yB, 1.0 / sigma_Y);
-                const pC = weight_C * Math.pow(Y / yC, 1.0 / sigma_Y);
-                
-                if (!isFinite(pB) || !isFinite(pC) || pB <= 0 || pC <= 0) {
-                    console.log(`DS price calculation failed: pB=${pB}, pC=${pC}`);
-                    return [Y, 1e-10, 1e-10];
-                }
-                
-                return [Y, pB, pC];
+                const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
+                              Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
+                return Math.pow(inside, theta / rho_I);
             }
         }
         
-        // Softmax functions - exactly matching Python
-        function softmax4(z3) {
-            const z = [...z3, 0.0]; // Add implicit zero baseline
-            const maxZ = Math.max(...z);
-            const e = z.map(zi => Math.exp(zi - maxZ));
-            const sum = e.reduce((a, b) => a + b, 0);
-            return e.map(ei => ei / sum);
+        function dI_dLI(LI, beta_I, AI, rho_I, theta) {
+            if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
+                return 0.0;
+            }
+            const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
+                          Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
+            return theta * Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I - 1) * 
+                   Math.pow(inside, (theta / rho_I) - 1);
         }
         
-        function shares_to_L(s4, L_tot) {
-            return s4.map(s => s * L_tot);
+        function computePSI(P, I, params) {
+            const x = P != 0 ? I / P : 0.0;
+            const eta = params.eta;
+            const a = params.a_param;
+            return P * (Math.pow(x, eta) / (a + Math.pow(x, eta)));
         }
         
-        function wages_from_L(betaC, L_Bp, L_Bi, L_Cp, L_Ci, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, sigma_Y) {
-            const B = sector_output(L_Bp, L_Bi, K_Bp, K_Bi, params_sector);
-            const C = sector_output(L_Cp, L_Ci, K_Cp, K_Ci, params_sector);
-            
-            const yB = Math.max(B.y, 1e-16);
-            const yC = Math.max(C.y, 1e-16);
-            
-            const [Y, pB, pC] = top_DS_correct(yB, yC, betaC, sigma_Y);
-            
-            const wBp = L_Bp > 0 ? pB * B.yP * B.P_Lp : 0.0;
-            const wBi = L_Bi > 0 ? pB * B.yI * B.I_Li : 0.0;
-            const wCp = L_Cp > 0 ? pC * C.yP * C.P_Lp : 0.0;
-            const wCi = L_Ci > 0 ? pC * C.yI * C.I_Li : 0.0;
-            
-            return [[wBp, wBi, wCp, wCi], Y, B, C];
+        function dY_dP_psi(P, I, params) {
+            const x = P != 0 ? I / P : 0.0;
+            const eta = params.eta;
+            const a = params.a_param;
+            const denom = a + Math.pow(x, eta);
+            const sig = denom != 0 ? Math.pow(x, eta) / denom : 0.0;
+            const dsig = denom != 0 ? (a * eta * Math.pow(x, eta - 1) / Math.pow(denom, 2)) : 0.0;
+            return sig - x * dsig;
         }
         
-        function resid_LM(z3, betaC, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, L_tot, sigma_Y) {
-            try {
-                const s4 = softmax4(z3);
-                const [L_Bp, L_Bi, L_Cp, L_Ci] = shares_to_L(s4, L_tot);
-                
-                if (betaC < 0.1) { // Debug first few cases
-                    console.log(`  Labor shares: Bp=${L_Bp.toFixed(3)}, Bi=${L_Bi.toFixed(3)}, Cp=${L_Cp.toFixed(3)}, Ci=${L_Ci.toFixed(3)}`);
-                }
-                
-                const [[wBp, wBi, wCp, wCi], Y, B, C] = wages_from_L(betaC, L_Bp, L_Bi, L_Cp, L_Ci, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, sigma_Y);
-                
-                // Check for problematic values
-                if (!isFinite(Y) || Y <= 0 || !isFinite(wBp) || !isFinite(wBi) || !isFinite(wCp) || !isFinite(wCi)) {
-                    console.log(`  Numerical issue: Y=${Y}, wages=[${wBp.toFixed(6)}, ${wBi.toFixed(6)}, ${wCp.toFixed(6)}, ${wCi.toFixed(6)}]`);
-                    return [1e6, 1e6, 1e6];
-                }
-                
-                if (wBp <= 0 || wBi <= 0 || wCp <= 0 || wCi <= 0) {
-                    console.log(`  Non-positive wages: [${wBp.toFixed(6)}, ${wBi.toFixed(6)}, ${wCp.toFixed(6)}, ${wCi.toFixed(6)}]`);
-                    return [1e6, 1e6, 1e6];
-                }
-                
-                if (betaC < 0.1) { // Debug first few cases
-                    console.log(`  Wages: Bp=${wBp.toFixed(6)}, Bi=${wBi.toFixed(6)}, Cp=${wCp.toFixed(6)}, Ci=${wCi.toFixed(6)}`);
-                    console.log(`  Y=${Y.toFixed(3)}, yB=${B.y.toFixed(3)}, yC=${C.y.toFixed(3)}`);
-                }
-                
-                const eps = 1e-16;
-                const r1 = Math.log((wBi + eps) / (wBp + eps));
-                const r2 = Math.log((wCp + eps) / (wBp + eps));
-                const r3 = Math.log((wCi + eps) / (wBp + eps));
-                
-                if (betaC < 0.1) { // Debug first few cases
-                    console.log(`  Residuals: r1=${r1.toFixed(6)}, r2=${r2.toFixed(6)}, r3=${r3.toFixed(6)}`);
-                }
-                
-                return [r1, r2, r3];
-            } catch (error) {
-                console.log(`  Error in residuals: ${error.message}`);
-                return [1e6, 1e6, 1e6];
+        function dY_dI_psi(P, I, params) {
+            const x = P != 0 ? I / P : 0.0;
+            const eta = params.eta;
+            const a = params.a_param;
+            const denom = a + Math.pow(x, eta);
+            return denom != 0 ? (a * eta * Math.pow(x, eta - 1) / Math.pow(denom, 2)) : 0.0;
+        }
+        
+        function computeY(P, I, params) {
+            if (params.agg === 'CES') {
+                const rho = params.rho;
+                const tau = params.tau;
+                const inside = tau * Math.pow(P, rho) + (1 - tau) * Math.pow(I, rho);
+                return Math.pow(inside, 1 / rho);
+            } else {
+                return computePSI(P, I, params);
             }
         }
         
-        function solve_one_sector(Kp, Ki, params_sector) {
-            const [alpha_p, alpha_i, sigma_p, sigma_i, a_param, eta] = params_sector;
-            let best = null;
-            
-            for (let i = 0; i < 500; i++) {
-                const Lp = 1e-8 + i * (1 - 2e-8) / 499;
-                const Li = 1 - Lp;
-                const S = sector_output(Lp, Li, Kp, Ki, params_sector);
-                
-                if (best === null || S.y > best.y) {
-                    best = { y: S.y, Lp: Lp, Li: Li, S: S };
-                }
+        function dY_dP(P, I, params) {
+            if (params.agg === 'CES') {
+                const rho = params.rho;
+                const tau = params.tau;
+                const inside = tau * Math.pow(P, rho) + (1 - tau) * Math.pow(I, rho);
+                return tau * Math.pow(P, rho - 1) * Math.pow(inside, (1 / rho) - 1);
+            } else {
+                return dY_dP_psi(P, I, params);
             }
-            
-            const p = 1.0;
-            const wP = p * best.S.yP * best.S.P_Lp;
-            const wI = p * best.S.yI * best.S.I_Li;
-            const w = 0.5 * (wP + wI);
-            
-            return {
-                Lp: best.Lp,
-                Li: best.Li,
-                y: best.y,
-                p: p,
-                w: w,
-                S: best.S
-            };
         }
         
-        // Scipy least_squares equivalent solver
-        function leastSquaresSolve(func, x0, maxIter = 200, xtol = 1e-12, ftol = 1e-12) {
-            let x = [...x0];
-            let bestX = [...x];
-            let bestError = Infinity;
+        function dY_dI(P, I, params) {
+            if (params.agg === 'CES') {
+                const rho = params.rho;
+                const tau = params.tau;
+                const inside = tau * Math.pow(P, rho) + (1 - tau) * Math.pow(I, rho);
+                return (1 - tau) * Math.pow(I, rho - 1) * Math.pow(inside, (1 / rho) - 1);
+            } else {
+                return dY_dI_psi(P, I, params);
+            }
+        }
+        
+        function MP_P(beta_P, beta_I, params) {
+            const L = params.L;
+            const LP = beta_P * L;
+            const LI = (1 - beta_P) * L;
+            const P = computeP(LP, params.K, params.psi, params.rho_P);
+            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta);
+            return dY_dP(P, I, params) * dP_dLP(LP, params.K, params.psi, params.rho_P);
+        }
+        
+        function MP_I(beta_P, beta_I, params) {
+            const L = params.L;
+            const LP = beta_P * L;
+            const LI = (1 - beta_P) * L;
+            const P = computeP(LP, params.K, params.psi, params.rho_P);
+            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta);
+            return dY_dI(P, I, params) * dI_dLI(LI, beta_I, params.AI, params.rho_I, params.theta);
+        }
+        
+        // Brent's method for root finding
+        function brentq(func, a, b, tolerance = 1e-10, maxIter = 100) {
+            let fa = func(a);
+            let fb = func(b);
+            
+            if (fa * fb > 0) {
+                throw new Error("Root not bracketed");
+            }
+            
+            if (Math.abs(fa) < Math.abs(fb)) {
+                [a, b] = [b, a];
+                [fa, fb] = [fb, fa];
+            }
+            
+            let c = a;
+            let fc = fa;
+            let mflag = true;
             
             for (let iter = 0; iter < maxIter; iter++) {
-                const f = func(x);
-                const fnorm = Math.sqrt(f.reduce((s, v) => s + v*v, 0));
-                
-                if (fnorm < bestError) {
-                    bestX = [...x];
-                    bestError = fnorm;
+                if (Math.abs(b - a) < tolerance) {
+                    return b;
                 }
                 
-                if (fnorm < ftol) {
-                    return { x: bestX, success: true, fun: f };
+                let s;
+                if (Math.abs(fa - fc) > tolerance && Math.abs(fb - fc) > tolerance) {
+                    // Inverse quadratic interpolation
+                    s = a * fb * fc / ((fa - fb) * (fa - fc)) +
+                        b * fa * fc / ((fb - fa) * (fb - fc)) +
+                        c * fa * fb / ((fc - fa) * (fc - fb));
+                } else {
+                    // Secant method
+                    s = b - fb * (b - a) / (fb - fa);
                 }
                 
-                // Compute Jacobian
-                const J = [];
-                const h = 1e-8;
+                const tmp1 = (3 * a + b) / 4;
+                const tmp2 = b;
+                const condition1 = (s < Math.min(tmp1, tmp2) || s > Math.max(tmp1, tmp2));
+                const condition2 = mflag && Math.abs(s - b) >= Math.abs(b - c) / 2;
+                const condition3 = !mflag && Math.abs(s - b) >= Math.abs(c - a) / 2;
+                const condition4 = mflag && Math.abs(b - c) < tolerance;
+                const condition5 = !mflag && Math.abs(c - a) < tolerance;
                 
-                for (let i = 0; i < x.length; i++) {
-                    const xh = [...x];
-                    xh[i] += h;
-                    const fh = func(xh);
-                    J.push(fh.map((val, j) => (val - f[j]) / h));
+                if (condition1 || condition2 || condition3 || condition4 || condition5) {
+                    s = (a + b) / 2;
+                    mflag = true;
+                } else {
+                    mflag = false;
                 }
                 
-                // Levenberg-Marquardt step
-                const JT = [];
-                for (let i = 0; i < f.length; i++) {
-                    JT.push(J.map(row => row[i]));
+                const fs = func(s);
+                a = b;
+                fa = fb;
+                
+                if (fa * fs < 0) {
+                    b = s;
+                    fb = fs;
+                } else {
+                    c = s;
+                    fc = fs;
                 }
                 
-                const JTJ = [];
-                for (let i = 0; i < x.length; i++) {
-                    JTJ.push([]);
-                    for (let j = 0; j < x.length; j++) {
-                        let sum = 0;
-                        for (let k = 0; k < f.length; k++) {
-                            sum += JT[k][i] * JT[k][j];
-                        }
-                        JTJ[i][j] = sum + (i === j ? 1e-6 : 0); // Small regularization
-                    }
-                }
-                
-                const JTf = [];
-                for (let i = 0; i < x.length; i++) {
-                    let sum = 0;
-                    for (let j = 0; j < f.length; j++) {
-                        sum += JT[j][i] * f[j];
-                    }
-                    JTf.push(-sum);
-                }
-                
-                const dx = solveLMSystem(JTJ, JTf);
-                if (!dx) break;
-                
-                // Update with step size control
-                const stepSize = Math.min(1.0, 1.0 / Math.max(...dx.map(Math.abs)));
-                for (let i = 0; i < x.length; i++) {
-                    x[i] += stepSize * dx[i];
-                }
-                
-                // Check convergence
-                const dxnorm = Math.sqrt(dx.reduce((s, v) => s + v*v, 0));
-                if (dxnorm < xtol) {
-                    return { x: bestX, success: true, fun: f };
+                if (Math.abs(fa) < Math.abs(fb)) {
+                    [a, b] = [b, a];
+                    [fa, fb] = [fb, fa];
                 }
             }
             
-            return { x: bestX, success: bestError < ftol * 100, fun: func(bestX) };
+            return b;
         }
         
-        function solveLMSystem(A, b) {
-            const n = A.length;
-            const augmented = A.map((row, i) => [...row, b[i]]);
+        function betaPStar(beta_I, params) {
+            const eps = 1e-6;
             
-            for (let i = 0; i < n; i++) {
-                let maxRow = i;
-                for (let k = i + 1; k < n; k++) {
-                    if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
-                        maxRow = k;
-                    }
-                }
-                [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
-                
-                if (Math.abs(augmented[i][i]) < 1e-12) {
-                    return null;
-                }
-                
-                for (let k = i + 1; k < n; k++) {
-                    const factor = augmented[k][i] / augmented[i][i];
-                    for (let j = i; j <= n; j++) {
-                        augmented[k][j] -= factor * augmented[i][j];
-                    }
-                }
+            if (Math.abs(beta_I - 1.0) < eps) {
+                return 1.0;
             }
             
-            const x = new Array(n);
-            for (let i = n - 1; i >= 0; i--) {
-                x[i] = augmented[i][n];
-                for (let j = i + 1; j < n; j++) {
-                    x[i] -= augmented[i][j] * x[j];
-                }
-                x[i] /= augmented[i][i];
-                
-                if (!isFinite(x[i])) {
-                    return null;
-                }
+            const f = (bp) => MP_P(bp, beta_I, params) - MP_I(bp, beta_I, params);
+            const f_low = f(eps);
+            const f_high = f(1 - eps);
+            
+            if (f_low * f_high > 0) {
+                return f_low > 0 ? 1.0 : 0.0;
             }
             
-            return x;
+            try {
+                return brentq(f, eps, 1 - eps);
+            } catch (e) {
+                return f_low > 0 ? 1.0 : 0.0;
+            }
         }
         
-        function equilibrium_LM(betaC, z0, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, L_tot, sigma_Y, tol_meas = 1e-8) {
-            // Handle corners
-            if (betaC < tol_meas) {
-                const solB = solve_one_sector(K_Bp, K_Bi, params_sector);
-                return {
-                    success: true,
-                    betaC: betaC,
-                    L_Bp: solB.Lp,
-                    L_Bi: solB.Li,
-                    L_Cp: 0.0,
-                    L_Ci: 0.0,
-                    yB: solB.y,
-                    yC: 0.0,
-                    Y: solB.y,
-                    w: solB.w,
-                    corner: 'B'
-                };
-            }
-            
-            if ((1 - betaC) < tol_meas) {
-                const solC = solve_one_sector(K_Cp, K_Ci, params_sector);
-                return {
-                    success: true,
-                    betaC: betaC,
-                    L_Bp: 0.0,
-                    L_Bi: 0.0,
-                    L_Cp: solC.Lp,
-                    L_Ci: solC.Li,
-                    yB: 0.0,
-                    yC: solC.y,
-                    Y: solC.y,
-                    w: solC.w,
-                    corner: 'C'
-                };
-            }
-            
-            if (!z0) {
-                z0 = [0, 0, 0];
-            }
-            
-            const residualFunc = (z) => resid_LM(z, betaC, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, L_tot, sigma_Y);
-            const res = leastSquaresSolve(residualFunc, z0);
-            
-            if (!res.success) {
-                return { success: false, betaC: betaC, message: 'Failed to converge' };
-            }
-            
-            const s4 = softmax4(res.x);
-            const [L_Bp, L_Bi, L_Cp, L_Ci] = shares_to_L(s4, L_tot);
-            const [[wBp, wBi, wCp, wCi], Y, B, C] = wages_from_L(betaC, L_Bp, L_Bi, L_Cp, L_Ci, params_sector, K_Bp, K_Cp, K_Bi, K_Ci, sigma_Y);
-            
-            const w = Math.exp(([wBp, wBi, wCp, wCi].map(wi => Math.log(Math.max(1e-16, wi))).reduce((a, b) => a + b, 0)) / 4);
-            
-            return {
-                success: true,
-                betaC: betaC,
-                L_Bp: L_Bp,
-                L_Bi: L_Bi,
-                L_Cp: L_Cp,
-                L_Ci: L_Ci,
-                yB: B.y,
-                yC: C.y,
-                Y: Y,
-                w: w,
-                corner: null,
-                wvec: [wBp, wBi, wCp, wCi],
-                residuals: Math.sqrt(res.fun.reduce((s, v) => s + v*v, 0))
-            };
+        function computeWage(beta_P_opt, beta_I, params) {
+            if (Math.abs(beta_P_opt - 1.0) < 1e-6) return MP_P(1.0, beta_I, params);
+            if (Math.abs(beta_P_opt) < 1e-6) return MP_I(0.0, beta_I, params);
+            return MP_P(beta_P_opt, beta_I, params);
+        }
+        
+        function computeTotalOutput(beta_I, params) {
+            const bp = betaPStar(beta_I, params);
+            const LP = bp * params.L;
+            const LI = (1 - bp) * params.L;
+            const P = computeP(LP, params.K, params.psi, params.rho_P);
+            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta);
+            return computeY(P, I, params);
         }
 
         // Chart setup
-        const outputCtx = document.getElementById('outputChart').getContext('2d');
         const wageCtx = document.getElementById('wageChart').getContext('2d');
-        const laborCtx = document.getElementById('laborChart').getContext('2d');
-
-        const outputChart = new Chart(outputCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Aggregate Output Y',
-                    data: [],
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Aggregate Output Y vs β_C',
-                        font: { size: 16 }
-                    }
-                },
-                scales: {
-                    x: { title: { display: true, text: 'β_C' } },
-                    y: { title: { display: true, text: 'Y' } }
-                }
-            }
-        });
+        const outputCtx = document.getElementById('outputChart').getContext('2d');
+        const allocationCtx = document.getElementById('allocationChart').getContext('2d');
 
         const wageChart = new Chart(wageCtx, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Wage w',
+                    label: 'Wage',
                     data: [],
-                    borderColor: '#764ba2',
-                    backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
                     borderWidth: 3,
                     fill: true,
                     tension: 0.4
@@ -798,26 +623,26 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Wage vs β_C',
+                        text: 'Wage vs β_I',
                         font: { size: 16 }
                     }
                 },
                 scales: {
-                    x: { title: { display: true, text: 'β_C' } },
-                    y: { title: { display: true, text: 'w' } }
+                    x: { title: { display: true, text: 'β_I (AI share in I-nest)' } },
+                    y: { title: { display: true, text: 'Wage' } }
                 }
             }
         });
 
-        const laborChart = new Chart(laborCtx, {
+        const outputChart = new Chart(outputCtx, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Physical Labor Share λ_p',
+                    label: 'Total Output Y',
                     data: [],
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
                     borderWidth: 3,
                     fill: true,
                     tension: 0.4
@@ -829,13 +654,44 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Physical Labor Share vs β_C',
+                        text: 'Total Output vs β_I',
                         font: { size: 16 }
                     }
                 },
                 scales: {
-                    x: { title: { display: true, text: 'β_C' } },
-                    y: { title: { display: true, text: 'λ_p' } }
+                    x: { title: { display: true, text: 'β_I (AI share in I-nest)' } },
+                    y: { title: { display: true, text: 'Output Y' } }
+                }
+            }
+        });
+
+        const allocationChart = new Chart(allocationCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'β_P* (Optimal P-labor share)',
+                    data: [],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Optimal Labor Allocation vs β_I',
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'β_I (AI share in I-nest)' } },
+                    y: { title: { display: true, text: 'β_P* (P-nest labor share)' } }
                 }
             }
         });
@@ -853,22 +709,30 @@
                 content.classList.toggle('active', i === index);
             });
         }
+        
+        // Toggle aggregation method
+        function toggleAggregation() {
+            const toggle = document.getElementById('agg_toggle');
+            toggle.classList.toggle('active');
+            currentAgg = toggle.classList.contains('active') ? 'PSI' : 'CES';
+            updateCharts();
+        }
 
         // Parameter management
         function getParams() {
             return {
-                sigma_Y: parseFloat(document.getElementById('sigma_Y').value),
-                alpha_p: parseFloat(document.getElementById('alpha_p').value),
-                alpha_i: parseFloat(document.getElementById('alpha_i').value),
-                sigma_p: parseFloat(document.getElementById('sigma_p').value),
-                sigma_i: parseFloat(document.getElementById('sigma_i').value),
-                K_Bp: parseFloat(document.getElementById('K_Bp').value),
-                K_Cp: parseFloat(document.getElementById('K_Cp').value),
-                K_Bi: parseFloat(document.getElementById('K_Bi').value),
-                K_Ci: parseFloat(document.getElementById('K_Ci').value),
-                a_param: parseFloat(document.getElementById('a_param').value),
+                K: parseFloat(document.getElementById('K').value),
+                AI: parseFloat(document.getElementById('AI').value),
+                L: parseFloat(document.getElementById('L').value),
+                psi: parseFloat(document.getElementById('psi').value),
+                rho_P: parseFloat(document.getElementById('rho_P').value),
+                rho_I: parseFloat(document.getElementById('rho_I').value),
+                theta: parseFloat(document.getElementById('theta').value),
+                tau: parseFloat(document.getElementById('tau').value),
+                rho: parseFloat(document.getElementById('rho').value),
                 eta: parseFloat(document.getElementById('eta').value),
-                L_tot: parseFloat(document.getElementById('L_tot').value)
+                a_param: parseFloat(document.getElementById('a_param').value),
+                agg: currentAgg
             };
         }
 
@@ -880,79 +744,62 @@
             setTimeout(() => {
                 try {
                     const params = getParams();
-                    const params_sector = [params.alpha_p, params.alpha_i, params.sigma_p, params.sigma_i, params.a_param, params.eta];
                     
-                    console.log('Parameters:', params);
-                    console.log('Sector params:', params_sector);
-                    
-                    const betas = [];
-                    for (let i = 0; i <= 20; i++) {  // Reduced for debugging
-                        betas.push(i / 20);
+                    // Generate beta_I grid
+                    const beta_I_vals = [];
+                    for (let i = 0; i < 50; i++) {
+                        beta_I_vals.push(0.01 + i * (0.9 - 0.01) / 49);
                     }
+                    beta_I_vals.push(1.0);
                     
-                    const results = [];
-                    let z_prev = null;
+                    const wages = [];
+                    const outputs = [];
+                    const allocations = [];
                     let successCount = 0;
                     
-                    for (let idx = 0; idx < betas.length; idx++) {
-                        const beta = betas[idx];
-                        console.log(`\n=== Solving beta ${idx}: ${beta.toFixed(3)} ===`);
-                        
+                    for (const beta_I of beta_I_vals) {
                         try {
-                            const sol = equilibrium_LM(beta, z_prev, params_sector, params.K_Bp, params.K_Cp, params.K_Bi, params.K_Ci, params.L_tot, params.sigma_Y);
+                            const beta_P_opt = betaPStar(beta_I, params);
+                            const wage = computeWage(beta_P_opt, beta_I, params);
+                            const output = computeTotalOutput(beta_I, params);
                             
-                            if (sol.success) {
+                            if (isFinite(wage) && isFinite(output) && isFinite(beta_P_opt)) {
+                                wages.push(wage);
+                                outputs.push(output);
+                                allocations.push(beta_P_opt);
                                 successCount++;
-                                console.log(`✓ Success: Y=${sol.Y.toFixed(3)}, w=${sol.w.toFixed(3)}, residual=${sol.residuals?.toFixed(6)}`);
-                                
-                                // Warm start for next iteration
-                                if (!sol.corner) {
-                                    const s4 = [sol.L_Bp, sol.L_Bi, sol.L_Cp, sol.L_Ci].map(L => L / params.L_tot);
-                                    const s4_clipped = s4.map(s => Math.max(1e-12, s));
-                                    const z = s4_clipped.slice(0, 3).map((s, j) => Math.log(s / s4_clipped[3]));
-                                    z_prev = z;
-                                    console.log(`  Next warm start: [${z.map(x => x.toFixed(3)).join(', ')}]`);
-                                }
                             } else {
-                                console.log(`✗ Failed: ${sol.message}`);
-                                // Reset warm start on failure
-                                z_prev = [0, 0, 0];
+                                wages.push(null);
+                                outputs.push(null);
+                                allocations.push(null);
                             }
-                            
-                            results.push(sol);
-                            
                         } catch (error) {
-                            console.log(`✗ Exception: ${error.message}`);
-                            results.push({ success: false, betaC: beta, Y: NaN, w: NaN });
-                            z_prev = [0, 0, 0]; // Reset on exception
+                            wages.push(null);
+                            outputs.push(null);
+                            allocations.push(null);
                         }
                     }
                     
-                    console.log(`\nOverall success rate: ${successCount}/${betas.length} (${(100*successCount/betas.length).toFixed(1)}%)`);
-                    
-                    const labels = betas.map(b => b.toFixed(2));
-                    const Y_vals = results.map(r => r.success ? r.Y : null);
-                    const w_vals = results.map(r => r.success ? r.w : null);
-                    const lambda_p_vals = results.map(r => r.success ? (r.L_Bp + r.L_Cp) / params.L_tot : null);
+                    const labels = beta_I_vals.map(b => b.toFixed(3));
                     
                     // Update charts
-                    outputChart.data.labels = labels;
-                    outputChart.data.datasets[0].data = Y_vals;
-                    outputChart.update('none');
-
                     wageChart.data.labels = labels;
-                    wageChart.data.datasets[0].data = w_vals;
+                    wageChart.data.datasets[0].data = wages;
                     wageChart.update('none');
 
-                    laborChart.data.labels = labels;
-                    laborChart.data.datasets[0].data = lambda_p_vals;
-                    laborChart.update('none');
+                    outputChart.data.labels = labels;
+                    outputChart.data.datasets[0].data = outputs;
+                    outputChart.update('none');
+
+                    allocationChart.data.labels = labels;
+                    allocationChart.data.datasets[0].data = allocations;
+                    allocationChart.update('none');
                     
-                    if (successCount > betas.length * 0.8) {
-                        statusDiv.textContent = `Simulation completed! ${successCount}/${betas.length} points converged`;
+                    if (successCount > beta_I_vals.length * 0.8) {
+                        statusDiv.textContent = `Simulation completed! ${successCount}/${beta_I_vals.length} points computed`;
                         statusDiv.className = 'status success';
                     } else {
-                        statusDiv.textContent = `Partial success: ${successCount}/${betas.length} points converged`;
+                        statusDiv.textContent = `Partial success: ${successCount}/${beta_I_vals.length} points computed`;
                         statusDiv.className = 'status error';
                     }
                     
