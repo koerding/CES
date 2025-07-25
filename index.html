@@ -335,6 +335,7 @@
                     <div class="parameter-group">
                         <label class="parameter-label">AI Capital (K_I)</label>
                         <div class="parameter-description">AI capital relative to labor. K_I=9 represents abundant AI (6× physical capital). Higher values = more AI automation potential</div>
+                        <div id="ai-capital-note" class="parameter-note" style="display: none; margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="AI" min="1.0" max="20.0" step="0.5" value="9.0">
                             <span class="slider-value" id="AI_value">9.0</span>
@@ -344,6 +345,7 @@
                     <div class="parameter-group">
                         <label class="parameter-label">AI Share in I-nest (β_I)</label>
                         <div class="parameter-description">Weight of AI vs labor in I-nest. β_I=0: only labor matters, β_I=1: only AI matters. β_I=0.9 represents abundant AI scenario</div>
+                        <div class="parameter-note" style="margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="beta_I" min="0.1" max="0.99" step="0.05" value="0.9">
                             <span class="slider-value" id="beta_I_value">0.9</span>
@@ -1202,13 +1204,16 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
         function updateAIModeVisibility() {
             const exponentialParams = document.querySelectorAll('.exponential-params');
             const scenarioText = document.getElementById('scenario-text');
+            const aiCapitalNote = document.getElementById('ai-capital-note');
             const doublingTime = parseFloat(document.getElementById('doubling_time').value);
             
             if (currentAIMode === 'Fixed') {
                 exponentialParams.forEach(param => param.style.display = 'none');
+                aiCapitalNote.style.display = 'none';
                 scenarioText.textContent = 'We increase the importance of intelligence in overall production.';
             } else {
                 exponentialParams.forEach(param => param.style.display = 'block');
+                aiCapitalNote.style.display = 'block';
                 scenarioText.textContent = `We assume that AI will over time replace human workers (β_I: 0→1). Over that same time, AI capital K_I becomes more plentiful (exogenously), doubling every ${doublingTime} months.`;
             }
         }
