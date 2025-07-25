@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2-Nest Economic Model with Endogenous Labor Allocation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.2.1/chartjs-plugin-annotation.min.js"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         window.MathJax = {
@@ -1495,7 +1496,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                         x_title = 'β_I (AI share in I-nest)';
                     } else {
                         // Generate time grid
-                        const max_time = base_params.transition_time; // Show up to when beta_I reaches 1
+                        const max_time = base_params.transition_time + 5; // Show 5 years past when beta_I reaches 1
                         for (let i = 0; i <= 50; i++) {
                             x_vals.push(max_time * i / 50.0);
                         }
@@ -1559,6 +1560,89 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                     wageChart.data.labels = x_labels;
                     wageChart.data.datasets[0].data = wages;
                     wageChart.options.scales.x.title.text = x_title;
+                    
+                    // Add/remove vertical line based on mode
+                    if (currentAIMode === 'Exponential') {
+                        const transitionTime = base_params.transition_time;
+                        const max_time = base_params.transition_time + 5;
+                        // Find the index where transition occurs
+                        const transitionIndex = Math.round((transitionTime / max_time) * 50);
+                        wageChart.options.plugins.annotation = {
+                            annotations: {
+                                transitionLine: {
+                                    type: 'line',
+                                    xMin: transitionIndex,
+                                    xMax: transitionIndex,
+                                    borderColor: 'rgba(255, 99, 132, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        content: 'β_I = 1',
+                                        enabled: true,
+                                        position: 'top'
+                                    }
+                                }
+                            }
+                        };
+                        outputChart.options.plugins.annotation = {
+                            annotations: {
+                                transitionLine: {
+                                    type: 'line',
+                                    xMin: transitionIndex,
+                                    xMax: transitionIndex,
+                                    borderColor: 'rgba(255, 99, 132, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        content: 'β_I = 1',
+                                        enabled: true,
+                                        position: 'top'
+                                    }
+                                }
+                            }
+                        };
+                        componentsChart.options.plugins.annotation = {
+                            annotations: {
+                                transitionLine: {
+                                    type: 'line',
+                                    xMin: transitionIndex,
+                                    xMax: transitionIndex,
+                                    borderColor: 'rgba(255, 99, 132, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        content: 'β_I = 1',
+                                        enabled: true,
+                                        position: 'top'
+                                    }
+                                }
+                            }
+                        };
+                        allocationChart.options.plugins.annotation = {
+                            annotations: {
+                                transitionLine: {
+                                    type: 'line',
+                                    xMin: transitionIndex,
+                                    xMax: transitionIndex,
+                                    borderColor: 'rgba(255, 99, 132, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        content: 'β_I = 1',
+                                        enabled: true,
+                                        position: 'top'
+                                    }
+                                }
+                            }
+                        };
+                    } else {
+                        // Remove annotation for Fixed mode
+                        delete wageChart.options.plugins.annotation;
+                        delete outputChart.options.plugins.annotation;
+                        delete componentsChart.options.plugins.annotation;
+                        delete allocationChart.options.plugins.annotation;
+                    }
+                    
                     wageChart.update('none');
 
                     outputChart.data.labels = x_labels;
