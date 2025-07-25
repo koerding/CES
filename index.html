@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2-Nest Economic Model with Endogenous Labor Allocation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         window.MathJax = {
@@ -302,7 +301,28 @@
                         </div>
                     </div>
                     
-                    <div class="equation-display">
+                    <div class="parameter-group">
+                        <label class="parameter-label">P-nest Aggregation Method</label>
+                        <div class="parameter-description">CES: constant elasticity of substitution, DS: Dixit-Stiglitz (allows scaling)</div>
+                        <div class="toggle-container">
+                            <span>CES</span>
+                            <div class="toggle" id="p_agg_toggle" onclick="togglePAggregation()">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span>DS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group p-ds-params" style="display: none;">
+                        <label class="parameter-label">P-nest Scaling (θ_P)</label>
+                        <div class="parameter-description">Returns to scale in P-nest. θ_P=1: constant returns, θ_P<1: decreasing returns. DS version allows scaling effects</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="theta_P" min="0.1" max="1.0" step="0.02" value="1.0">
+                            <span class="slider-value" id="theta_P_value">1.0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="equation-display" id="physical-equation">
                         $$P = \left[\psi K_P^{\rho_P} + (1-\psi) L_P^{\rho_P}\right]^{1/\rho_P}$$
                     </div>
                     
@@ -340,15 +360,27 @@
                     </div>
                     
                     <div class="parameter-group">
+                        <label class="parameter-label">I-nest Aggregation Method</label>
+                        <div class="parameter-description">CES: constant elasticity of substitution, DS: Dixit-Stiglitz (allows scaling)</div>
+                        <div class="toggle-container">
+                            <span>CES</span>
+                            <div class="toggle active" id="i_agg_toggle" onclick="toggleIAggregation()">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span>DS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group i-ds-params">
                         <label class="parameter-label">I-nest Scaling (θ)</label>
-                        <div class="parameter-description">Returns to scale in I-nest. θ=1: constant returns, θ<1: decreasing returns. θ=0.5 means doubling inputs increases output by only 41% (√2-1)</div>
+                        <div class="parameter-description">Returns to scale in I-nest. θ=1: constant returns, θ<1: decreasing returns. DS version allows scaling effects</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="theta" min="0.1" max="0.9" step="0.05" value="0.5">
+                            <input type="range" class="slider" id="theta" min="0.1" max="1.0" step="0.02" value="0.5">
                             <span class="slider-value" id="theta_value">0.5</span>
                         </div>
                     </div>
                     
-                    <div class="equation-display">
+                    <div class="equation-display" id="intelligence-equation">
                         $$I = \left[\beta_I^{1-\rho_I} K_I^{\rho_I} + (1-\beta_I)^{1-\rho_I} L_I^{\rho_I}\right]^{\theta/\rho_I}$$
                     </div>
                     
@@ -488,63 +520,131 @@
         let currentAIMode = 'Fixed';
         
         // Mathematical functions
-        function computeP(LP, K, psi, rho_P) {
-            if (Math.abs(rho_P) < 1e-10) {
-                // Cobb-Douglas case: P = K^ψ * LP^(1-ψ)
-                return Math.pow(K, psi) * Math.pow(LP, 1 - psi);
+        function computeP(LP, K, psi, rho_P, theta_P = 1.0) {
+            if (currentPAgg === 'DS') {
+                // Dixit-Stiglitz case with scaling
+                if (Math.abs(rho_P) < 1e-10) {
+                    // Cobb-Douglas case: P = (K^ψ * LP^(1-ψ))^θ_P
+                    return Math.pow(Math.pow(K, psi) * Math.pow(LP, 1 - psi), theta_P);
+                }
+                const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
+                return Math.pow(inside, theta_P / rho_P);
+            } else {
+                // CES case (original)
+                if (Math.abs(rho_P) < 1e-10) {
+                    // Cobb-Douglas case: P = K^ψ * LP^(1-ψ)
+                    return Math.pow(K, psi) * Math.pow(LP, 1 - psi);
+                }
+                const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
+                return Math.pow(inside, 1 / rho_P);
             }
-            const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
-            return Math.pow(inside, 1 / rho_P);
         }
         
-        function dP_dLP(LP, K, psi, rho_P) {
-            if (Math.abs(rho_P) < 1e-10) {
-                // Cobb-Douglas case: dP/dLP = (1-ψ) * K^ψ * LP^(-ψ)
-                return (1 - psi) * Math.pow(K, psi) * Math.pow(LP, -psi);
+        function dP_dLP(LP, K, psi, rho_P, theta_P = 1.0) {
+            if (currentPAgg === 'DS') {
+                // Dixit-Stiglitz case with scaling
+                if (Math.abs(rho_P) < 1e-10) {
+                    // Cobb-Douglas case: dP/dLP = θ_P * (1-ψ) * (K^ψ * LP^(1-ψ))^(θ_P-1) * K^ψ * LP^(-ψ)
+                    const cobbDouglas = Math.pow(K, psi) * Math.pow(LP, 1 - psi);
+                    return theta_P * (1 - psi) * Math.pow(cobbDouglas, theta_P - 1) * Math.pow(K, psi) * Math.pow(LP, -psi);
+                }
+                const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
+                return theta_P * (1 - psi) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (theta_P / rho_P) - 1);
+            } else {
+                // CES case (original)
+                if (Math.abs(rho_P) < 1e-10) {
+                    // Cobb-Douglas case: dP/dLP = (1-ψ) * K^ψ * LP^(-ψ)
+                    return (1 - psi) * Math.pow(K, psi) * Math.pow(LP, -psi);
+                }
+                const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
+                return (1 - psi) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (1 / rho_P) - 1);
             }
-            const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
-            return (1 - psi) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (1 / rho_P) - 1);
         }
         
 function computeI(LI, beta_I, AI, rho_I, theta) {
-    if (Math.abs(rho_I) < 1e-10) {
-        // Cobb-Douglas case: I = [AI^β_I * LI^(1-β_I)]^θ
-        return Math.pow(Math.pow(AI, beta_I) * Math.pow(LI, 1 - beta_I), theta);
-    }
-    
-    if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-        // Limiting case: (beta_I^(1-rho_I) * AI^rho_I)^(theta/rho_I)
-        const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I);
-        return Math.pow(inside, theta / rho_I);
-    } else {
-        // CES form with share exponents
-        const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
-                      Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
-        if (inside < 0) {
-            return 0; // Avoid NaN from negative base
+    if (currentIAgg === 'DS') {
+        // DS case - theta scaling is applied (current behavior)
+        if (Math.abs(rho_I) < 1e-10) {
+            // Cobb-Douglas case: I = [AI^β_I * LI^(1-β_I)]^θ
+            return Math.pow(Math.pow(AI, beta_I) * Math.pow(LI, 1 - beta_I), theta);
         }
-        return Math.pow(inside, theta / rho_I);
+        
+        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
+            // Limiting case: (beta_I^(1-rho_I) * AI^rho_I)^(theta/rho_I)
+            const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I);
+            return Math.pow(inside, theta / rho_I);
+        } else {
+            // DS form with share exponents
+            const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
+                          Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
+            if (inside < 0) {
+                return 0; // Avoid NaN from negative base
+            }
+            return Math.pow(inside, theta / rho_I);
+        }
+    } else {
+        // CES case - no theta scaling (theta effectively = 1)
+        if (Math.abs(rho_I) < 1e-10) {
+            // Cobb-Douglas case: I = AI^β_I * LI^(1-β_I)
+            return Math.pow(AI, beta_I) * Math.pow(LI, 1 - beta_I);
+        }
+        
+        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
+            // Limiting case: (beta_I^(1-rho_I) * AI^rho_I)^(1/rho_I)
+            const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I);
+            return Math.pow(inside, 1 / rho_I);
+        } else {
+            // CES form with share exponents
+            const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
+                          Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
+            if (inside < 0) {
+                return 0; // Avoid NaN from negative base
+            }
+            return Math.pow(inside, 1 / rho_I);
+        }
     }
 }
 
 function dI_dLI(LI, beta_I, AI, rho_I, theta) {
-    if (Math.abs(rho_I) < 1e-10) {
-        // Cobb-Douglas case: dI/dLI = θ * (1-β_I) * AI^(θ*β_I) * LI^(θ*(1-β_I)-1)
-        return theta * (1 - beta_I) * Math.pow(AI, theta * beta_I) * Math.pow(LI, theta * (1 - beta_I) - 1);
+    if (currentIAgg === 'DS') {
+        // DS case - theta scaling is applied
+        if (Math.abs(rho_I) < 1e-10) {
+            // Cobb-Douglas case: dI/dLI = θ * (1-β_I) * AI^(θ*β_I) * LI^(θ*(1-β_I)-1)
+            return theta * (1 - beta_I) * Math.pow(AI, theta * beta_I) * Math.pow(LI, theta * (1 - beta_I) - 1);
+        }
+        
+        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
+            return 0.0;
+        }
+        
+        // DS form with share exponents
+        const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
+                       Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
+        if (inside < 0) {
+            return 0; // Avoid NaN from negative base
+        }
+        return theta * Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I - 1) * 
+               Math.pow(inside, (theta / rho_I) - 1);
+    } else {
+        // CES case - no theta scaling
+        if (Math.abs(rho_I) < 1e-10) {
+            // Cobb-Douglas case: dI/dLI = (1-β_I) * AI^β_I * LI^(-β_I)
+            return (1 - beta_I) * Math.pow(AI, beta_I) * Math.pow(LI, -beta_I);
+        }
+        
+        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
+            return 0.0;
+        }
+        
+        // CES form with share exponents
+        const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
+                       Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
+        if (inside < 0) {
+            return 0; // Avoid NaN from negative base
+        }
+        return Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I - 1) * 
+               Math.pow(inside, (1 / rho_I) - 1);
     }
-    
-    if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-        return 0.0;
-    }
-    
-    // CES form with share exponents
-    const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
-                   Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
-    if (inside < 0) {
-        return 0; // Avoid NaN from negative base
-    }
-    return theta * Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I - 1) * 
-           Math.pow(inside, (theta / rho_I) - 1);
 }
         function computePSI(P, I, params) {
             const x = P != 0 ? I / P : 0.0;
@@ -626,16 +726,16 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             const L = params.L;
             const LP = beta_P * L;
             const LI = (1 - beta_P) * L;
-            const P = computeP(LP, params.K, params.psi, params.rho_P);
+            const P = computeP(LP, params.K, params.psi, params.rho_P, params.theta_P);
             const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta);
-            return dY_dP(P, I, params) * dP_dLP(LP, params.K, params.psi, params.rho_P);
+            return dY_dP(P, I, params) * dP_dLP(LP, params.K, params.psi, params.rho_P, params.theta_P);
         }
         
         function MP_I(beta_P, beta_I, params) {
             const L = params.L;
             const LP = beta_P * L;
             const LI = (1 - beta_P) * L;
-            const P = computeP(LP, params.K, params.psi, params.rho_P);
+            const P = computeP(LP, params.K, params.psi, params.rho_P, params.theta_P);
             const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta);
             return dY_dI(P, I, params) * dI_dLI(LI, beta_I, params.AI, params.rho_I, params.theta);
         }
@@ -742,7 +842,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             const bp = betaPStar(beta_I, params);
             const LP = bp * params.L;
             const LI = (1 - bp) * params.L;
-            const P = computeP(LP, params.K, params.psi, params.rho_P);
+            const P = computeP(LP, params.K, params.psi, params.rho_P, params.theta_P);
             const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta);
             return computeY(P, I, params);
         }
@@ -1075,6 +1175,29 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             updateCharts();
         }
         
+        let currentPAgg = 'CES'; // Physical nest aggregation method (default)
+        let currentIAgg = 'DS'; // Intelligence nest aggregation method (default to maintain existing behavior)
+        
+        function togglePAggregation() {
+            const toggle = document.getElementById('p_agg_toggle');
+            toggle.classList.toggle('active');
+            currentPAgg = toggle.classList.contains('active') ? 'DS' : 'CES';
+            updateNestParameterVisibility();
+            updatePhysicalEquation();
+            updatePhysicalChart();
+            updateCharts();
+        }
+        
+        function toggleIAggregation() {
+            const toggle = document.getElementById('i_agg_toggle');
+            toggle.classList.toggle('active');
+            currentIAgg = toggle.classList.contains('active') ? 'DS' : 'CES';
+            updateNestParameterVisibility();
+            updateIntelligenceEquation();
+            updateIntelligenceChart();
+            updateCharts();
+        }
+        
         // Update AI mode visibility and text
         function updateAIModeVisibility() {
             const exponentialParams = document.querySelectorAll('.exponential-params');
@@ -1104,6 +1227,59 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             }
         }
         
+        function updateNestParameterVisibility() {
+            // Physical nest parameters
+            const pCesParams = document.querySelectorAll('.p-ces-params');
+            const pDsParams = document.querySelectorAll('.p-ds-params');
+            
+            if (currentPAgg === 'CES') {
+                pCesParams.forEach(param => param.style.display = 'block');
+                pDsParams.forEach(param => param.style.display = 'none');
+            } else {
+                pCesParams.forEach(param => param.style.display = 'none');
+                pDsParams.forEach(param => param.style.display = 'block');
+            }
+            
+            // Intelligence nest parameters
+            const iCesParams = document.querySelectorAll('.i-ces-params');
+            const iDsParams = document.querySelectorAll('.i-ds-params');
+            
+            if (currentIAgg === 'CES') {
+                iCesParams.forEach(param => param.style.display = 'block');
+                iDsParams.forEach(param => param.style.display = 'none');
+            } else {
+                iCesParams.forEach(param => param.style.display = 'none');
+                iDsParams.forEach(param => param.style.display = 'block');
+            }
+        }
+        
+        // Update the physical equation display based on aggregation method
+        function updatePhysicalEquation() {
+            const equationDiv = document.getElementById('physical-equation');
+            if (currentPAgg === 'CES') {
+                equationDiv.innerHTML = '$$P = \\left[\\psi K_P^{\\rho_P} + (1-\\psi) L_P^{\\rho_P}\\right]^{1/\\rho_P}$$';
+            } else {
+                equationDiv.innerHTML = '$$P = \\left[\\psi K_P^{\\rho_P} + (1-\\psi) L_P^{\\rho_P}\\right]^{\\theta_P/\\rho_P}$$';
+            }
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([equationDiv]);
+            }
+        }
+        
+        // Update the intelligence equation display based on aggregation method
+        function updateIntelligenceEquation() {
+            const equationDiv = document.getElementById('intelligence-equation');
+            if (currentIAgg === 'CES') {
+                equationDiv.innerHTML = '$$I = \\left[\\beta_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\beta_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{1/\\rho_I}$$';
+            } else {
+                // DS case - this is the original equation that was there before
+                equationDiv.innerHTML = '$$I = \\left[\\beta_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\beta_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{\\theta/\\rho_I}$$';
+            }
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([equationDiv]);
+            }
+        }
+        
         // Update the equation display based on aggregation method
         function updateEquation() {
             const equationDiv = document.getElementById('overall-equation');
@@ -1114,7 +1290,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             }
             // Re-render MathJax
             if (window.MathJax) {
+                if (window.MathJax && MathJax.typesetPromise) {
                 MathJax.typesetPromise([equationDiv]);
+            }
             }
         }
         
@@ -1125,7 +1303,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             // Calculate meaningful P values based on current parameters
             const beta_P_typical = 0.5; // Assume balanced allocation
             const LP_typical = beta_P_typical * params.L;
-            const P_typical = computeP(LP_typical, params.K, params.psi, params.rho_P);
+            const P_typical = computeP(LP_typical, params.K, params.psi, params.rho_P, params.theta_P);
             
             const P_low = P_typical * 0.2;
             const P_medium = P_typical;
@@ -1186,9 +1364,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             const P_high = [];
             
             for (const L_P of L_P_vals) {
-                P_low.push(computeP(L_P, K_P_low, params.psi, params.rho_P));
-                P_medium.push(computeP(L_P, K_P_medium, params.psi, params.rho_P));
-                P_high.push(computeP(L_P, K_P_high, params.psi, params.rho_P));
+                P_low.push(computeP(L_P, K_P_low, params.psi, params.rho_P, params.theta_P));
+                P_medium.push(computeP(L_P, K_P_medium, params.psi, params.rho_P, params.theta_P));
+                P_high.push(computeP(L_P, K_P_high, params.psi, params.rho_P, params.theta_P));
             }
             
             const labels = L_P_vals.map(l => l.toFixed(2));
@@ -1270,6 +1448,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                 psi: parseFloat(document.getElementById('psi').value),
                 rho_P: parseFloat(document.getElementById('rho_P').value),
                 rho_I: parseFloat(document.getElementById('rho_I').value),
+                theta_P: currentPAgg === 'DS' ? parseFloat(document.getElementById('theta_P').value) : 1.0,
                 theta: parseFloat(document.getElementById('theta').value),
                 tau: parseFloat(document.getElementById('tau').value),
                 rho: parseFloat(document.getElementById('rho').value),
@@ -1311,7 +1490,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                         x_title = 'β_I (AI share in I-nest)';
                     } else {
                         // Generate time grid
-                        const max_time = base_params.transition_time * 1.2; // Extend slightly beyond transition
+                        const max_time = base_params.transition_time; // Show up to when beta_I reaches 1
                         for (let i = 0; i <= 50; i++) {
                             x_vals.push(max_time * i / 50.0);
                         }
@@ -1345,7 +1524,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                             // Calculate P and I components
                             const LP = beta_P_opt * params.L;
                             const LI = (1 - beta_P_opt) * params.L;
-                            const P = computeP(LP, params.K, params.psi, params.rho_P);
+                            const P = computeP(LP, params.K, params.psi, params.rho_P, params.theta_P);
                             const I = computeI(LI, params.beta_I, params.AI, params.rho_I, params.theta);
                             
                             if (isFinite(wage) && isFinite(output) && isFinite(beta_P_opt) && isFinite(P) && isFinite(I)) {
@@ -1434,6 +1613,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
         // Initialize
         setupSliders();
         updateParameterVisibility();
+        updateNestParameterVisibility();
+        updatePhysicalEquation();
+        updateIntelligenceEquation();
         updateAIModeVisibility();
         updatePhysicalChart();
         updateIntelligenceChart();
