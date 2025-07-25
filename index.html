@@ -254,6 +254,40 @@
             position: relative;
         }
         
+        .chart-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .export-buttons {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: flex;
+            gap: 5px;
+            z-index: 10;
+        }
+        
+        .export-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .export-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
         @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -328,6 +362,10 @@
                     </div>
                     
                     <div class="equation-chart-container">
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportChartPNG('physicalChart', 'physical_production')">PNG</button>
+                            <button class="export-btn" onclick="exportChartCSV('physicalChart', 'physical_production')">CSV</button>
+                        </div>
                         <canvas id="physicalChart"></canvas>
                     </div>
                 </div>
@@ -348,7 +386,7 @@
                         <div class="parameter-description">Weight of AI vs labor in I-nest. β_I=0: only labor matters, β_I=1: only AI matters. β_I=0.9 represents abundant AI scenario</div>
                         <div class="parameter-note" style="margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="beta_I" min="0" max="0.99" step="0.05" value="0.9">
+                            <input type="range" class="slider" id="beta_I" min="0" max="1" step="0.05" value="0.9">
                             <span class="slider-value" id="beta_I_value">0.9</span>
                         </div>
                     </div>
@@ -388,6 +426,10 @@
                     </div>
                     
                     <div class="equation-chart-container">
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportChartPNG('intelligenceChart', 'intelligence_production')">PNG</button>
+                            <button class="export-btn" onclick="exportChartCSV('intelligenceChart', 'intelligence_production')">CSV</button>
+                        </div>
                         <canvas id="intelligenceChart"></canvas>
                     </div>
                 </div>
@@ -455,6 +497,10 @@
                     </div>
                     
                     <div class="equation-chart-container">
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportChartPNG('functionChart', 'production_function')">PNG</button>
+                            <button class="export-btn" onclick="exportChartCSV('functionChart', 'production_function')">CSV</button>
+                        </div>
                         <canvas id="functionChart"></canvas>
                     </div>
                 </div>
@@ -501,17 +547,41 @@
             </div>
             
             <div class="charts">
-                <div class="chart-container">
-                    <canvas id="wageChart"></canvas>
+                <div class="chart-wrapper">
+                    <div class="export-buttons">
+                        <button class="export-btn" onclick="exportChartPNG('wageChart', 'wage')">PNG</button>
+                        <button class="export-btn" onclick="exportChartCSV('wageChart', 'wage')">CSV</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="wageChart"></canvas>
+                    </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="outputChart"></canvas>
+                <div class="chart-wrapper">
+                    <div class="export-buttons">
+                        <button class="export-btn" onclick="exportChartPNG('outputChart', 'output')">PNG</button>
+                        <button class="export-btn" onclick="exportChartCSV('outputChart', 'output')">CSV</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="outputChart"></canvas>
+                    </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="componentsChart"></canvas>
+                <div class="chart-wrapper">
+                    <div class="export-buttons">
+                        <button class="export-btn" onclick="exportChartPNG('componentsChart', 'components')">PNG</button>
+                        <button class="export-btn" onclick="exportChartCSV('componentsChart', 'components')">CSV</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="componentsChart"></canvas>
+                    </div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="allocationChart"></canvas>
+                <div class="chart-wrapper">
+                    <div class="export-buttons">
+                        <button class="export-btn" onclick="exportChartPNG('allocationChart', 'allocation')">PNG</button>
+                        <button class="export-btn" onclick="exportChartCSV('allocationChart', 'allocation')">CSV</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="allocationChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1334,7 +1404,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                 Y_high.push(computeY(P_high, I, params));
             }
             
-            const labels = I_vals.map(i => i.toFixed(2));
+            const labels = I_vals.map((i, idx) => idx % 2 === 0 ? i.toFixed(2) : '');
             
             // Update chart
             functionChart.data.labels = labels;
@@ -1375,7 +1445,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                 P_high.push(computeP(L_P, K_P_high, params.psi, params.rho_P, params.theta_P));
             }
             
-            const labels = L_P_vals.map(l => l.toFixed(2));
+            const labels = L_P_vals.map((l, i) => i % 2 === 0 ? l.toFixed(2) : '');
             
             // Update chart
             physicalChart.data.labels = labels;
@@ -1416,7 +1486,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                 I_high.push(computeI(L_I, params.beta_I, K_I_high, params.rho_I, params.theta));
             }
             
-            const labels = L_I_vals.map(l => l.toFixed(2));
+            const labels = L_I_vals.map((l, i) => i % 2 === 0 ? l.toFixed(2) : '');
             
             // Update chart
             intelligenceChart.data.labels = labels;
@@ -1492,7 +1562,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                         for (let i = 0; i <= 50; i++) {
                             x_vals.push(i / 50.0);
                         }
-                        x_labels = x_vals.map(b => b.toFixed(3));
+                        x_labels = x_vals.map((b, i) => i % 2 === 0 ? b.toFixed(3) : '');
                         x_title = 'β_I (AI share in I-nest)';
                     } else {
                         // Generate time grid
@@ -1500,7 +1570,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                         for (let i = 0; i <= 50; i++) {
                             x_vals.push(max_time * i / 50.0);
                         }
-                        x_labels = x_vals.map(t => t.toFixed(1));
+                        x_labels = x_vals.map((t, i) => i % 2 === 0 ? t.toFixed(1) : '');
                         x_title = 'Time (years)';
                     }
                     
@@ -1697,6 +1767,100 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                     updateCharts();
                 });
             });
+        }
+
+        // Export functions
+        function exportChart(chartId, filename) {
+            const chart = Chart.getChart(chartId);
+            if (!chart) return;
+            
+            // Create a temporary canvas with white background
+            const canvas = document.createElement('canvas');
+            canvas.width = chart.canvas.width;
+            canvas.height = chart.canvas.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Fill white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the chart
+            ctx.drawImage(chart.canvas, 0, 0);
+            
+            // Convert to SVG using canvas2svg (we'll use PNG for now)
+            // For true SVG export, you'd need a library like canvas2svg
+            // For now, we'll download as high-quality PNG
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename + '.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png', 1.0);
+        }
+        
+        function exportChartPNG(chartId, filename) {
+            const chart = Chart.getChart(chartId);
+            if (!chart) return;
+            
+            // Create a temporary canvas with white background
+            const canvas = document.createElement('canvas');
+            canvas.width = chart.canvas.width;
+            canvas.height = chart.canvas.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Fill white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw the chart
+            ctx.drawImage(chart.canvas, 0, 0);
+            
+            // Download as PNG
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename + '.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png', 1.0);
+        }
+        
+        function exportChartCSV(chartId, filename) {
+            const chart = Chart.getChart(chartId);
+            if (!chart) return;
+            
+            let csv = '';
+            const datasets = chart.data.datasets;
+            const labels = chart.data.labels;
+            
+            // Create header row
+            csv += 'X-Axis';
+            datasets.forEach(dataset => {
+                csv += ',' + dataset.label.replace(/,/g, ';'); // Replace commas in labels
+            });
+            csv += '\n';
+            
+            // Add data rows
+            labels.forEach((label, index) => {
+                csv += (label || index); // Use index if label is empty
+                datasets.forEach(dataset => {
+                    const value = dataset.data[index];
+                    csv += ',' + (value !== null && value !== undefined ? value : '');
+                });
+                csv += '\n';
+            });
+            
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         // Initialize
