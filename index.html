@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2-Nest Economic Model with Endogenous Labor Allocation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
     <style>
         * {
             margin: 0;
@@ -39,7 +49,7 @@
         
         .main-content {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 450px 1fr;
             gap: 30px;
             align-items: start;
         }
@@ -102,7 +112,7 @@
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             position: relative;
-            height: 320px;
+            height: 300px;
         }
         
         .parameter-group {
@@ -223,6 +233,27 @@
             color: #c53030;
         }
         
+        .equation-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f4ff;
+            border-radius: 10px;
+            border: 1px solid #d4d9ff;
+            text-align: center;
+            font-size: 0.88em;
+            overflow-x: auto;
+        }
+        
+        .equation-chart-container {
+            margin-top: 10px;
+            padding: 15px;
+            background: #f0f4ff;
+            border-radius: 10px;
+            border: 1px solid #d4d9ff;
+            height: 400px;
+            position: relative;
+        }
+        
         @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -237,16 +268,16 @@
         <div class="main-content">
             <div class="controls">
                 <div class="tab-header">
-                    <button class="tab-button active" onclick="switchTab(0)">Basic</button>
-                    <button class="tab-button" onclick="switchTab(1)">Nests</button>
-                    <button class="tab-button" onclick="switchTab(2)">Top</button>
-                    <button class="tab-button" onclick="switchTab(3)">PSI</button>
+                    <button class="tab-button active" onclick="switchTab(0)">Physical</button>
+                    <button class="tab-button" onclick="switchTab(1)">Intelligence</button>
+                    <button class="tab-button" onclick="switchTab(2)">Overall</button>
+                    <button class="tab-button" onclick="switchTab(3)">Analysis</button>
                 </div>
                 
                 <div class="tab-content active">
                     <div class="parameter-group">
                         <label class="parameter-label">Physical Capital (K_P)</label>
-                        <div class="parameter-description">Physical capital stock (calibrated to 2023 capital/labor ratios)</div>
+                        <div class="parameter-description">Physical capital stock relative to labor. K_P=1.5 calibrated to 2023 US capital/labor ratio. Higher values = more capital-intensive economy</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="K" min="0.5" max="3.0" step="0.1" value="1.5">
                             <span class="slider-value" id="K_value">1.5</span>
@@ -254,40 +285,8 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">AI Input Level (K_I)</label>
-                        <div class="parameter-description">Abundant AI capability available for automation</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="AI" min="1.0" max="20.0" step="0.5" value="9.0">
-                            <span class="slider-value" id="AI_value">9.0</span>
-                        </div>
-                    </div>
-                    
-                    <div class="parameter-group">
-                        <label class="parameter-label">Total Labor (L)</label>
-                        <div class="parameter-description">Total labor force (normalization)</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="L" min="0.5" max="2.0" step="0.1" value="1.0">
-                            <span class="slider-value" id="L_value">1.0</span>
-                        </div>
-                    </div>
-                    
-                    <div class="parameter-group">
-                        <label class="parameter-label">Aggregation Method</label>
-                        <div class="parameter-description">CES: standard elasticity, PSI: S-curve aggregation</div>
-                        <div class="toggle-container">
-                            <span>CES</span>
-                            <div class="toggle" id="agg_toggle" onclick="toggleAggregation()">
-                                <div class="toggle-knob"></div>
-                            </div>
-                            <span>PSI</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="tab-content">
-                    <div class="parameter-group">
                         <label class="parameter-label">Capital Share in P-nest (ψ)</label>
-                        <div class="parameter-description">Calibrated to match 2023 capital share (0.42) in US economy</div>
+                        <div class="parameter-description">Weight of capital vs labor in P-nest. ψ=0: only labor matters, ψ=1: only capital matters. ψ=0.7 calibrated to achieve 42% capital share in 2023 US economy</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="psi" min="0.1" max="0.9" step="0.05" value="0.7">
                             <span class="slider-value" id="psi_value">0.7</span>
@@ -296,16 +295,44 @@
                     
                     <div class="parameter-group">
                         <label class="parameter-label">P-nest Substitution (ρ_P)</label>
-                        <div class="parameter-description">0.6 elasticity between capital/labor (US manufacturing)</div>
+                        <div class="parameter-description">Controls capital-labor substitutability. ρ_P→1: perfect substitutes, ρ_P=0: Cobb-Douglas, ρ_P→-∞: perfect complements. ρ_P=-0.67 gives σ=0.6 elasticity (US manufacturing calibration)</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_P" min="-1.5" max="0.9" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_P_value">-0.67</span>
                         </div>
                     </div>
                     
+                    <div class="equation-display">
+                        $$P = \left[\psi K_P^{\rho_P} + (1-\psi) L_P^{\rho_P}\right]^{1/\rho_P}$$
+                    </div>
+                    
+                    <div class="equation-chart-container">
+                        <canvas id="physicalChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="tab-content">
+                    <div class="parameter-group">
+                        <label class="parameter-label">AI Capital (K_I)</label>
+                        <div class="parameter-description">AI capital relative to labor. K_I=9 represents abundant AI (6× physical capital). Higher values = more AI automation potential</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="AI" min="1.0" max="20.0" step="0.5" value="9.0">
+                            <span class="slider-value" id="AI_value">9.0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">AI Share in I-nest (β_I)</label>
+                        <div class="parameter-description">Weight of AI vs labor in I-nest. β_I=0: only labor matters, β_I=1: only AI matters. β_I=0.9 represents abundant AI scenario</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="beta_I" min="0.1" max="0.99" step="0.05" value="0.9">
+                            <span class="slider-value" id="beta_I_value">0.9</span>
+                        </div>
+                    </div>
+                    
                     <div class="parameter-group">
                         <label class="parameter-label">I-nest Substitution (ρ_I)</label>
-                        <div class="parameter-description">Substitution between AI and labor in I-nest (2.2 elasticity baseline)</div>
+                        <div class="parameter-description">Controls AI-labor substitutability in intelligence tasks. ρ_I→1: perfect substitutes, ρ_I=0: Cobb-Douglas, ρ_I→-∞: perfect complements. ρ_I=0.55 gives σ=2.2 (high substitutability)</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_I" min="-0.1" max="0.7" step="0.05" value="0.55">
                             <span class="slider-value" id="rho_I_value">0.55</span>
@@ -314,50 +341,123 @@
                     
                     <div class="parameter-group">
                         <label class="parameter-label">I-nest Scaling (θ)</label>
-                        <div class="parameter-description">Returns to scale in intelligence (decreasing returns)</div>
+                        <div class="parameter-description">Returns to scale in I-nest. θ=1: constant returns, θ<1: decreasing returns. θ=0.5 means doubling inputs increases output by only 41% (√2-1)</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="theta" min="0.1" max="0.9" step="0.05" value="0.5">
                             <span class="slider-value" id="theta_value">0.5</span>
                         </div>
                     </div>
+                    
+                    <div class="equation-display">
+                        $$I = \left[\beta_I^{1-\rho_I} K_I^{\rho_I} + (1-\beta_I)^{1-\rho_I} L_I^{\rho_I}\right]^{\theta/\rho_I}$$
+                    </div>
+                    
+                    <div class="equation-chart-container">
+                        <canvas id="intelligenceChart"></canvas>
+                    </div>
                 </div>
                 
                 <div class="tab-content">
                     <div class="parameter-group">
+                        <label class="parameter-label">Aggregation Method</label>
+                        <div class="parameter-description">CES: constant elasticity of substitution (smooth), PSI: S-curve aggregation (allows phase transitions between P and I dominance)</div>
+                        <div class="toggle-container">
+                            <span>CES</span>
+                            <div class="toggle" id="agg_toggle" onclick="toggleAggregation()">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span>PSI</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group">
+                        <label class="parameter-label">Total Labor (L)</label>
+                        <div class="parameter-description">Total labor endowment (normalized). L=1 baseline, adjust to simulate labor force changes. Labor allocates endogenously between P and I nests</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="L" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <span class="slider-value" id="L_value">1.0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group ces-params">
                         <label class="parameter-label">P-weight in Top CES (τ)</label>
-                        <div class="parameter-description">Share of physical earnings (manual occupations)</div>
+                        <div class="parameter-description">Weight of P-nest in final output. τ=0: pure intelligence economy, τ=1: pure physical economy. τ=0.18 calibrated to manual occupation share</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="tau" min="0.15" max="0.4" step="0.01" value="0.18">
                             <span class="slider-value" id="tau_value">0.18</span>
                         </div>
                     </div>
                     
-                    <div class="parameter-group">
+                    <div class="parameter-group ces-params">
                         <label class="parameter-label">Top-level Substitution (ρ)</label>
-                        <div class="parameter-description">Substitution between P and I nests (0.7 elasticity baseline)</div>
+                        <div class="parameter-description">Substitutability between physical and intelligence outputs. ρ→1: perfect substitutes, ρ=0: Cobb-Douglas, ρ→-∞: perfect complements. ρ=-0.43 gives σ=0.7 elasticity</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="rho" min="-1.0" max="-0.1" step="0.05" value="-0.43">
+                            <input type="range" class="slider" id="rho" min="-2.0" max="0.9" step="0.05" value="-0.43">
                             <span class="slider-value" id="rho_value">-0.43</span>
                         </div>
+                    </div>
+                    
+                    <div class="parameter-group psi-params" style="display: none;">
+                        <label class="parameter-label">PSI Exponent (η)</label>
+                        <div class="parameter-description">PSI S-curve shape parameter. Higher values = steeper S-curve transition. η=0.5 gives smooth transition between P and I dominance</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="eta" min="0.01" max="2.0" step="0.01" value="0.5">
+                            <span class="slider-value" id="eta_value">0.5</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group psi-params" style="display: none;">
+                        <label class="parameter-label">PSI Denominator (a)</label>
+                        <div class="parameter-description">PSI transition point. Higher a = I-nest needs higher relative productivity to dominate. a=4.6 means I must be 4.6× more productive than P</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="a_param" min="0.1" max="10.0" step="0.1" value="4.6">
+                            <span class="slider-value" id="a_param_value">4.6</span>
+                        </div>
+                    </div>
+                    
+                    <div class="equation-display" id="overall-equation">
+                        $$Y = \left[\tau P^{\rho} + (1-\tau) I^{\rho}\right]^{1/\rho}$$
+                    </div>
+                    
+                    <div class="equation-chart-container">
+                        <canvas id="functionChart"></canvas>
                     </div>
                 </div>
                 
                 <div class="tab-content">
                     <div class="parameter-group">
-                        <label class="parameter-label">PSI Exponent (η)</label>
-                        <div class="parameter-description">S-curve exponent (defaults to ρ if null)</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="eta" min="-1.0" max="0.5" step="0.05" value="-0.43">
-                            <span class="slider-value" id="eta_value">-0.43</span>
+                        <label class="parameter-label">AI Evolution Mode</label>
+                        <div class="parameter-description">Fixed AI: constant AI parameters, Exponential AI: AI replaces workers over time</div>
+                        <div class="toggle-container">
+                            <span>Fixed AI</span>
+                            <div class="toggle" id="ai_mode_toggle" onclick="toggleAIMode()">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span>Exponential AI</span>
                         </div>
                     </div>
                     
-                    <div class="parameter-group">
-                        <label class="parameter-label">PSI Denominator (a)</label>
-                        <div class="parameter-description">S-curve shift parameter (defaults to (1-τ)/τ ≈ 4.56)</div>
+                    <div class="parameter-group" id="scenario-description">
+                        <div class="parameter-description" id="scenario-text" style="font-weight: 600; color: #2c3e50; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                            We increase the importance of intelligence in overall production.
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group exponential-params" style="display: none;">
+                        <label class="parameter-label">Transition Time (years)</label>
+                        <div class="parameter-description">Time for AI to fully replace human workers (β_I: 0→1)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="a_param" min="0.1" max="10.0" step="0.1" value="4.6">
-                            <span class="slider-value" id="a_param_value">4.6</span>
+                            <input type="range" class="slider" id="transition_time" min="2" max="100" step="1" value="10">
+                            <span class="slider-value" id="transition_time_value">10</span>
+                        </div>
+                    </div>
+                    
+                    <div class="parameter-group exponential-params" style="display: none;">
+                        <label class="parameter-label">AI Capital Doubling Time (months)</label>
+                        <div class="parameter-description">How frequently AI capital doubles exogenously</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="doubling_time" min="1" max="24" step="1" value="2">
+                            <span class="slider-value" id="doubling_time_value">2</span>
                         </div>
                     </div>
                 </div>
@@ -373,6 +473,9 @@
                     <canvas id="outputChart"></canvas>
                 </div>
                 <div class="chart-container">
+                    <canvas id="componentsChart"></canvas>
+                </div>
+                <div class="chart-container">
                     <canvas id="allocationChart"></canvas>
                 </div>
             </div>
@@ -382,28 +485,42 @@
     <script>
         // Global state
         let currentAgg = 'CES';
+        let currentAIMode = 'Fixed';
         
         // Mathematical functions
         function computeP(LP, K, psi, rho_P) {
+            if (Math.abs(rho_P) < 1e-10) {
+                // Cobb-Douglas case: P = K^ψ * LP^(1-ψ)
+                return Math.pow(K, psi) * Math.pow(LP, 1 - psi);
+            }
             const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
             return Math.pow(inside, 1 / rho_P);
         }
         
         function dP_dLP(LP, K, psi, rho_P) {
+            if (Math.abs(rho_P) < 1e-10) {
+                // Cobb-Douglas case: dP/dLP = (1-ψ) * K^ψ * LP^(-ψ)
+                return (1 - psi) * Math.pow(K, psi) * Math.pow(LP, -psi);
+            }
             const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
             return (1 - psi) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (1 / rho_P) - 1);
         }
         
 function computeI(LI, beta_I, AI, rho_I, theta) {
+    if (Math.abs(rho_I) < 1e-10) {
+        // Cobb-Douglas case: I = [AI^β_I * LI^(1-β_I)]^θ
+        return Math.pow(Math.pow(AI, beta_I) * Math.pow(LI, 1 - beta_I), theta);
+    }
+    
     if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-        // Correct limiting case: (beta_I^(1-rho_I) * AI^rho_I)^(theta/rho_I)
+        // Limiting case: (beta_I^(1-rho_I) * AI^rho_I)^(theta/rho_I)
         const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I);
         return Math.pow(inside, theta / rho_I);
     } else {
-        // Correct CES form with share exponents
+        // CES form with share exponents
         const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
                       Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
-        if (inside < 0 && rho_I !== 0) {
+        if (inside < 0) {
             return 0; // Avoid NaN from negative base
         }
         return Math.pow(inside, theta / rho_I);
@@ -411,13 +528,19 @@ function computeI(LI, beta_I, AI, rho_I, theta) {
 }
 
 function dI_dLI(LI, beta_I, AI, rho_I, theta) {
+    if (Math.abs(rho_I) < 1e-10) {
+        // Cobb-Douglas case: dI/dLI = θ * (1-β_I) * AI^(θ*β_I) * LI^(θ*(1-β_I)-1)
+        return theta * (1 - beta_I) * Math.pow(AI, theta * beta_I) * Math.pow(LI, theta * (1 - beta_I) - 1);
+    }
+    
     if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
         return 0.0;
     }
-    // Correct CES form with share exponents
+    
+    // CES form with share exponents
     const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
                    Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
-    if (inside < 0 && rho_I !== 0) {
+    if (inside < 0) {
         return 0; // Avoid NaN from negative base
     }
     return theta * Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I - 1) * 
@@ -452,6 +575,12 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             if (params.agg === 'CES') {
                 const rho = params.rho;
                 const tau = params.tau;
+                
+                if (Math.abs(rho) < 1e-10) {
+                    // Cobb-Douglas case: Y = P^τ * I^(1-τ)
+                    return Math.pow(P, tau) * Math.pow(I, 1 - tau);
+                }
+                
                 const inside = tau * Math.pow(P, rho) + (1 - tau) * Math.pow(I, rho);
                 return Math.pow(inside, 1 / rho);
             } else {
@@ -463,6 +592,12 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             if (params.agg === 'CES') {
                 const rho = params.rho;
                 const tau = params.tau;
+                
+                if (Math.abs(rho) < 1e-10) {
+                    // Cobb-Douglas case: dY/dP = τ * P^(τ-1) * I^(1-τ)
+                    return tau * Math.pow(P, tau - 1) * Math.pow(I, 1 - tau);
+                }
+                
                 const inside = tau * Math.pow(P, rho) + (1 - tau) * Math.pow(I, rho);
                 return tau * Math.pow(P, rho - 1) * Math.pow(inside, (1 / rho) - 1);
             } else {
@@ -474,6 +609,12 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             if (params.agg === 'CES') {
                 const rho = params.rho;
                 const tau = params.tau;
+                
+                if (Math.abs(rho) < 1e-10) {
+                    // Cobb-Douglas case: dY/dI = (1-τ) * P^τ * I^(-τ)
+                    return (1 - tau) * Math.pow(P, tau) * Math.pow(I, -tau);
+                }
+                
                 const inside = tau * Math.pow(P, rho) + (1 - tau) * Math.pow(I, rho);
                 return (1 - tau) * Math.pow(I, rho - 1) * Math.pow(inside, (1 / rho) - 1);
             } else {
@@ -609,7 +750,11 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
         // Chart setup
         const wageCtx = document.getElementById('wageChart').getContext('2d');
         const outputCtx = document.getElementById('outputChart').getContext('2d');
+        const componentsCtx = document.getElementById('componentsChart').getContext('2d');
         const allocationCtx = document.getElementById('allocationChart').getContext('2d');
+        const functionCtx = document.getElementById('functionChart').getContext('2d');
+        const physicalCtx = document.getElementById('physicalChart').getContext('2d');
+        const intelligenceCtx = document.getElementById('intelligenceChart').getContext('2d');
 
         const wageChart = new Chart(wageCtx, {
             type: 'line',
@@ -673,6 +818,45 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             }
         });
 
+        const componentsChart = new Chart(componentsCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'P-nest Output',
+                    data: [],
+                    borderColor: '#9b59b6',
+                    backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'I-nest Output',
+                    data: [],
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'P and I Components vs β_I',
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'β_I (AI share in I-nest)' } },
+                    y: { title: { display: true, text: 'Component Output' } }
+                }
+            }
+        });
+
         const allocationChart = new Chart(allocationCtx, {
             type: 'line',
             data: {
@@ -704,6 +888,159 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             }
         });
 
+        const functionChart = new Chart(functionCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'P = Low',
+                    data: [],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'P = Medium',
+                    data: [],
+                    borderColor: '#f39c12',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'P = High',
+                    data: [],
+                    borderColor: '#27ae60',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Y = f(I) for different P values',
+                        font: { size: 14 }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'I (Intelligence Output)' } },
+                    y: { title: { display: true, text: 'Y (Total Output)' } }
+                }
+            }
+        });
+
+        const physicalChart = new Chart(physicalCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Kₚ = Low',
+                    data: [],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'Kₚ = Medium',
+                    data: [],
+                    borderColor: '#f39c12',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'Kₚ = High',
+                    data: [],
+                    borderColor: '#27ae60',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'P = f(Lₚ) for different Kₚ values',
+                        font: { size: 14 }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Lₚ (Physical Labor)' } },
+                    y: { title: { display: true, text: 'P (Physical Output)' } }
+                }
+            }
+        });
+
+        const intelligenceChart = new Chart(intelligenceCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Kᵢ = Low',
+                    data: [],
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'Kᵢ = Medium',
+                    data: [],
+                    borderColor: '#f39c12',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }, {
+                    label: 'Kᵢ = High',
+                    data: [],
+                    borderColor: '#27ae60',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'I = f(Lᵢ) for different Kᵢ values',
+                        font: { size: 14 }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: { title: { display: true, text: 'Lᵢ (Intelligence Labor)' } },
+                    y: { title: { display: true, text: 'I (Intelligence Output)' } }
+                }
+            }
+        });
+
         // Tab functionality
         function switchTab(index) {
             const buttons = document.querySelectorAll('.tab-button');
@@ -718,17 +1055,215 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             });
         }
         
+        // Toggle AI mode
+        function toggleAIMode() {
+            const toggle = document.getElementById('ai_mode_toggle');
+            toggle.classList.toggle('active');
+            currentAIMode = toggle.classList.contains('active') ? 'Exponential' : 'Fixed';
+            updateAIModeVisibility();
+            updateCharts();
+        }
+        
         // Toggle aggregation method
         function toggleAggregation() {
             const toggle = document.getElementById('agg_toggle');
             toggle.classList.toggle('active');
             currentAgg = toggle.classList.contains('active') ? 'PSI' : 'CES';
+            updateParameterVisibility();
+            updateEquation();
+            updateFunctionChart();
             updateCharts();
         }
+        
+        // Update AI mode visibility and text
+        function updateAIModeVisibility() {
+            const exponentialParams = document.querySelectorAll('.exponential-params');
+            const scenarioText = document.getElementById('scenario-text');
+            const doublingTime = parseFloat(document.getElementById('doubling_time').value);
+            
+            if (currentAIMode === 'Fixed') {
+                exponentialParams.forEach(param => param.style.display = 'none');
+                scenarioText.textContent = 'We increase the importance of intelligence in overall production.';
+            } else {
+                exponentialParams.forEach(param => param.style.display = 'block');
+                scenarioText.textContent = `We assume that AI will over time replace human workers (β_I: 0→1). Over that same time, AI capital K_I becomes more plentiful (exogenously), doubling every ${doublingTime} months.`;
+            }
+        }
+        
+        // Update parameter visibility based on aggregation method
+        function updateParameterVisibility() {
+            const cesParams = document.querySelectorAll('.ces-params');
+            const psiParams = document.querySelectorAll('.psi-params');
+            
+            if (currentAgg === 'CES') {
+                cesParams.forEach(param => param.style.display = 'block');
+                psiParams.forEach(param => param.style.display = 'none');
+            } else {
+                cesParams.forEach(param => param.style.display = 'none');
+                psiParams.forEach(param => param.style.display = 'block');
+            }
+        }
+        
+        // Update the equation display based on aggregation method
+        function updateEquation() {
+            const equationDiv = document.getElementById('overall-equation');
+            if (currentAgg === 'CES') {
+                equationDiv.innerHTML = '$$Y = \\left[\\tau P^{\\rho} + (1-\\tau) I^{\\rho}\\right]^{1/\\rho}$$';
+            } else {
+                equationDiv.innerHTML = '$$Y = P \\cdot \\frac{(I/P)^{\\eta}}{a + (I/P)^{\\eta}}$$';
+            }
+            // Re-render MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise([equationDiv]);
+            }
+        }
+        
+        // Update the function chart Y = f(I)
+        function updateFunctionChart() {
+            const params = getParams();
+            
+            // Calculate meaningful P values based on current parameters
+            const beta_P_typical = 0.5; // Assume balanced allocation
+            const LP_typical = beta_P_typical * params.L;
+            const P_typical = computeP(LP_typical, params.K, params.psi, params.rho_P);
+            
+            const P_low = P_typical * 0.2;
+            const P_medium = P_typical;
+            const P_high = P_typical * 5;
+            
+            // Generate I values
+            const I_vals = [];
+            const I_max = P_typical * 3; // Reasonable range
+            const I_min = 0.1;
+            for (let i = 0; i <= 50; i++) {
+                I_vals.push(I_min + (I_max - I_min) * i / 50);
+            }
+            
+            // Calculate Y values for each P
+            const Y_low = [];
+            const Y_medium = [];
+            const Y_high = [];
+            
+            for (const I of I_vals) {
+                Y_low.push(computeY(P_low, I, params));
+                Y_medium.push(computeY(P_medium, I, params));
+                Y_high.push(computeY(P_high, I, params));
+            }
+            
+            const labels = I_vals.map(i => i.toFixed(2));
+            
+            // Update chart
+            functionChart.data.labels = labels;
+            functionChart.data.datasets[0].data = Y_low;
+            functionChart.data.datasets[0].label = `P = ${P_low.toFixed(2)}`;
+            functionChart.data.datasets[1].data = Y_medium;
+            functionChart.data.datasets[1].label = `P = ${P_medium.toFixed(2)}`;
+            functionChart.data.datasets[2].data = Y_high;
+            functionChart.data.datasets[2].label = `P = ${P_high.toFixed(2)}`;
+            functionChart.update('none');
+        }
+        
+        // Update the physical production chart P = f(L_P)
+        function updatePhysicalChart() {
+            const params = getParams();
+            
+            // Calculate meaningful K_P values based on current parameter
+            const K_P_low = params.K * 0.2;
+            const K_P_medium = params.K;
+            const K_P_high = params.K * 5;
+            
+            // Generate L_P values
+            const L_P_vals = [];
+            const L_P_max = params.L; // Max possible labor allocation
+            const L_P_min = 0.01;
+            for (let i = 0; i <= 50; i++) {
+                L_P_vals.push(L_P_min + (L_P_max - L_P_min) * i / 50);
+            }
+            
+            // Calculate P values for each K_P
+            const P_low = [];
+            const P_medium = [];
+            const P_high = [];
+            
+            for (const L_P of L_P_vals) {
+                P_low.push(computeP(L_P, K_P_low, params.psi, params.rho_P));
+                P_medium.push(computeP(L_P, K_P_medium, params.psi, params.rho_P));
+                P_high.push(computeP(L_P, K_P_high, params.psi, params.rho_P));
+            }
+            
+            const labels = L_P_vals.map(l => l.toFixed(2));
+            
+            // Update chart
+            physicalChart.data.labels = labels;
+            physicalChart.data.datasets[0].data = P_low;
+            physicalChart.data.datasets[0].label = `Kₚ = ${K_P_low.toFixed(2)}`;
+            physicalChart.data.datasets[1].data = P_medium;
+            physicalChart.data.datasets[1].label = `Kₚ = ${K_P_medium.toFixed(2)}`;
+            physicalChart.data.datasets[2].data = P_high;
+            physicalChart.data.datasets[2].label = `Kₚ = ${K_P_high.toFixed(2)}`;
+            physicalChart.update('none');
+        }
+        
+        // Update the intelligence production chart I = f(L_I)
+        function updateIntelligenceChart() {
+            const params = getParams();
+            
+            // Calculate meaningful K_I values based on current parameter
+            const K_I_low = params.AI * 0.2;
+            const K_I_medium = params.AI;
+            const K_I_high = params.AI * 5;
+            
+            // Generate L_I values
+            const L_I_vals = [];
+            const L_I_max = params.L; // Max possible labor allocation
+            const L_I_min = 0.01;
+            for (let i = 0; i <= 50; i++) {
+                L_I_vals.push(L_I_min + (L_I_max - L_I_min) * i / 50);
+            }
+            
+            // Calculate I values for each K_I
+            const I_low = [];
+            const I_medium = [];
+            const I_high = [];
+            
+            for (const L_I of L_I_vals) {
+                I_low.push(computeI(L_I, params.beta_I, K_I_low, params.rho_I, params.theta));
+                I_medium.push(computeI(L_I, params.beta_I, K_I_medium, params.rho_I, params.theta));
+                I_high.push(computeI(L_I, params.beta_I, K_I_high, params.rho_I, params.theta));
+            }
+            
+            const labels = L_I_vals.map(l => l.toFixed(2));
+            
+            // Update chart
+            intelligenceChart.data.labels = labels;
+            intelligenceChart.data.datasets[0].data = I_low;
+            intelligenceChart.data.datasets[0].label = `Kᵢ = ${K_I_low.toFixed(2)}`;
+            intelligenceChart.data.datasets[1].data = I_medium;
+            intelligenceChart.data.datasets[1].label = `Kᵢ = ${K_I_medium.toFixed(2)}`;
+            intelligenceChart.data.datasets[2].data = I_high;
+            intelligenceChart.data.datasets[2].label = `Kᵢ = ${K_I_high.toFixed(2)}`;
+            intelligenceChart.update('none');
+        }
 
+        // Time evolution functions
+        function beta_I_evolution(t_years, transition_time_years) {
+            if (currentAIMode === 'Fixed') {
+                return parseFloat(document.getElementById('beta_I').value);
+            }
+            return Math.min(1.0, Math.max(0.0, t_years / transition_time_years));
+        }
+        
+        function K_I_evolution(t_years, doubling_time_months, initial_K_I) {
+            if (currentAIMode === 'Fixed') {
+                return initial_K_I;
+            }
+            const t_months = t_years * 12;
+            return initial_K_I * Math.pow(2, t_months / doubling_time_months);
+        }
+        
         // Parameter management
-        function getParams() {
-            return {
+        function getParams(t_years = null) {
+            const base_params = {
                 K: parseFloat(document.getElementById('K').value),
                 AI: parseFloat(document.getElementById('AI').value),
                 L: parseFloat(document.getElementById('L').value),
@@ -740,8 +1275,18 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                 rho: parseFloat(document.getElementById('rho').value),
                 eta: parseFloat(document.getElementById('eta').value),
                 a_param: parseFloat(document.getElementById('a_param').value),
-                agg: currentAgg
+                beta_I: parseFloat(document.getElementById('beta_I').value),
+                agg: currentAgg,
+                transition_time: parseFloat(document.getElementById('transition_time').value),
+                doubling_time: parseFloat(document.getElementById('doubling_time').value)
             };
+            
+            if (t_years !== null && currentAIMode === 'Exponential') {
+                base_params.beta_I = beta_I_evolution(t_years, base_params.transition_time);
+                base_params.AI = K_I_evolution(t_years, base_params.doubling_time, base_params.AI);
+            }
+            
+            return base_params;
         }
 
         function updateCharts() {
@@ -751,62 +1296,108 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             
             setTimeout(() => {
                 try {
-                    const params = getParams();
+                    const base_params = getParams();
                     
-                    // Generate beta_I grid
-                    const beta_I_vals = [];
-                    for (let i = 0; i <= 50; i++) {
-                        beta_I_vals.push(i / 50.0);
+                    let x_vals = [];
+                    let x_labels = [];
+                    let x_title = '';
+                    
+                    if (currentAIMode === 'Fixed') {
+                        // Generate beta_I grid (original behavior)
+                        for (let i = 0; i <= 50; i++) {
+                            x_vals.push(i / 50.0);
+                        }
+                        x_labels = x_vals.map(b => b.toFixed(3));
+                        x_title = 'β_I (AI share in I-nest)';
+                    } else {
+                        // Generate time grid
+                        const max_time = base_params.transition_time * 1.2; // Extend slightly beyond transition
+                        for (let i = 0; i <= 50; i++) {
+                            x_vals.push(max_time * i / 50.0);
+                        }
+                        x_labels = x_vals.map(t => t.toFixed(1));
+                        x_title = 'Time (years)';
                     }
                     
                     const wages = [];
                     const outputs = [];
                     const allocations = [];
+                    const pOutputs = [];
+                    const iOutputs = [];
                     let successCount = 0;
                     
-                    for (const beta_I of beta_I_vals) {
+                    for (const x_val of x_vals) {
                         try {
-                            const beta_P_opt = betaPStar(beta_I, params);
-                            const wage = computeWage(beta_P_opt, beta_I, params);
-                            const output = computeTotalOutput(beta_I, params);
+                            let params;
+                            if (currentAIMode === 'Fixed') {
+                                // x_val is beta_I
+                                params = getParams();
+                                params.beta_I = x_val; // Override beta_I for this iteration
+                            } else {
+                                // x_val is time in years
+                                params = getParams(x_val); // Get time-evolved parameters
+                            }
                             
-                            if (isFinite(wage) && isFinite(output) && isFinite(beta_P_opt)) {
+                            const beta_P_opt = betaPStar(params.beta_I, params);
+                            const wage = computeWage(beta_P_opt, params.beta_I, params);
+                            const output = computeTotalOutput(params.beta_I, params);
+                            
+                            // Calculate P and I components
+                            const LP = beta_P_opt * params.L;
+                            const LI = (1 - beta_P_opt) * params.L;
+                            const P = computeP(LP, params.K, params.psi, params.rho_P);
+                            const I = computeI(LI, params.beta_I, params.AI, params.rho_I, params.theta);
+                            
+                            if (isFinite(wage) && isFinite(output) && isFinite(beta_P_opt) && isFinite(P) && isFinite(I)) {
                                 wages.push(wage);
                                 outputs.push(output);
                                 allocations.push(beta_P_opt);
+                                pOutputs.push(P);
+                                iOutputs.push(I);
                                 successCount++;
                             } else {
                                 wages.push(null);
                                 outputs.push(null);
                                 allocations.push(null);
+                                pOutputs.push(null);
+                                iOutputs.push(null);
                             }
                         } catch (error) {
                             wages.push(null);
                             outputs.push(null);
                             allocations.push(null);
+                            pOutputs.push(null);
+                            iOutputs.push(null);
                         }
                     }
                     
-                    const labels = beta_I_vals.map(b => b.toFixed(3));
-                    
                     // Update charts
-                    wageChart.data.labels = labels;
+                    wageChart.data.labels = x_labels;
                     wageChart.data.datasets[0].data = wages;
+                    wageChart.options.scales.x.title.text = x_title;
                     wageChart.update('none');
 
-                    outputChart.data.labels = labels;
+                    outputChart.data.labels = x_labels;
                     outputChart.data.datasets[0].data = outputs;
+                    outputChart.options.scales.x.title.text = x_title;
                     outputChart.update('none');
 
-                    allocationChart.data.labels = labels;
+                    componentsChart.data.labels = x_labels;
+                    componentsChart.data.datasets[0].data = pOutputs;
+                    componentsChart.data.datasets[1].data = iOutputs;
+                    componentsChart.options.scales.x.title.text = x_title;
+                    componentsChart.update('none');
+
+                    allocationChart.data.labels = x_labels;
                     allocationChart.data.datasets[0].data = allocations;
+                    allocationChart.options.scales.x.title.text = x_title;
                     allocationChart.update('none');
                     
-                    if (successCount > beta_I_vals.length * 0.8) {
-                        statusDiv.textContent = `Simulation completed! ${successCount}/${beta_I_vals.length} points computed`;
+                    if (successCount > x_vals.length * 0.8) {
+                        statusDiv.textContent = `Simulation completed! ${successCount}/${x_vals.length} points computed`;
                         statusDiv.className = 'status success';
                     } else {
-                        statusDiv.textContent = `Partial success: ${successCount}/${beta_I_vals.length} points computed`;
+                        statusDiv.textContent = `Partial success: ${successCount}/${x_vals.length} points computed`;
                         statusDiv.className = 'status error';
                     }
                     
@@ -828,12 +1419,25 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                     valueSpan.textContent = this.value;
                 });
                 
-                slider.addEventListener('input', updateCharts);
+                slider.addEventListener('input', function() {
+                    updatePhysicalChart();
+                    updateIntelligenceChart();
+                    updateFunctionChart();
+                    if (this.id === 'doubling_time') {
+                        updateAIModeVisibility();
+                    }
+                    updateCharts();
+                });
             });
         }
 
         // Initialize
         setupSliders();
+        updateParameterVisibility();
+        updateAIModeVisibility();
+        updatePhysicalChart();
+        updateIntelligenceChart();
+        updateFunctionChart();
         updateCharts();
     </script>
 </body>
