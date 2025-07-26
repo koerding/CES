@@ -288,6 +288,33 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
+        .reset-button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .reset-button:hover {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
+        }
+        
+        .reset-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
+        }
+        
         @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -301,6 +328,7 @@
         
         <div class="main-content">
             <div class="controls">
+                <button class="reset-button" onclick="resetAllParameters()">Reset All Parameters</button>
                 <div class="tab-header">
                     <button class="tab-button active" onclick="switchTab(0)">Physical</button>
                     <button class="tab-button" onclick="switchTab(1)">Intelligence</button>
@@ -595,12 +623,12 @@
         // Mathematical functions
         function computeP(LP, K, psi, rho_P, theta_P = 1.0) {
             if (currentPAgg === 'DS') {
-                // Dixit-Stiglitz case with scaling
+                // Dixit-Stiglitz case with scaling and proper normalization
                 if (Math.abs(rho_P) < 1e-10) {
                     // Cobb-Douglas case: P = (K^ψ * LP^(1-ψ))^θ_P
                     return Math.pow(Math.pow(K, psi) * Math.pow(LP, 1 - psi), theta_P);
                 }
-                const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
+                const inside = Math.pow(psi, 1 - rho_P) * Math.pow(K, rho_P) + Math.pow(1 - psi, 1 - rho_P) * Math.pow(LP, rho_P);
                 return Math.pow(inside, theta_P / rho_P);
             } else {
                 // CES case (original)
@@ -615,14 +643,14 @@
         
         function dP_dLP(LP, K, psi, rho_P, theta_P = 1.0) {
             if (currentPAgg === 'DS') {
-                // Dixit-Stiglitz case with scaling
+                // Dixit-Stiglitz case with scaling and proper normalization
                 if (Math.abs(rho_P) < 1e-10) {
                     // Cobb-Douglas case: dP/dLP = θ_P * (1-ψ) * (K^ψ * LP^(1-ψ))^(θ_P-1) * K^ψ * LP^(-ψ)
                     const cobbDouglas = Math.pow(K, psi) * Math.pow(LP, 1 - psi);
                     return theta_P * (1 - psi) * Math.pow(cobbDouglas, theta_P - 1) * Math.pow(K, psi) * Math.pow(LP, -psi);
                 }
-                const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
-                return theta_P * (1 - psi) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (theta_P / rho_P) - 1);
+                const inside = Math.pow(psi, 1 - rho_P) * Math.pow(K, rho_P) + Math.pow(1 - psi, 1 - rho_P) * Math.pow(LP, rho_P);
+                return theta_P * Math.pow(1 - psi, 1 - rho_P) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (theta_P / rho_P) - 1);
             } else {
                 // CES case (original)
                 if (Math.abs(rho_P) < 1e-10) {
@@ -1335,7 +1363,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             if (currentPAgg === 'CES') {
                 equationDiv.innerHTML = '$$P = \\left[\\psi K_P^{\\rho_P} + (1-\\psi) L_P^{\\rho_P}\\right]^{1/\\rho_P}$$';
             } else {
-                equationDiv.innerHTML = '$$P = \\left[\\psi K_P^{\\rho_P} + (1-\\psi) L_P^{\\rho_P}\\right]^{\\theta_P/\\rho_P}$$';
+                equationDiv.innerHTML = '$$P = \\left[\\psi^{1-\\rho_P} K_P^{\\rho_P} + (1-\\psi)^{1-\\rho_P} L_P^{\\rho_P}\\right]^{\\theta_P/\\rho_P}$$';
             }
             if (window.MathJax && MathJax.typesetPromise) {
                 MathJax.typesetPromise([equationDiv]);
@@ -1769,6 +1797,70 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             });
         }
 
+        // Reset all parameters to defaults
+        function resetAllParameters() {
+            // Physical tab
+            document.getElementById('K').value = '1.5';
+            document.getElementById('K_value').textContent = '1.5';
+            document.getElementById('psi').value = '0.7';
+            document.getElementById('psi_value').textContent = '0.7';
+            document.getElementById('rho_P').value = '-0.67';
+            document.getElementById('rho_P_value').textContent = '-0.67';
+            document.getElementById('theta_P').value = '1.0';
+            document.getElementById('theta_P_value').textContent = '1.0';
+            
+            // Intelligence tab
+            document.getElementById('AI').value = '9.0';
+            document.getElementById('AI_value').textContent = '9.0';
+            document.getElementById('beta_I').value = '0.9';
+            document.getElementById('beta_I_value').textContent = '0.9';
+            document.getElementById('rho_I').value = '0.55';
+            document.getElementById('rho_I_value').textContent = '0.55';
+            document.getElementById('theta').value = '0.94';
+            document.getElementById('theta_value').textContent = '0.94';
+            
+            // Overall tab
+            document.getElementById('L').value = '1.0';
+            document.getElementById('L_value').textContent = '1.0';
+            document.getElementById('tau').value = '0.18';
+            document.getElementById('tau_value').textContent = '0.18';
+            document.getElementById('rho').value = '-0.67';
+            document.getElementById('rho_value').textContent = '-0.67';
+            document.getElementById('eta').value = '0.5';
+            document.getElementById('eta_value').textContent = '0.5';
+            document.getElementById('a_param').value = '4.6';
+            document.getElementById('a_param_value').textContent = '4.6';
+            
+            // Analysis tab
+            document.getElementById('transition_time').value = '10';
+            document.getElementById('transition_time_value').textContent = '10';
+            document.getElementById('doubling_time').value = '2';
+            document.getElementById('doubling_time_value').textContent = '2';
+            
+            // Reset toggles to defaults
+            currentPAgg = 'CES';
+            currentIAgg = 'DS';
+            currentAgg = 'CES';
+            currentAIMode = 'Fixed';
+            
+            // Update toggle visual states
+            document.getElementById('p_agg_toggle').classList.remove('active');
+            document.getElementById('i_agg_toggle').classList.add('active');
+            document.getElementById('agg_toggle').classList.remove('active');
+            document.getElementById('ai_mode_toggle').classList.remove('active');
+            
+            // Update visibility and charts
+            updateParameterVisibility();
+            updateNestParameterVisibility();
+            updatePhysicalEquation();
+            updateIntelligenceEquation();
+            updateAIModeVisibility();
+            updatePhysicalChart();
+            updateIntelligenceChart();
+            updateFunctionChart();
+            updateCharts();
+        }
+        
         // Export functions
         function exportChart(chartId, filename) {
             const chart = Chart.getChart(chartId);
