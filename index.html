@@ -611,6 +611,15 @@
                         <canvas id="allocationChart"></canvas>
                     </div>
                 </div>
+                <div class="chart-wrapper" id="secretChart" style="display: none;">
+                    <div class="export-buttons">
+                        <button class="export-btn" onclick="exportChartPNG('productivityChart', 'productivity')">PNG</button>
+                        <button class="export-btn" onclick="exportChartCSV('productivityChart', 'productivity')">CSV</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="productivityChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1571,6 +1580,72 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             
             return base_params;
         }
+        
+        function updateProductivityChart() {
+            const base_params = getParams();
+            
+            let x_vals = [];
+            let y_vals = [];
+            
+            // Generate beta_I range for productivity calculation
+            for (let i = 0; i <= 50; i++) {
+                const beta_I = i / 50.0;
+                const params = {...base_params, beta_I: beta_I};
+                
+                try {
+                    const result = solve_for_beta_P(params);
+                    if (result && result.Y !== undefined) {
+                        x_vals.push(beta_I);
+                        y_vals.push(result.Y / params.K); // Y/K_P ratio
+                    }
+                } catch (e) {
+                    // Skip invalid points
+                }
+            }
+            
+            const ctx = document.getElementById('productivityChart').getContext('2d');
+            
+            if (Chart.getChart('productivityChart')) {
+                Chart.getChart('productivityChart').destroy();
+            }
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: x_vals.map(x => x.toFixed(3)),
+                    datasets: [{
+                        label: 'Y/K_P',
+                        data: y_vals,
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'β_I (AI share in I-nest)' },
+                            ticks: { maxTicksLimit: 6 }
+                        },
+                        y: {
+                            title: { display: true, text: 'Y/K_P (Output per Physical Capital)' }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '🌈 Secret Productivity Chart: Y/K_P vs β_I 🌈',
+                            font: { size: 16, weight: 'bold' },
+                            color: '#ff6b6b'
+                        },
+                        legend: { display: true }
+                    }
+                }
+            });
+        }
 
         function updateCharts() {
             const statusDiv = document.getElementById('status');
@@ -1954,6 +2029,102 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             a.click();
             URL.revokeObjectURL(url);
         }
+
+        // Secret toggle functionality
+        let secretSequence = [];
+        let secretCode = ['k', 'o', 'n', 'r', 'a', 'd'];
+        let secretMode = false;
+
+        function handleSecretKeypress(event) {
+            secretSequence.push(event.key.toLowerCase());
+            
+            // Keep only the last N characters where N is the secret code length
+            if (secretSequence.length > secretCode.length) {
+                secretSequence = secretSequence.slice(-secretCode.length);
+            }
+            
+            // Check if sequence matches
+            if (secretSequence.length === secretCode.length && 
+                secretSequence.every((key, index) => key === secretCode[index])) {
+                toggleSecretMode();
+                secretSequence = []; // Reset sequence
+            }
+        }
+
+        function toggleSecretMode() {
+            secretMode = !secretMode;
+            const body = document.body;
+            const secretChart = document.getElementById('secretChart');
+            
+            if (secretMode) {
+                body.style.background = 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd)';
+                body.style.backgroundSize = '400% 400%';
+                body.style.animation = 'rainbow 3s ease infinite';
+                
+                // Show secret chart
+                secretChart.style.display = 'block';
+                
+                // Add rainbow animation keyframes if not already present
+                if (!document.getElementById('rainbow-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'rainbow-style';
+                    style.textContent = `
+                        @keyframes rainbow {
+                            0% { background-position: 0% 50%; }
+                            50% { background-position: 100% 50%; }
+                            100% { background-position: 0% 50%; }
+                        }
+                        .secret-sparkle {
+                            position: fixed;
+                            pointer-events: none;
+                            font-size: 20px;
+                            animation: sparkle 2s linear infinite;
+                            z-index: 9999;
+                        }
+                        @keyframes sparkle {
+                            0% { opacity: 1; transform: translateY(0px) rotate(0deg); }
+                            100% { opacity: 0; transform: translateY(-100px) rotate(360deg); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                // Create sparkle effect and update chart
+                createSparkles();
+                updateProductivityChart();
+                console.log('🌈 Secret rainbow mode activated! Y/K_P chart revealed! 🌈');
+            } else {
+                body.style.background = '';
+                body.style.backgroundSize = '';
+                body.style.animation = '';
+                secretChart.style.display = 'none';
+                console.log('Secret mode deactivated');
+            }
+        }
+
+        function createSparkles() {
+            const sparkleEmojis = ['✨', '⭐', '🌟', '💫', '🔥', '🎉', '🎊'];
+            
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'secret-sparkle';
+                    sparkle.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+                    sparkle.style.left = Math.random() * window.innerWidth + 'px';
+                    sparkle.style.top = Math.random() * window.innerHeight + 'px';
+                    document.body.appendChild(sparkle);
+                    
+                    setTimeout(() => {
+                        if (sparkle.parentNode) {
+                            sparkle.parentNode.removeChild(sparkle);
+                        }
+                    }, 2000);
+                }, i * 200);
+            }
+        }
+
+        // Add secret keypress listener
+        document.addEventListener('keydown', handleSecretKeypress);
 
         // Initialize
         setupSliders();
