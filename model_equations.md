@@ -9,24 +9,24 @@ The economy has a nested CES (Constant Elasticity of Substitution) structure wit
 ## Production Functions
 
 ### P-nest (Physical Production)
-$$P = \left[\psi K_P^{\rho_P} + (1-\psi) L_P^{\rho_P}\right]^{1/\rho_P}$$
+$$P = \left[\beta_P K_P^{\rho_P} + (1-\beta_P) L_P^{\rho_P}\right]^{1/\rho_P}$$
 
 Where:
 - $K_P$: Physical capital
 - $L_P$: Labor allocated to physical production
-- $\psi$: Capital share parameter (0 ≤ ψ ≤ 1)
+- $\beta_P$: Capital share parameter (0 ≤ β_P ≤ 1)
 - $\rho_P$: Substitution parameter for P-nest
 - Elasticity of substitution: $\sigma_P = 1/(1-\rho_P)$
 
 ### I-nest (Intelligence Production)
-$$I = \left[\beta_I^{1-\rho_I} K_I^{\rho_I} + (1-\beta_I)^{1-\rho_I} L_I^{\rho_I}\right]^{\theta/\rho_I}$$
+$$I = \left[\beta_I^{1-\rho_I} K_I^{\rho_I} + (1-\beta_I)^{1-\rho_I} L_I^{\rho_I}\right]^{\theta_I/\rho_I}$$
 
 Where:
 - $K_I$: AI capital
 - $L_I$: Labor allocated to intelligence production
 - $\beta_I$: AI share parameter (0 ≤ β_I ≤ 1)
 - $\rho_I$: Substitution parameter for I-nest
-- $\theta$: Returns to scale parameter (θ < 1 for decreasing returns)
+- $\theta_I$: Returns to scale parameter (θ_I < 1 for decreasing returns)
 - Elasticity of substitution: $\sigma_I = 1/(1-\rho_I)$
 
 ### Top-Level Aggregation
@@ -63,13 +63,13 @@ Define labor allocation shares:
 $$MP_P = \frac{\partial Y}{\partial P} \cdot \frac{\partial P}{\partial L_P}$$
 
 Where:
-$$\frac{\partial P}{\partial L_P} = (1-\psi) L_P^{\rho_P-1} \left[\psi K_P^{\rho_P} + (1-\psi) L_P^{\rho_P}\right]^{(1/\rho_P)-1}$$
+$$\frac{\partial P}{\partial L_P} = (1-\beta_P) L_P^{\rho_P-1} \left[\beta_P K_P^{\rho_P} + (1-\beta_P) L_P^{\rho_P}\right]^{(1/\rho_P)-1}$$
 
 #### I-nest Labor Marginal Product
 $$MP_I = \frac{\partial Y}{\partial I} \cdot \frac{\partial I}{\partial L_I}$$
 
 Where:
-$$\frac{\partial I}{\partial L_I} = \theta (1-\beta_I)^{1-\rho_I} L_I^{\rho_I-1} \left[\beta_I^{1-\rho_I} K_I^{\rho_I} + (1-\beta_I)^{1-\rho_I} L_I^{\rho_I}\right]^{(\theta/\rho_I)-1}$$
+$$\frac{\partial I}{\partial L_I} = \theta_I (1-\beta_I)^{1-\rho_I} L_I^{\rho_I-1} \left[\beta_I^{1-\rho_I} K_I^{\rho_I} + (1-\beta_I)^{1-\rho_I} L_I^{\rho_I}\right]^{(\theta_I/\rho_I)-1}$$
 
 ### Top-Level Derivatives
 
@@ -108,14 +108,14 @@ $$w = MP_P(\beta_P^*) = MP_I(\beta_P^*)$$
 - $\rho \to -\infty$: Inputs are perfect complements ($\sigma \to 0$)
 
 ### Share Parameters
-- $\psi = 0$: Only labor matters in P-nest
-- $\psi = 1$: Only capital matters in P-nest
+- $\beta_P = 0$: Only labor matters in P-nest
+- $\beta_P = 1$: Only capital matters in P-nest
 - $\beta_I = 0$: Only labor matters in I-nest
 - $\beta_I = 1$: Only AI matters in I-nest
 
 ### Returns to Scale
-- $\theta = 1$: Constant returns to scale in I-nest
-- $\theta < 1$: Decreasing returns to scale (e.g., $\theta = 0.5$ means doubling inputs increases output by $\sqrt{2} - 1 \approx 41\%$)
+- $\theta_I = 1$: Constant returns to scale in I-nest
+- $\theta_I < 1$: Decreasing returns to scale (e.g., $\theta_I = 0.5$ means doubling inputs increases output by $\sqrt{2} - 1 \approx 41\%$)
 
 ### PSI Parameters
 - $\eta < 0$: Sharper transition between P and I dominance
@@ -124,7 +124,7 @@ $$w = MP_P(\beta_P^*) = MP_I(\beta_P^*)$$
 ## Calibration
 
 Default parameter values are calibrated to match:
-- US capital share: ~42% (achieved with $\psi = 0.7$ given $K_P/L$ ratio)
+- US capital share: ~42% (achieved with $\beta_P = 0.7$ given $K_P/L$ ratio)
 - Manufacturing elasticity: $\sigma_P \approx 0.6$ (implies $\rho_P \approx -0.67$)
 - Manual occupation share: ~18% (implies $\tau = 0.18$)
 - AI-labor substitutability: $\sigma_I \approx 2.2$ (implies $\rho_I \approx 0.55$)

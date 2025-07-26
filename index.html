@@ -404,8 +404,8 @@
                         <div class="parameter-description">AI capital relative to labor. K_I=9 represents abundant AI (6× physical capital). Higher values = more AI automation potential</div>
                         <div id="ai-capital-note" class="parameter-note" style="display: none; margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="AI" min="1.0" max="20.0" step="0.5" value="9.0">
-                            <span class="slider-value" id="AI_value">9.0</span>
+                            <input type="range" class="slider" id="AI" min="0" max="5" step="0.1" value="0.95">
+                            <span class="slider-value" id="AI_value">9.0e+00</span>
                         </div>
                     </div>
                     
@@ -565,8 +565,8 @@
                         <label class="parameter-label">AI Capital Doubling Time (months)</label>
                         <div class="parameter-description">How frequently AI capital doubles exogenously</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="doubling_time" min="1" max="24" step="1" value="2">
-                            <span class="slider-value" id="doubling_time_value">2</span>
+                            <input type="range" class="slider" id="doubling_time" min="1" max="24" step="1" value="3">
+                            <span class="slider-value" id="doubling_time_value">3</span>
                         </div>
                     </div>
                 </div>
@@ -641,130 +641,85 @@
         let currentIAgg = 'DS'; // Intelligence nest aggregation method (default to maintain existing behavior)
         
         // Mathematical functions
+        // Generic CES production function
+        function computeCES(input1, input2, beta, rho) {
+            if (Math.abs(rho) < 1e-10) {
+                // Cobb-Douglas case: input1^β * input2^(1-β)
+                return Math.pow(input1, beta) * Math.pow(input2, 1 - beta);
+            }
+            const inside = beta * Math.pow(input1, rho) + (1 - beta) * Math.pow(input2, rho);
+            return Math.pow(inside, 1 / rho);
+        }
+
+        // Generic DS (Dixit-Stiglitz) production function
+        function computeDS(input1, input2, beta, rho, theta) {
+            if (Math.abs(rho) < 1e-8) {
+                // Lazy continuity approach: average of DS(+0.01) and DS(-0.01)
+                const eps = 0.01;
+                const pos_inside = Math.pow(beta, 1 - eps) * Math.pow(input1, eps) + Math.pow(1 - beta, 1 - eps) * Math.pow(input2, eps);
+                const pos_result = Math.pow(pos_inside, theta / eps);
+                const neg_inside = Math.pow(beta, 1 + eps) * Math.pow(input1, -eps) + Math.pow(1 - beta, 1 + eps) * Math.pow(input2, -eps);
+                const neg_result = Math.pow(neg_inside, theta / (-eps));
+                return (pos_result + neg_result) / 2;
+            }
+            const inside = Math.pow(beta, 1 - rho) * Math.pow(input1, rho) + Math.pow(1 - beta, 1 - rho) * Math.pow(input2, rho);
+            return Math.pow(inside, theta / rho);
+        }
+
+        // Generic CES derivative with respect to input2
+        function dCES_dinput2(input1, input2, beta, rho) {
+            if (Math.abs(rho) < 1e-10) {
+                // Cobb-Douglas case: d/dinput2[input1^β * input2^(1-β)] = (1-β) * input1^β * input2^(-β)
+                return (1 - beta) * Math.pow(input1, beta) * Math.pow(input2, -beta);
+            }
+            const inside = beta * Math.pow(input1, rho) + (1 - beta) * Math.pow(input2, rho);
+            return (1 - beta) * Math.pow(input2, rho - 1) * Math.pow(inside, (1 / rho) - 1);
+        }
+
+        // Generic DS derivative with respect to input2
+        function dDS_dinput2(input1, input2, beta, rho, theta) {
+            if (Math.abs(rho) < 1e-8) {
+                // Lazy continuity approach: average of derivatives at +0.01 and -0.01
+                const eps = 0.01;
+                const pos_inside = Math.pow(beta, 1 - eps) * Math.pow(input1, eps) + Math.pow(1 - beta, 1 - eps) * Math.pow(input2, eps);
+                const pos_deriv = theta * Math.pow(1 - beta, 1 - eps) * Math.pow(input2, eps - 1) * Math.pow(pos_inside, (theta / eps) - 1);
+                const neg_inside = Math.pow(beta, 1 + eps) * Math.pow(input1, -eps) + Math.pow(1 - beta, 1 + eps) * Math.pow(input2, -eps);
+                const neg_deriv = theta * Math.pow(1 - beta, 1 + eps) * Math.pow(input2, -eps - 1) * Math.pow(neg_inside, (theta / (-eps)) - 1);
+                return (pos_deriv + neg_deriv) / 2;
+            }
+            const inside = Math.pow(beta, 1 - rho) * Math.pow(input1, rho) + Math.pow(1 - beta, 1 - rho) * Math.pow(input2, rho);
+            return theta * Math.pow(1 - beta, 1 - rho) * Math.pow(input2, rho - 1) * Math.pow(inside, (theta / rho) - 1);
+        }
+
         function computeP(LP, K, beta_P, rho_P, theta_P = 1.0) {
             if (currentPAgg === 'DS') {
-                // Dixit-Stiglitz case with scaling and proper normalization
-                if (Math.abs(rho_P) < 1e-10) {
-                    // Cobb-Douglas case: P = (K^ψ * LP^(1-ψ))^θ_P
-                    return Math.pow(Math.pow(K, beta_P) * Math.pow(LP, 1 - beta_P), theta_P);
-                }
-                const inside = Math.pow(beta_P, 1 - rho_P) * Math.pow(K, rho_P) + Math.pow(1 - beta_P, 1 - rho_P) * Math.pow(LP, rho_P);
-                return Math.pow(inside, theta_P / rho_P);
+                return computeDS(K, LP, beta_P, rho_P, theta_P);
             } else {
-                // CES case (original)
-                if (Math.abs(rho_P) < 1e-10) {
-                    // Cobb-Douglas case: P = K^ψ * LP^(1-ψ)
-                    return Math.pow(K, beta_P) * Math.pow(LP, 1 - beta_P);
-                }
-                const inside = beta_P * Math.pow(K, rho_P) + (1 - beta_P) * Math.pow(LP, rho_P);
-                return Math.pow(inside, 1 / rho_P);
+                return computeCES(K, LP, beta_P, rho_P);
             }
         }
         
         function dP_dLP(LP, K, beta_P, rho_P, theta_P = 1.0) {
             if (currentPAgg === 'DS') {
-                // Dixit-Stiglitz case with scaling and proper normalization
-                if (Math.abs(rho_P) < 1e-10) {
-                    // Cobb-Douglas case: dP/dLP = θ_P * (1-ψ) * (K^ψ * LP^(1-ψ))^(θ_P-1) * K^ψ * LP^(-ψ)
-                    const cobbDouglas = Math.pow(K, beta_P) * Math.pow(LP, 1 - beta_P);
-                    return theta_P * (1 - beta_P) * Math.pow(cobbDouglas, theta_P - 1) * Math.pow(K, beta_P) * Math.pow(LP, -beta_P);
-                }
-                const inside = Math.pow(beta_P, 1 - rho_P) * Math.pow(K, rho_P) + Math.pow(1 - beta_P, 1 - rho_P) * Math.pow(LP, rho_P);
-                return theta_P * Math.pow(1 - beta_P, 1 - rho_P) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (theta_P / rho_P) - 1);
+                return dDS_dinput2(K, LP, beta_P, rho_P, theta_P);
             } else {
-                // CES case (original)
-                if (Math.abs(rho_P) < 1e-10) {
-                    // Cobb-Douglas case: dP/dLP = (1-ψ) * K^ψ * LP^(-ψ)
-                    return (1 - beta_P) * Math.pow(K, beta_P) * Math.pow(LP, -beta_P);
-                }
-                const inside = beta_P * Math.pow(K, rho_P) + (1 - beta_P) * Math.pow(LP, rho_P);
-                return (1 - beta_P) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (1 / rho_P) - 1);
+                return dCES_dinput2(K, LP, beta_P, rho_P);
             }
         }
         
 function computeI(LI, beta_I, AI, rho_I, theta_I) {
     if (currentIAgg === 'DS') {
-        // DS case - theta scaling is applied (current behavior)
-        if (Math.abs(rho_I) < 1e-10) {
-            // Cobb-Douglas case: I = [AI^β_I * LI^(1-β_I)]^θ
-            return Math.pow(Math.pow(AI, beta_I) * Math.pow(LI, 1 - beta_I), theta_I);
-        }
-        
-        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-            // Limiting case: (beta_I^(1-rho_I) * AI^rho_I)^(theta/rho_I)
-            const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I);
-            return Math.pow(inside, theta_I / rho_I);
-        } else {
-            // DS form with share exponents
-            const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
-                          Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
-            if (inside < 0) {
-                return 0; // Avoid NaN from negative base
-            }
-            return Math.pow(inside, theta_I / rho_I);
-        }
+        return computeDS(AI, LI, beta_I, rho_I, theta_I);
     } else {
-        // CES case - no theta scaling (theta effectively = 1)
-        if (Math.abs(rho_I) < 1e-10) {
-            // Cobb-Douglas case: I = AI^β_I * LI^(1-β_I)
-            return Math.pow(AI, beta_I) * Math.pow(LI, 1 - beta_I);
-        }
-        
-        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-            // Limiting case: (beta_I^(1-rho_I) * AI^rho_I)^(1/rho_I)
-            const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I);
-            return Math.pow(inside, 1 / rho_I);
-        } else {
-            // CES form with share exponents
-            const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
-                          Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
-            if (inside < 0) {
-                return 0; // Avoid NaN from negative base
-            }
-            return Math.pow(inside, 1 / rho_I);
-        }
+        return computeCES(AI, LI, beta_I, rho_I);
     }
 }
 
 function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
     if (currentIAgg === 'DS') {
-        // DS case - theta scaling is applied
-        if (Math.abs(rho_I) < 1e-10) {
-            // Cobb-Douglas case: dI/dLI = θ * (1-β_I) * AI^(θ*β_I) * LI^(θ*(1-β_I)-1)
-            return theta_I * (1 - beta_I) * Math.pow(AI, theta_I * beta_I) * Math.pow(LI, theta_I * (1 - beta_I) - 1);
-        }
-        
-        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-            return 0.0;
-        }
-        
-        // DS form with share exponents
-        const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
-                       Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
-        if (inside < 0) {
-            return 0; // Avoid NaN from negative base
-        }
-        return theta_I * Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I - 1) * 
-               Math.pow(inside, (theta_I / rho_I) - 1);
+        return dDS_dinput2(AI, LI, beta_I, rho_I, theta_I);
     } else {
-        // CES case - no theta scaling
-        if (Math.abs(rho_I) < 1e-10) {
-            // Cobb-Douglas case: dI/dLI = (1-β_I) * AI^β_I * LI^(-β_I)
-            return (1 - beta_I) * Math.pow(AI, beta_I) * Math.pow(LI, -beta_I);
-        }
-        
-        if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
-            return 0.0;
-        }
-        
-        // CES form with share exponents
-        const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
-                       Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I);
-        if (inside < 0) {
-            return 0; // Avoid NaN from negative base
-        }
-        return Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I - 1) * 
-               Math.pow(inside, (1 / rho_I) - 1);
+        return dCES_dinput2(AI, LI, beta_I, rho_I);
     }
 }
         function computePSI(P, I, params) {
@@ -1282,7 +1237,6 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             toggle.classList.toggle('active');
             currentAIMode = toggle.classList.contains('active') ? 'Exponential' : 'Fixed';
             updateAIModeVisibility();
-            updateSaturationChart(); // Add this line
             updateCharts();
         }
         
@@ -1565,7 +1519,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
         function getParams(t_years = null) {
             const base_params = {
                 K: parseFloat(document.getElementById('K').value),
-                AI: parseFloat(document.getElementById('AI').value),
+                AI: Math.pow(10, parseFloat(document.getElementById('AI').value)),
                 L: parseFloat(document.getElementById('L').value),
                 beta_P: parseFloat(document.getElementById('beta_P').value),
                 rho_P: parseFloat(document.getElementById('rho_P').value),
@@ -1700,159 +1654,6 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             });
         }
         
-        function updateSaturationChart() {
-            let x_vals = [];
-            let y_vals = [];
-            
-            
-            // Check the toggle state to determine x-axis
-            const toggle = document.getElementById('ai_mode_toggle');
-            const isExponential = toggle && toggle.classList.contains('active');
-            
-            // Generate x-axis values based on mode (same as other charts)
-            if (isExponential) {
-                // Time-based x-axis for exponential mode
-                const base_params = getParams();
-                const max_time = base_params.transition_time + 5; // 5 years past transition
-                for (let i = 0; i <= 50; i++) {
-                    x_vals.push(max_time * i / 50.0);
-                }
-            } else {
-                // Beta_I-based x-axis for fixed mode
-                for (let i = 0; i <= 50; i++) {
-                    x_vals.push(i / 50.0);
-                }
-            }
-            
-            // Generate saturation data
-            for (let i = 0; i < x_vals.length; i++) {
-                const x_val = x_vals[i];
-                
-                try {
-                    let params;
-                    if (isExponential) {
-                        // x_val is time in years
-                        params = getParams(x_val); // Get time-evolved parameters
-                    } else {
-                        // x_val is beta_I
-                        params = getParams();
-                        params.beta_I = x_val; // Override beta_I for this iteration
-                    }
-                    
-                    if (params.beta_I < 1e-6) {
-                        // When β_I ≈ 0, the measure is undefined (0/0), so skip this point
-                        y_vals.push(null);
-                        continue;
-                    }
-                    
-                    // Step 1: Calculate current equilibrium with current K_I
-                    const beta_P_opt = betaPStar(params.beta_I, params);
-                    const LP = beta_P_opt * params.L;
-                    const LI = (1 - beta_P_opt) * params.L;
-                    const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_P);
-                    const I_current = computeI(LI, params.beta_I, params.AI, params.rho_I, params.theta_I);
-                    
-                    // Calculate Y_current
-                    let Y_current;
-                    if (currentAgg === 'CES') {
-                        Y_current = Math.pow(params.tau * Math.pow(P, params.rho) + (1 - params.tau) * Math.pow(I_current, params.rho), 1 / params.rho);
-                    } else {
-                        Y_current = computePSI(P, I_current, params);
-                    }
-                    
-                    // Step 2: Calculate I with K_I → ∞ (keep same P, same labor allocation)
-                    const I_infinite = computeI(LI, params.beta_I, 1e50, params.rho_I, params.theta_I);
-                    
-                    // Debug: Calculate theoretical maximum Y when I → ∞
-                    const Y_theoretical_max = currentAgg === 'CES' ? 
-                        Math.pow(params.tau, 1 / params.rho) * P : 
-                        P; // For PSI, Y → P as I → ∞
-                    
-                    // Calculate Y_infinite
-                    let Y_infinite;
-                    if (currentAgg === 'CES') {
-                        Y_infinite = Math.pow(params.tau * Math.pow(P, params.rho) + (1 - params.tau) * Math.pow(I_infinite, params.rho), 1 / params.rho);
-                    } else {
-                        Y_infinite = computePSI(P, I_infinite, params);
-                    }
-                    
-                    
-                    // Step 3: Calculate ratio
-                    const saturation = Y_current / Y_infinite;
-                    
-                    if (isFinite(saturation) && saturation >= 0 && saturation <= 1) {
-                        y_vals.push(saturation * 100); // Convert to percentage
-                    } else {
-                        y_vals.push(null);
-                    }
-                } catch (e) {
-                    y_vals.push(null);
-                }
-            }
-            
-            // Filter out null values
-            const validData = x_vals.map((x, i) => ({x, y: y_vals[i]}))
-                                   .filter(point => point.y !== null);
-            
-            
-            if (validData.length === 0) {
-                console.error('No valid data points for saturation chart!');
-                return;
-            }
-            
-            const existingChart = Chart.getChart('saturationChart');
-            if (existingChart) {
-                existingChart.destroy();
-            }
-            
-            const ctx = document.getElementById('saturationChart').getContext('2d');
-            
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: validData.map(p => p.x.toFixed(3)),
-                    datasets: [{
-                        label: 'Intelligence Saturation',
-                        data: validData.map(p => p.y),
-                        borderColor: '#9b59b6',
-                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 2,
-                        borderWidth: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            title: { display: true, text: isExponential ? 'Time (years)' : 'β_I (AI share in I-nest)' },
-                            ticks: { maxTicksLimit: 6 }
-                        },
-                        y: {
-                            title: { display: true, text: 'Intelligence Saturation (%)' },
-                            min: 0,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toFixed(0) + '%';
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Intelligence Saturation',
-                            font: { size: 16, weight: 'bold' },
-                            color: '#9b59b6'
-                        },
-                        legend: { display: true }
-                    }
-                }
-            });
-        }
         
 
         function updateCharts() {
@@ -1890,6 +1691,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                     const allocations = [];
                     const pOutputs = [];
                     const iOutputs = [];
+                    const saturationVals = [];
                     let successCount = 0;
                     
                     for (const x_val of x_vals) {
@@ -1911,8 +1713,35 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                             // Calculate P and I components
                             const LP = beta_P_opt * params.L;
                             const LI = (1 - beta_P_opt) * params.L;
-                            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
+                            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_P);
                             const I = computeI(LI, params.beta_I, params.AI, params.rho_I, params.theta_I);
+                            
+                            // Calculate saturation ratio
+                            let saturation = null;
+                            if (params.beta_I >= 1e-6) {
+                                try {
+                                    // Calculate Y_current (already calculated as 'output')
+                                    const Y_current = output;
+                                    
+                                    // Calculate I with K_I → ∞ AND β_I → ∞ (keep same P, same labor allocation)
+                                    const I_infinite = computeI(LI, 1.0, 1e50, params.rho_I, params.theta_I);
+                                    
+                                    // Calculate Y_infinite
+                                    let Y_infinite;
+                                    if (currentAgg === 'CES') {
+                                        Y_infinite = Math.pow(params.tau * Math.pow(P, params.rho) + (1 - params.tau) * Math.pow(I_infinite, params.rho), 1 / params.rho);
+                                    } else {
+                                        Y_infinite = computePSI(P, I_infinite, params);
+                                    }
+                                    
+                                    const saturationRatio = Y_current / Y_infinite;
+                                    if (isFinite(saturationRatio) && saturationRatio >= 0 && saturationRatio <= 1) {
+                                        saturation = saturationRatio * 100; // Convert to percentage
+                                    }
+                                } catch (e) {
+                                    // Keep saturation as null
+                                }
+                            }
                             
                             if (isFinite(wage) && isFinite(output) && isFinite(beta_P_opt) && isFinite(P) && isFinite(I)) {
                                 wages.push(wage);
@@ -1920,6 +1749,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                                 allocations.push(beta_P_opt);
                                 pOutputs.push(P);
                                 iOutputs.push(I);
+                                saturationVals.push(saturation);
                                 successCount++;
                             } else {
                                 wages.push(null);
@@ -1927,6 +1757,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                                 allocations.push(null);
                                 pOutputs.push(null);
                                 iOutputs.push(null);
+                                saturationVals.push(null);
                             }
                         } catch (error) {
                             wages.push(null);
@@ -1934,6 +1765,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                             allocations.push(null);
                             pOutputs.push(null);
                             iOutputs.push(null);
+                            saturationVals.push(null);
                         }
                     }
                     
@@ -2041,13 +1873,68 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                     allocationChart.data.datasets[0].data = allocations;
                     allocationChart.options.scales.x.title.text = x_title;
                     allocationChart.update('none');
+
+                    // Update saturation chart
+                    const validSaturationData = x_vals.map((x, i) => ({x, y: saturationVals[i]}))
+                                                      .filter(point => point.y !== null);
+                    
+                    const existingSaturationChart = Chart.getChart('saturationChart');
+                    if (existingSaturationChart) {
+                        existingSaturationChart.destroy();
+                    }
+                    
+                    if (validSaturationData.length > 0) {
+                        const saturationCtx = document.getElementById('saturationChart').getContext('2d');
+                        new Chart(saturationCtx, {
+                            type: 'line',
+                            data: {
+                                labels: validSaturationData.map(p => p.x.toFixed(3)),
+                                datasets: [{
+                                    label: 'Intelligence Saturation',
+                                    data: validSaturationData.map(p => p.y),
+                                    borderColor: '#9b59b6',
+                                    backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                                    fill: true,
+                                    tension: 0.4,
+                                    pointRadius: 2,
+                                    borderWidth: 3
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: {
+                                        title: { display: true, text: x_title },
+                                        ticks: { maxTicksLimit: 6 }
+                                    },
+                                    y: {
+                                        title: { display: true, text: 'Intelligence Saturation (%)' },
+                                        min: 0,
+                                        max: 100,
+                                        ticks: {
+                                            callback: function(value) {
+                                                return value.toFixed(0) + '%';
+                                            }
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: 'Intelligence Saturation',
+                                        font: { size: 16, weight: 'bold' },
+                                        color: '#9b59b6'
+                                    },
+                                    legend: { display: false }
+                                }
+                            }
+                        });
+                    }
                     
                     // Clear status message
                     statusDiv.textContent = '';
                     statusDiv.className = 'status';
-                    
-                    // Update saturation chart after main charts are done
-                    updateSaturationChart();
                     
                 } catch (error) {
                     console.error('Simulation error:', error);
@@ -2064,7 +1951,13 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                 const valueSpan = document.getElementById(slider.id + '_value');
                 
                 slider.addEventListener('input', function() {
-                    valueSpan.textContent = this.value;
+                    if (this.id === 'AI') {
+                        // Log scale display: show 10^value
+                        const logValue = Math.pow(10, parseFloat(this.value));
+                        valueSpan.textContent = logValue.toExponential(2);
+                    } else {
+                        valueSpan.textContent = this.value;
+                    }
                 });
                 
                 slider.addEventListener('input', function() {
@@ -2092,8 +1985,8 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             document.getElementById('theta_P_value').textContent = '1.0';
             
             // Intelligence tab
-            document.getElementById('AI').value = '9.0';
-            document.getElementById('AI_value').textContent = '9.0';
+            document.getElementById('AI').value = '0.95';
+            document.getElementById('AI_value').textContent = '9.0e+00';
             document.getElementById('beta_I').value = '0.9';
             document.getElementById('beta_I_value').textContent = '0.9';
             document.getElementById('rho_I').value = '0.55';
@@ -2116,8 +2009,8 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             // Analysis tab
             document.getElementById('transition_time').value = '10';
             document.getElementById('transition_time_value').textContent = '10';
-            document.getElementById('doubling_time').value = '2';
-            document.getElementById('doubling_time_value').textContent = '2';
+            document.getElementById('doubling_time').value = '3';
+            document.getElementById('doubling_time_value').textContent = '3';
             
             // Reset toggles to defaults
             currentPAgg = 'CES';
@@ -2346,7 +2239,6 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
         updatePhysicalChart();
         updateIntelligenceChart();
         updateFunctionChart();
-        updateSaturationChart();
         updateCharts();
     </script>
 </body>
