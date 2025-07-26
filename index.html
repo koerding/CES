@@ -347,11 +347,11 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">Capital Share in P-nest (ψ)</label>
-                        <div class="parameter-description">Weight of capital vs labor in P-nest. ψ=0: only labor matters, ψ=1: only capital matters. ψ=0.7 calibrated to achieve 42% capital share in 2023 US economy</div>
+                        <label class="parameter-label">Capital Share in P-nest (β_P)</label>
+                        <div class="parameter-description">Weight of capital vs labor in P-nest. β_P=0: only labor matters, β_P=1: only capital matters. β_P=0.7 calibrated to achieve 42% capital share in 2023 US economy</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="psi" min="0.1" max="0.9" step="0.05" value="0.7">
-                            <span class="slider-value" id="psi_value">0.7</span>
+                            <input type="range" class="slider" id="beta_P" min="0.1" max="0.9" step="0.05" value="0.7">
+                            <span class="slider-value" id="beta_P_value">0.7</span>
                         </div>
                     </div>
                     
@@ -386,7 +386,7 @@
                     </div>
                     
                     <div class="equation-display" id="physical-equation">
-                        $$P = \left[\psi K_P^{\rho_P} + (1-\psi) L_P^{\rho_P}\right]^{1/\rho_P}$$
+                        $$P = \left[\beta_P K_P^{\rho_P} + (1-\beta_P) L_P^{\rho_P}\right]^{1/\rho_P}$$
                     </div>
                     
                     <div class="equation-chart-container">
@@ -441,11 +441,11 @@
                     </div>
                     
                     <div class="parameter-group i-ds-params">
-                        <label class="parameter-label">I-nest Scaling (θ)</label>
-                        <div class="parameter-description">Returns to scale in I-nest. θ=1: constant returns, θ<1: decreasing returns. DS version allows scaling effects</div>
+                        <label class="parameter-label">I-nest Scaling (θ_I)</label>
+                        <div class="parameter-description">Returns to scale in I-nest. θ_I=1: constant returns, θ_I<1: decreasing returns. DS version allows scaling effects</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="theta" min="0.1" max="1.0" step="0.02" value="0.94">
-                            <span class="slider-value" id="theta_value">0.94</span>
+                            <input type="range" class="slider" id="theta_I" min="0.1" max="1.0" step="0.02" value="0.94">
+                            <span class="slider-value" id="theta_I_value">0.94</span>
                         </div>
                     </div>
                     
@@ -611,6 +611,15 @@
                         <canvas id="allocationChart"></canvas>
                     </div>
                 </div>
+                <div class="chart-wrapper">
+                    <div class="export-buttons">
+                        <button class="export-btn" onclick="exportChartPNG('saturationChart', 'saturation')">PNG</button>
+                        <button class="export-btn" onclick="exportChartCSV('saturationChart', 'saturation')">CSV</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="saturationChart"></canvas>
+                    </div>
+                </div>
                 <div class="chart-wrapper" id="secretChart" style="display: none;">
                     <div class="export-buttons">
                         <button class="export-btn" onclick="exportChartPNG('productivityChart', 'productivity')">PNG</button>
@@ -628,61 +637,63 @@
         // Global state
         let currentAgg = 'CES';
         let currentAIMode = 'Fixed';
+        let currentPAgg = 'CES'; // Physical nest aggregation method (default)
+        let currentIAgg = 'DS'; // Intelligence nest aggregation method (default to maintain existing behavior)
         
         // Mathematical functions
-        function computeP(LP, K, psi, rho_P, theta_P = 1.0) {
+        function computeP(LP, K, beta_P, rho_P, theta_P = 1.0) {
             if (currentPAgg === 'DS') {
                 // Dixit-Stiglitz case with scaling and proper normalization
                 if (Math.abs(rho_P) < 1e-10) {
                     // Cobb-Douglas case: P = (K^ψ * LP^(1-ψ))^θ_P
-                    return Math.pow(Math.pow(K, psi) * Math.pow(LP, 1 - psi), theta_P);
+                    return Math.pow(Math.pow(K, beta_P) * Math.pow(LP, 1 - beta_P), theta_P);
                 }
-                const inside = Math.pow(psi, 1 - rho_P) * Math.pow(K, rho_P) + Math.pow(1 - psi, 1 - rho_P) * Math.pow(LP, rho_P);
+                const inside = Math.pow(beta_P, 1 - rho_P) * Math.pow(K, rho_P) + Math.pow(1 - beta_P, 1 - rho_P) * Math.pow(LP, rho_P);
                 return Math.pow(inside, theta_P / rho_P);
             } else {
                 // CES case (original)
                 if (Math.abs(rho_P) < 1e-10) {
                     // Cobb-Douglas case: P = K^ψ * LP^(1-ψ)
-                    return Math.pow(K, psi) * Math.pow(LP, 1 - psi);
+                    return Math.pow(K, beta_P) * Math.pow(LP, 1 - beta_P);
                 }
-                const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
+                const inside = beta_P * Math.pow(K, rho_P) + (1 - beta_P) * Math.pow(LP, rho_P);
                 return Math.pow(inside, 1 / rho_P);
             }
         }
         
-        function dP_dLP(LP, K, psi, rho_P, theta_P = 1.0) {
+        function dP_dLP(LP, K, beta_P, rho_P, theta_P = 1.0) {
             if (currentPAgg === 'DS') {
                 // Dixit-Stiglitz case with scaling and proper normalization
                 if (Math.abs(rho_P) < 1e-10) {
                     // Cobb-Douglas case: dP/dLP = θ_P * (1-ψ) * (K^ψ * LP^(1-ψ))^(θ_P-1) * K^ψ * LP^(-ψ)
-                    const cobbDouglas = Math.pow(K, psi) * Math.pow(LP, 1 - psi);
-                    return theta_P * (1 - psi) * Math.pow(cobbDouglas, theta_P - 1) * Math.pow(K, psi) * Math.pow(LP, -psi);
+                    const cobbDouglas = Math.pow(K, beta_P) * Math.pow(LP, 1 - beta_P);
+                    return theta_P * (1 - beta_P) * Math.pow(cobbDouglas, theta_P - 1) * Math.pow(K, beta_P) * Math.pow(LP, -beta_P);
                 }
-                const inside = Math.pow(psi, 1 - rho_P) * Math.pow(K, rho_P) + Math.pow(1 - psi, 1 - rho_P) * Math.pow(LP, rho_P);
-                return theta_P * Math.pow(1 - psi, 1 - rho_P) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (theta_P / rho_P) - 1);
+                const inside = Math.pow(beta_P, 1 - rho_P) * Math.pow(K, rho_P) + Math.pow(1 - beta_P, 1 - rho_P) * Math.pow(LP, rho_P);
+                return theta_P * Math.pow(1 - beta_P, 1 - rho_P) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (theta_P / rho_P) - 1);
             } else {
                 // CES case (original)
                 if (Math.abs(rho_P) < 1e-10) {
                     // Cobb-Douglas case: dP/dLP = (1-ψ) * K^ψ * LP^(-ψ)
-                    return (1 - psi) * Math.pow(K, psi) * Math.pow(LP, -psi);
+                    return (1 - beta_P) * Math.pow(K, beta_P) * Math.pow(LP, -beta_P);
                 }
-                const inside = psi * Math.pow(K, rho_P) + (1 - psi) * Math.pow(LP, rho_P);
-                return (1 - psi) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (1 / rho_P) - 1);
+                const inside = beta_P * Math.pow(K, rho_P) + (1 - beta_P) * Math.pow(LP, rho_P);
+                return (1 - beta_P) * Math.pow(LP, rho_P - 1) * Math.pow(inside, (1 / rho_P) - 1);
             }
         }
         
-function computeI(LI, beta_I, AI, rho_I, theta) {
+function computeI(LI, beta_I, AI, rho_I, theta_I) {
     if (currentIAgg === 'DS') {
         // DS case - theta scaling is applied (current behavior)
         if (Math.abs(rho_I) < 1e-10) {
             // Cobb-Douglas case: I = [AI^β_I * LI^(1-β_I)]^θ
-            return Math.pow(Math.pow(AI, beta_I) * Math.pow(LI, 1 - beta_I), theta);
+            return Math.pow(Math.pow(AI, beta_I) * Math.pow(LI, 1 - beta_I), theta_I);
         }
         
         if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
             // Limiting case: (beta_I^(1-rho_I) * AI^rho_I)^(theta/rho_I)
             const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I);
-            return Math.pow(inside, theta / rho_I);
+            return Math.pow(inside, theta_I / rho_I);
         } else {
             // DS form with share exponents
             const inside = Math.pow(beta_I, 1 - rho_I) * Math.pow(AI, rho_I) + 
@@ -690,7 +701,7 @@ function computeI(LI, beta_I, AI, rho_I, theta) {
             if (inside < 0) {
                 return 0; // Avoid NaN from negative base
             }
-            return Math.pow(inside, theta / rho_I);
+            return Math.pow(inside, theta_I / rho_I);
         }
     } else {
         // CES case - no theta scaling (theta effectively = 1)
@@ -715,12 +726,12 @@ function computeI(LI, beta_I, AI, rho_I, theta) {
     }
 }
 
-function dI_dLI(LI, beta_I, AI, rho_I, theta) {
+function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
     if (currentIAgg === 'DS') {
         // DS case - theta scaling is applied
         if (Math.abs(rho_I) < 1e-10) {
             // Cobb-Douglas case: dI/dLI = θ * (1-β_I) * AI^(θ*β_I) * LI^(θ*(1-β_I)-1)
-            return theta * (1 - beta_I) * Math.pow(AI, theta * beta_I) * Math.pow(LI, theta * (1 - beta_I) - 1);
+            return theta_I * (1 - beta_I) * Math.pow(AI, theta_I * beta_I) * Math.pow(LI, theta_I * (1 - beta_I) - 1);
         }
         
         if (LI <= 0 || Math.abs(1 - beta_I) < 1e-10) {
@@ -733,8 +744,8 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
         if (inside < 0) {
             return 0; // Avoid NaN from negative base
         }
-        return theta * Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I - 1) * 
-               Math.pow(inside, (theta / rho_I) - 1);
+        return theta_I * Math.pow(1 - beta_I, 1 - rho_I) * Math.pow(LI, rho_I - 1) * 
+               Math.pow(inside, (theta_I / rho_I) - 1);
     } else {
         // CES case - no theta scaling
         if (Math.abs(rho_I) < 1e-10) {
@@ -836,18 +847,18 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             const L = params.L;
             const LP = beta_P * L;
             const LI = (1 - beta_P) * L;
-            const P = computeP(LP, params.K, params.psi, params.rho_P, params.theta_P);
-            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta);
-            return dY_dP(P, I, params) * dP_dLP(LP, params.K, params.psi, params.rho_P, params.theta_P);
+            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
+            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta_I);
+            return dY_dP(P, I, params) * dP_dLP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
         }
         
         function MP_I(beta_P, beta_I, params) {
             const L = params.L;
             const LP = beta_P * L;
             const LI = (1 - beta_P) * L;
-            const P = computeP(LP, params.K, params.psi, params.rho_P, params.theta_P);
-            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta);
-            return dY_dI(P, I, params) * dI_dLI(LI, beta_I, params.AI, params.rho_I, params.theta);
+            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
+            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta_I);
+            return dY_dI(P, I, params) * dI_dLI(LI, beta_I, params.AI, params.rho_I, params.theta_I);
         }
         
         // Brent's method for root finding
@@ -952,8 +963,8 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             const bp = betaPStar(beta_I, params);
             const LP = bp * params.L;
             const LI = (1 - bp) * params.L;
-            const P = computeP(LP, params.K, params.psi, params.rho_P, params.theta_P);
-            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta);
+            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
+            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta_I);
             return computeY(P, I, params);
         }
 
@@ -1271,6 +1282,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             toggle.classList.toggle('active');
             currentAIMode = toggle.classList.contains('active') ? 'Exponential' : 'Fixed';
             updateAIModeVisibility();
+            updateSaturationChart(); // Add this line
             updateCharts();
         }
         
@@ -1284,9 +1296,6 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             updateFunctionChart();
             updateCharts();
         }
-        
-        let currentPAgg = 'CES'; // Physical nest aggregation method (default)
-        let currentIAgg = 'DS'; // Intelligence nest aggregation method (default to maintain existing behavior)
         
         function togglePAggregation() {
             const toggle = document.getElementById('p_agg_toggle');
@@ -1370,9 +1379,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
         function updatePhysicalEquation() {
             const equationDiv = document.getElementById('physical-equation');
             if (currentPAgg === 'CES') {
-                equationDiv.innerHTML = '$$P = \\left[\\psi K_P^{\\rho_P} + (1-\\psi) L_P^{\\rho_P}\\right]^{1/\\rho_P}$$';
+                equationDiv.innerHTML = '$$P = \\left[\\beta_P K_P^{\\rho_P} + (1-\\beta_P) L_P^{\\rho_P}\\right]^{1/\\rho_P}$$';
             } else {
-                equationDiv.innerHTML = '$$P = \\left[\\psi^{1-\\rho_P} K_P^{\\rho_P} + (1-\\psi)^{1-\\rho_P} L_P^{\\rho_P}\\right]^{\\theta_P/\\rho_P}$$';
+                equationDiv.innerHTML = '$$P = \\left[\\beta_P^{1-\\rho_P} K_P^{\\rho_P} + (1-\\beta_P)^{1-\\rho_P} L_P^{\\rho_P}\\right]^{\\theta_P/\\rho_P}$$';
             }
             if (window.MathJax && MathJax.typesetPromise) {
                 MathJax.typesetPromise([equationDiv]);
@@ -1386,7 +1395,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                 equationDiv.innerHTML = '$$I = \\left[\\beta_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\beta_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{1/\\rho_I}$$';
             } else {
                 // DS case - this is the original equation that was there before
-                equationDiv.innerHTML = '$$I = \\left[\\beta_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\beta_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{\\theta/\\rho_I}$$';
+                equationDiv.innerHTML = '$$I = \\left[\\beta_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\beta_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{\\theta_I/\\rho_I}$$';
             }
             if (window.MathJax && MathJax.typesetPromise) {
                 MathJax.typesetPromise([equationDiv]);
@@ -1416,7 +1425,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             // Calculate meaningful P values based on current parameters
             const beta_P_typical = 0.5; // Assume balanced allocation
             const LP_typical = beta_P_typical * params.L;
-            const P_typical = computeP(LP_typical, params.K, params.psi, params.rho_P, params.theta_P);
+            const P_typical = computeP(LP_typical, params.K, params.beta_P, params.rho_P, params.theta_I_P);
             
             const P_low = P_typical * 0.2;
             const P_medium = P_typical;
@@ -1477,9 +1486,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             const P_high = [];
             
             for (const L_P of L_P_vals) {
-                P_low.push(computeP(L_P, K_P_low, params.psi, params.rho_P, params.theta_P));
-                P_medium.push(computeP(L_P, K_P_medium, params.psi, params.rho_P, params.theta_P));
-                P_high.push(computeP(L_P, K_P_high, params.psi, params.rho_P, params.theta_P));
+                P_low.push(computeP(L_P, K_P_low, params.beta_P, params.rho_P, params.theta_I_P));
+                P_medium.push(computeP(L_P, K_P_medium, params.beta_P, params.rho_P, params.theta_I_P));
+                P_high.push(computeP(L_P, K_P_high, params.beta_P, params.rho_P, params.theta_I_P));
             }
             
             const labels = L_P_vals.map((l, i) => i % 2 === 0 ? l.toFixed(2) : '');
@@ -1518,9 +1527,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             const I_high = [];
             
             for (const L_I of L_I_vals) {
-                I_low.push(computeI(L_I, params.beta_I, K_I_low, params.rho_I, params.theta));
-                I_medium.push(computeI(L_I, params.beta_I, K_I_medium, params.rho_I, params.theta));
-                I_high.push(computeI(L_I, params.beta_I, K_I_high, params.rho_I, params.theta));
+                I_low.push(computeI(L_I, params.beta_I, K_I_low, params.rho_I, params.theta_I));
+                I_medium.push(computeI(L_I, params.beta_I, K_I_medium, params.rho_I, params.theta_I));
+                I_high.push(computeI(L_I, params.beta_I, K_I_high, params.rho_I, params.theta_I));
             }
             
             const labels = L_I_vals.map((l, i) => i % 2 === 0 ? l.toFixed(2) : '');
@@ -1558,11 +1567,11 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                 K: parseFloat(document.getElementById('K').value),
                 AI: parseFloat(document.getElementById('AI').value),
                 L: parseFloat(document.getElementById('L').value),
-                psi: parseFloat(document.getElementById('psi').value),
+                beta_P: parseFloat(document.getElementById('beta_P').value),
                 rho_P: parseFloat(document.getElementById('rho_P').value),
                 rho_I: parseFloat(document.getElementById('rho_I').value),
                 theta_P: currentPAgg === 'DS' ? parseFloat(document.getElementById('theta_P').value) : 1.0,
-                theta: parseFloat(document.getElementById('theta').value),
+                theta_I: parseFloat(document.getElementById('theta_I').value),
                 tau: parseFloat(document.getElementById('tau').value),
                 rho: parseFloat(document.getElementById('rho').value),
                 eta: parseFloat(document.getElementById('eta').value),
@@ -1582,44 +1591,83 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
         }
         
         function updateProductivityChart() {
-            const base_params = getParams();
-            
             let x_vals = [];
             let y_vals = [];
+            
+            console.log('Computing productivity chart...');
             
             // Generate beta_I range for productivity calculation
             for (let i = 0; i <= 50; i++) {
                 const beta_I = i / 50.0;
-                const params = {...base_params, beta_I: beta_I};
+                x_vals.push(beta_I);
                 
                 try {
-                    const result = solve_for_beta_P(params);
-                    if (result && result.Y !== undefined) {
-                        x_vals.push(beta_I);
-                        y_vals.push(result.Y / params.K); // Y/K_P ratio
+                    // Get parameters with overridden beta_I
+                    const params = getParams();
+                    params.beta_I = beta_I;
+                    
+                    // Compute equilibrium output
+                    const output = computeTotalOutput(beta_I, params);
+                    
+                    if (isFinite(output) && params.K > 0) {
+                        const productivity = output / params.K;
+                        if (isFinite(productivity)) {
+                            y_vals.push(productivity);
+                        } else {
+                            y_vals.push(null);
+                        }
+                    } else {
+                        y_vals.push(null);
                     }
                 } catch (e) {
-                    // Skip invalid points
+                    y_vals.push(null);
                 }
+            }
+            
+            // Filter out null values
+            const validData = x_vals.map((x, i) => ({x, y: y_vals[i]}))
+                                   .filter(point => point.y !== null);
+            
+            // Scale to start at 5% (0.05)
+            if (validData.length > 0) {
+                const firstValue = validData[0].y;
+                const scalingFactor = 0.05 / firstValue;
+                
+                // Apply scaling to all values
+                validData.forEach(point => {
+                    point.y = point.y * scalingFactor;
+                });
+                
+                const yValues = validData.map(p => p.y);
+                console.log('Productivity data points:', validData.length);
+                console.log('MPK range:', (Math.min(...yValues) * 100).toFixed(1) + '%', 'to', (Math.max(...yValues) * 100).toFixed(1) + '%');
+            }
+            
+            if (validData.length === 0) {
+                console.error('No valid data points for productivity chart!');
+                return;
+            }
+            
+            const existingChart = Chart.getChart('productivityChart');
+            if (existingChart) {
+                existingChart.destroy();
             }
             
             const ctx = document.getElementById('productivityChart').getContext('2d');
             
-            if (Chart.getChart('productivityChart')) {
-                Chart.getChart('productivityChart').destroy();
-            }
-            
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: x_vals.map(x => x.toFixed(3)),
+                    labels: validData.map(p => p.x.toFixed(3)),
                     datasets: [{
-                        label: 'Y/K_P',
-                        data: y_vals,
+                        label: 'Marginal Product of Capital',
+                        data: validData.map(p => p.y * 100), // Convert to percentage
                         borderColor: '#ff6b6b',
                         backgroundColor: 'rgba(255, 107, 107, 0.1)',
                         fill: true,
-                        tension: 0.4
+                        tension: 0.4,
+                        pointRadius: 2,
+                        borderWidth: 3
                     }]
                 },
                 options: {
@@ -1631,13 +1679,18 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                             ticks: { maxTicksLimit: 6 }
                         },
                         y: {
-                            title: { display: true, text: 'Y/K_P (Output per Physical Capital)' }
+                            title: { display: true, text: 'Marginal Product of Capital (%)' },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1) + '%';
+                                }
+                            }
                         }
                     },
                     plugins: {
                         title: {
                             display: true,
-                            text: '🌈 Secret Productivity Chart: Y/K_P vs β_I 🌈',
+                            text: '🌈 Secret Chart: Marginal Product of Capital 🌈',
                             font: { size: 16, weight: 'bold' },
                             color: '#ff6b6b'
                         },
@@ -1646,6 +1699,161 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                 }
             });
         }
+        
+        function updateSaturationChart() {
+            let x_vals = [];
+            let y_vals = [];
+            
+            
+            // Check the toggle state to determine x-axis
+            const toggle = document.getElementById('ai_mode_toggle');
+            const isExponential = toggle && toggle.classList.contains('active');
+            
+            // Generate x-axis values based on mode (same as other charts)
+            if (isExponential) {
+                // Time-based x-axis for exponential mode
+                const base_params = getParams();
+                const max_time = base_params.transition_time + 5; // 5 years past transition
+                for (let i = 0; i <= 50; i++) {
+                    x_vals.push(max_time * i / 50.0);
+                }
+            } else {
+                // Beta_I-based x-axis for fixed mode
+                for (let i = 0; i <= 50; i++) {
+                    x_vals.push(i / 50.0);
+                }
+            }
+            
+            // Generate saturation data
+            for (let i = 0; i < x_vals.length; i++) {
+                const x_val = x_vals[i];
+                
+                try {
+                    let params;
+                    if (isExponential) {
+                        // x_val is time in years
+                        params = getParams(x_val); // Get time-evolved parameters
+                    } else {
+                        // x_val is beta_I
+                        params = getParams();
+                        params.beta_I = x_val; // Override beta_I for this iteration
+                    }
+                    
+                    if (params.beta_I < 1e-6) {
+                        // When β_I ≈ 0, the measure is undefined (0/0), so skip this point
+                        y_vals.push(null);
+                        continue;
+                    }
+                    
+                    // Step 1: Calculate current equilibrium with current K_I
+                    const beta_P_opt = betaPStar(params.beta_I, params);
+                    const LP = beta_P_opt * params.L;
+                    const LI = (1 - beta_P_opt) * params.L;
+                    const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_P);
+                    const I_current = computeI(LI, params.beta_I, params.AI, params.rho_I, params.theta_I);
+                    
+                    // Calculate Y_current
+                    let Y_current;
+                    if (currentAgg === 'CES') {
+                        Y_current = Math.pow(params.tau * Math.pow(P, params.rho) + (1 - params.tau) * Math.pow(I_current, params.rho), 1 / params.rho);
+                    } else {
+                        Y_current = computePSI(P, I_current, params);
+                    }
+                    
+                    // Step 2: Calculate I with K_I → ∞ (keep same P, same labor allocation)
+                    const I_infinite = computeI(LI, params.beta_I, 1e50, params.rho_I, params.theta_I);
+                    
+                    // Debug: Calculate theoretical maximum Y when I → ∞
+                    const Y_theoretical_max = currentAgg === 'CES' ? 
+                        Math.pow(params.tau, 1 / params.rho) * P : 
+                        P; // For PSI, Y → P as I → ∞
+                    
+                    // Calculate Y_infinite
+                    let Y_infinite;
+                    if (currentAgg === 'CES') {
+                        Y_infinite = Math.pow(params.tau * Math.pow(P, params.rho) + (1 - params.tau) * Math.pow(I_infinite, params.rho), 1 / params.rho);
+                    } else {
+                        Y_infinite = computePSI(P, I_infinite, params);
+                    }
+                    
+                    
+                    // Step 3: Calculate ratio
+                    const saturation = Y_current / Y_infinite;
+                    
+                    if (isFinite(saturation) && saturation >= 0 && saturation <= 1) {
+                        y_vals.push(saturation * 100); // Convert to percentage
+                    } else {
+                        y_vals.push(null);
+                    }
+                } catch (e) {
+                    y_vals.push(null);
+                }
+            }
+            
+            // Filter out null values
+            const validData = x_vals.map((x, i) => ({x, y: y_vals[i]}))
+                                   .filter(point => point.y !== null);
+            
+            
+            if (validData.length === 0) {
+                console.error('No valid data points for saturation chart!');
+                return;
+            }
+            
+            const existingChart = Chart.getChart('saturationChart');
+            if (existingChart) {
+                existingChart.destroy();
+            }
+            
+            const ctx = document.getElementById('saturationChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: validData.map(p => p.x.toFixed(3)),
+                    datasets: [{
+                        label: 'Intelligence Saturation',
+                        data: validData.map(p => p.y),
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: isExponential ? 'Time (years)' : 'β_I (AI share in I-nest)' },
+                            ticks: { maxTicksLimit: 6 }
+                        },
+                        y: {
+                            title: { display: true, text: 'Intelligence Saturation (%)' },
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(0) + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Intelligence Saturation',
+                            font: { size: 16, weight: 'bold' },
+                            color: '#9b59b6'
+                        },
+                        legend: { display: true }
+                    }
+                }
+            });
+        }
+        
 
         function updateCharts() {
             const statusDiv = document.getElementById('status');
@@ -1703,8 +1911,8 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                             // Calculate P and I components
                             const LP = beta_P_opt * params.L;
                             const LI = (1 - beta_P_opt) * params.L;
-                            const P = computeP(LP, params.K, params.psi, params.rho_P, params.theta_P);
-                            const I = computeI(LI, params.beta_I, params.AI, params.rho_I, params.theta);
+                            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
+                            const I = computeI(LI, params.beta_I, params.AI, params.rho_I, params.theta_I);
                             
                             if (isFinite(wage) && isFinite(output) && isFinite(beta_P_opt) && isFinite(P) && isFinite(I)) {
                                 wages.push(wage);
@@ -1834,13 +2042,12 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
                     allocationChart.options.scales.x.title.text = x_title;
                     allocationChart.update('none');
                     
-                    if (successCount > x_vals.length * 0.8) {
-                        statusDiv.textContent = `Simulation completed! ${successCount}/${x_vals.length} points computed`;
-                        statusDiv.className = 'status success';
-                    } else {
-                        statusDiv.textContent = `Partial success: ${successCount}/${x_vals.length} points computed`;
-                        statusDiv.className = 'status error';
-                    }
+                    // Clear status message
+                    statusDiv.textContent = '';
+                    statusDiv.className = 'status';
+                    
+                    // Update saturation chart after main charts are done
+                    updateSaturationChart();
                     
                 } catch (error) {
                     console.error('Simulation error:', error);
@@ -1877,8 +2084,8 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             // Physical tab
             document.getElementById('K').value = '1.5';
             document.getElementById('K_value').textContent = '1.5';
-            document.getElementById('psi').value = '0.7';
-            document.getElementById('psi_value').textContent = '0.7';
+            document.getElementById('beta_P').value = '0.7';
+            document.getElementById('beta_P_value').textContent = '0.7';
             document.getElementById('rho_P').value = '-0.67';
             document.getElementById('rho_P_value').textContent = '-0.67';
             document.getElementById('theta_P').value = '1.0';
@@ -1891,8 +2098,8 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
             document.getElementById('beta_I_value').textContent = '0.9';
             document.getElementById('rho_I').value = '0.55';
             document.getElementById('rho_I_value').textContent = '0.55';
-            document.getElementById('theta').value = '0.94';
-            document.getElementById('theta_value').textContent = '0.94';
+            document.getElementById('theta_I').value = '0.94';
+            document.getElementById('theta_I_value').textContent = '0.94';
             
             // Overall tab
             document.getElementById('L').value = '1.0';
@@ -2036,6 +2243,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
         let secretMode = false;
 
         function handleSecretKeypress(event) {
+            // Don't capture if user is typing in an input field
+            if (event.target.tagName === 'INPUT') return;
+            
             secretSequence.push(event.key.toLowerCase());
             
             // Keep only the last N characters where N is the secret code length
@@ -2136,6 +2346,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta) {
         updatePhysicalChart();
         updateIntelligenceChart();
         updateFunctionChart();
+        updateSaturationChart();
         updateCharts();
     </script>
 </body>
