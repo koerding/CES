@@ -1674,7 +1674,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                         for (let i = 0; i <= 50; i++) {
                             x_vals.push(i / 50.0);
                         }
-                        x_labels = x_vals.map((b, i) => i % 2 === 0 ? b.toFixed(3) : '');
+                        x_labels = x_vals.map(b => b.toFixed(3));
                         x_title = 'β_I (AI share in I-nest)';
                     } else {
                         // Generate time grid
@@ -1682,7 +1682,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                         for (let i = 0; i <= 50; i++) {
                             x_vals.push(max_time * i / 50.0);
                         }
-                        x_labels = x_vals.map((t, i) => i % 2 === 0 ? t.toFixed(1) : '');
+                        x_labels = x_vals.map(t => t.toFixed(1));
                         x_title = 'Time (years)';
                     }
                     
@@ -1773,6 +1773,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                     wageChart.data.labels = x_labels;
                     wageChart.data.datasets[0].data = wages;
                     wageChart.options.scales.x.title.text = x_title;
+                    wageChart.options.scales.x.ticks = { maxTicksLimit: 6 };
                     
                     // Add/remove vertical line based on mode
                     if (currentAIMode === 'Exponential') {
@@ -1861,17 +1862,20 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                     outputChart.data.labels = x_labels;
                     outputChart.data.datasets[0].data = outputs;
                     outputChart.options.scales.x.title.text = x_title;
+                    outputChart.options.scales.x.ticks = { maxTicksLimit: 6 };
                     outputChart.update('none');
 
                     componentsChart.data.labels = x_labels;
                     componentsChart.data.datasets[0].data = pOutputs;
                     componentsChart.data.datasets[1].data = iOutputs;
                     componentsChart.options.scales.x.title.text = x_title;
+                    componentsChart.options.scales.x.ticks = { maxTicksLimit: 6 };
                     componentsChart.update('none');
 
                     allocationChart.data.labels = x_labels;
                     allocationChart.data.datasets[0].data = allocations;
                     allocationChart.options.scales.x.title.text = x_title;
+                    allocationChart.options.scales.x.ticks = { maxTicksLimit: 6 };
                     allocationChart.update('none');
 
                     // Update saturation chart
