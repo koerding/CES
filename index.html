@@ -347,11 +347,11 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">Capital Share in P-nest (β_P)</label>
-                        <div class="parameter-description">Weight of capital vs labor in P-nest. β_P=0: only labor matters, β_P=1: only capital matters. β_P=0.7 calibrated to achieve 42% capital share in 2023 US economy</div>
+                        <label class="parameter-label">Capital Share in P-nest (α_P)</label>
+                        <div class="parameter-description">Weight of capital vs labor in P-nest. α_P=0: only labor matters, α_P=1: only capital matters. α_P=0.7 calibrated to achieve 42% capital share in 2023 US economy</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="beta_P" min="0.1" max="0.9" step="0.05" value="0.7">
-                            <span class="slider-value" id="beta_P_value">0.7</span>
+                            <input type="range" class="slider" id="alpha_P" min="0.1" max="0.9" step="0.05" value="0.7">
+                            <span class="slider-value" id="alpha_P_value">0.7</span>
                         </div>
                     </div>
                     
@@ -386,7 +386,7 @@
                     </div>
                     
                     <div class="equation-display" id="physical-equation">
-                        $$P = \left[\beta_P K_P^{\rho_P} + (1-\beta_P) L_P^{\rho_P}\right]^{1/\rho_P}$$
+                        $$P = \left[\alpha_P K_P^{\rho_P} + (1-\alpha_P) L_P^{\rho_P}\right]^{1/\rho_P}$$
                     </div>
                     
                     <div class="equation-chart-container">
@@ -410,12 +410,12 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">AI Share in I-nest (β_I)</label>
-                        <div class="parameter-description">Weight of AI vs labor in I-nest. β_I=0: only labor matters, β_I=1: only AI matters. β_I=0.9 represents abundant AI scenario</div>
+                        <label class="parameter-label">AI Share in I-nest (α_I)</label>
+                        <div class="parameter-description">Weight of AI vs labor in I-nest. α_I=0: only labor matters, α_I=1: only AI matters. α_I=0.9 represents abundant AI scenario</div>
                         <div class="parameter-note" style="margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="beta_I" min="0" max="1" step="0.05" value="0.9">
-                            <span class="slider-value" id="beta_I_value">0.9</span>
+                            <input type="range" class="slider" id="alpha_I" min="0" max="1" step="0.05" value="0.9">
+                            <span class="slider-value" id="alpha_I_value">0.9</span>
                         </div>
                     </div>
                     
@@ -450,7 +450,7 @@
                     </div>
                     
                     <div class="equation-display" id="intelligence-equation">
-                        $$I = \left[\beta_I^{1-\rho_I} K_I^{\rho_I} + (1-\beta_I)^{1-\rho_I} L_I^{\rho_I}\right]^{\theta/\rho_I}$$
+                        $$I = \left[\alpha_I^{1-\rho_I} K_I^{\rho_I} + (1-\alpha_I)^{1-\rho_I} L_I^{\rho_I}\right]^{\theta/\rho_I}$$
                     </div>
                     
                     <div class="equation-chart-container">
@@ -554,7 +554,7 @@
                     
                     <div class="parameter-group exponential-params" style="display: none;">
                         <label class="parameter-label">Transition Time (years)</label>
-                        <div class="parameter-description">Time for AI to fully replace human workers (β_I: 0→1)</div>
+                        <div class="parameter-description">Time for AI to fully replace human workers (α_I: 0→1)</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="transition_time" min="2" max="100" step="1" value="10">
                             <span class="slider-value" id="transition_time_value">10</span>
@@ -642,84 +642,84 @@
         
         // Mathematical functions
         // Generic CES production function
-        function computeCES(input1, input2, beta, rho) {
+        function computeCES(input1, input2, alpha, rho) {
             if (Math.abs(rho) < 1e-10) {
-                // Cobb-Douglas case: input1^β * input2^(1-β)
-                return Math.pow(input1, beta) * Math.pow(input2, 1 - beta);
+                // Cobb-Douglas case: input1^α * input2^(1-α)
+                return Math.pow(input1, alpha) * Math.pow(input2, 1 - alpha);
             }
-            const inside = beta * Math.pow(input1, rho) + (1 - beta) * Math.pow(input2, rho);
+            const inside = alpha * Math.pow(input1, rho) + (1 - alpha) * Math.pow(input2, rho);
             return Math.pow(inside, 1 / rho);
         }
 
         // Generic DS (Dixit-Stiglitz) production function
-        function computeDS(input1, input2, beta, rho, theta) {
+        function computeDS(input1, input2, alpha, rho, theta) {
             if (Math.abs(rho) < 1e-8) {
                 // Lazy continuity approach: average of DS(+0.01) and DS(-0.01)
                 const eps = 0.01;
-                const pos_inside = Math.pow(beta, 1 - eps) * Math.pow(input1, eps) + Math.pow(1 - beta, 1 - eps) * Math.pow(input2, eps);
+                const pos_inside = Math.pow(alpha, 1 - eps) * Math.pow(input1, eps) + Math.pow(1 - alpha, 1 - eps) * Math.pow(input2, eps);
                 const pos_result = Math.pow(pos_inside, theta / eps);
-                const neg_inside = Math.pow(beta, 1 + eps) * Math.pow(input1, -eps) + Math.pow(1 - beta, 1 + eps) * Math.pow(input2, -eps);
+                const neg_inside = Math.pow(alpha, 1 + eps) * Math.pow(input1, -eps) + Math.pow(1 - alpha, 1 + eps) * Math.pow(input2, -eps);
                 const neg_result = Math.pow(neg_inside, theta / (-eps));
                 return (pos_result + neg_result) / 2;
             }
-            const inside = Math.pow(beta, 1 - rho) * Math.pow(input1, rho) + Math.pow(1 - beta, 1 - rho) * Math.pow(input2, rho);
+            const inside = Math.pow(alpha, 1 - rho) * Math.pow(input1, rho) + Math.pow(1 - alpha, 1 - rho) * Math.pow(input2, rho);
             return Math.pow(inside, theta / rho);
         }
 
         // Generic CES derivative with respect to input2
-        function dCES_dinput2(input1, input2, beta, rho) {
+        function dCES_dinput2(input1, input2, alpha, rho) {
             if (Math.abs(rho) < 1e-10) {
-                // Cobb-Douglas case: d/dinput2[input1^β * input2^(1-β)] = (1-β) * input1^β * input2^(-β)
-                return (1 - beta) * Math.pow(input1, beta) * Math.pow(input2, -beta);
+                // Cobb-Douglas case: d/dinput2[input1^α * input2^(1-α)] = (1-α) * input1^α * input2^(-α)
+                return (1 - alpha) * Math.pow(input1, alpha) * Math.pow(input2, -alpha);
             }
-            const inside = beta * Math.pow(input1, rho) + (1 - beta) * Math.pow(input2, rho);
-            return (1 - beta) * Math.pow(input2, rho - 1) * Math.pow(inside, (1 / rho) - 1);
+            const inside = alpha * Math.pow(input1, rho) + (1 - alpha) * Math.pow(input2, rho);
+            return (1 - alpha) * Math.pow(input2, rho - 1) * Math.pow(inside, (1 / rho) - 1);
         }
 
         // Generic DS derivative with respect to input2
-        function dDS_dinput2(input1, input2, beta, rho, theta) {
+        function dDS_dinput2(input1, input2, alpha, rho, theta) {
             if (Math.abs(rho) < 1e-8) {
                 // Lazy continuity approach: average of derivatives at +0.01 and -0.01
                 const eps = 0.01;
-                const pos_inside = Math.pow(beta, 1 - eps) * Math.pow(input1, eps) + Math.pow(1 - beta, 1 - eps) * Math.pow(input2, eps);
-                const pos_deriv = theta * Math.pow(1 - beta, 1 - eps) * Math.pow(input2, eps - 1) * Math.pow(pos_inside, (theta / eps) - 1);
-                const neg_inside = Math.pow(beta, 1 + eps) * Math.pow(input1, -eps) + Math.pow(1 - beta, 1 + eps) * Math.pow(input2, -eps);
-                const neg_deriv = theta * Math.pow(1 - beta, 1 + eps) * Math.pow(input2, -eps - 1) * Math.pow(neg_inside, (theta / (-eps)) - 1);
+                const pos_inside = Math.pow(alpha, 1 - eps) * Math.pow(input1, eps) + Math.pow(1 - alpha, 1 - eps) * Math.pow(input2, eps);
+                const pos_deriv = theta * Math.pow(1 - alpha, 1 - eps) * Math.pow(input2, eps - 1) * Math.pow(pos_inside, (theta / eps) - 1);
+                const neg_inside = Math.pow(alpha, 1 + eps) * Math.pow(input1, -eps) + Math.pow(1 - alpha, 1 + eps) * Math.pow(input2, -eps);
+                const neg_deriv = theta * Math.pow(1 - alpha, 1 + eps) * Math.pow(input2, -eps - 1) * Math.pow(neg_inside, (theta / (-eps)) - 1);
                 return (pos_deriv + neg_deriv) / 2;
             }
-            const inside = Math.pow(beta, 1 - rho) * Math.pow(input1, rho) + Math.pow(1 - beta, 1 - rho) * Math.pow(input2, rho);
-            return theta * Math.pow(1 - beta, 1 - rho) * Math.pow(input2, rho - 1) * Math.pow(inside, (theta / rho) - 1);
+            const inside = Math.pow(alpha, 1 - rho) * Math.pow(input1, rho) + Math.pow(1 - alpha, 1 - rho) * Math.pow(input2, rho);
+            return theta * Math.pow(1 - alpha, 1 - rho) * Math.pow(input2, rho - 1) * Math.pow(inside, (theta / rho) - 1);
         }
 
-        function computeP(LP, K, beta_P, rho_P, theta_P = 1.0) {
+        function computeP(LP, K, alpha_P, rho_P, theta_P = 1.0) {
             if (currentPAgg === 'DS') {
-                return computeDS(K, LP, beta_P, rho_P, theta_P);
+                return computeDS(K, LP, alpha_P, rho_P, theta_P);
             } else {
-                return computeCES(K, LP, beta_P, rho_P);
+                return computeCES(K, LP, alpha_P, rho_P);
             }
         }
         
-        function dP_dLP(LP, K, beta_P, rho_P, theta_P = 1.0) {
+        function dP_dLP(LP, K, alpha_P, rho_P, theta_P = 1.0) {
             if (currentPAgg === 'DS') {
-                return dDS_dinput2(K, LP, beta_P, rho_P, theta_P);
+                return dDS_dinput2(K, LP, alpha_P, rho_P, theta_P);
             } else {
-                return dCES_dinput2(K, LP, beta_P, rho_P);
+                return dCES_dinput2(K, LP, alpha_P, rho_P);
             }
         }
         
-function computeI(LI, beta_I, AI, rho_I, theta_I) {
+function computeI(LI, alpha_I, AI, rho_I, theta_I) {
     if (currentIAgg === 'DS') {
-        return computeDS(AI, LI, beta_I, rho_I, theta_I);
+        return computeDS(AI, LI, alpha_I, rho_I, theta_I);
     } else {
-        return computeCES(AI, LI, beta_I, rho_I);
+        return computeCES(AI, LI, alpha_I, rho_I);
     }
 }
 
-function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
+function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
     if (currentIAgg === 'DS') {
-        return dDS_dinput2(AI, LI, beta_I, rho_I, theta_I);
+        return dDS_dinput2(AI, LI, alpha_I, rho_I, theta_I);
     } else {
-        return dCES_dinput2(AI, LI, beta_I, rho_I);
+        return dCES_dinput2(AI, LI, alpha_I, rho_I);
     }
 }
         function computePSI(P, I, params) {
@@ -798,22 +798,22 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             }
         }
         
-        function MP_P(beta_P, beta_I, params) {
+        function MP_P(alpha_P, alpha_I, params) {
             const L = params.L;
-            const LP = beta_P * L;
-            const LI = (1 - beta_P) * L;
-            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
-            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta_I);
-            return dY_dP(P, I, params) * dP_dLP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
+            const LP = alpha_P * L;
+            const LI = (1 - alpha_P) * L;
+            const P = computeP(LP, params.K, params.alpha_P, params.rho_P, params.theta_P);
+            const I = computeI(LI, alpha_I, params.AI, params.rho_I, params.theta_I);
+            return dY_dP(P, I, params) * dP_dLP(LP, params.K, params.alpha_P, params.rho_P, params.theta_P);
         }
         
-        function MP_I(beta_P, beta_I, params) {
+        function MP_I(alpha_P, alpha_I, params) {
             const L = params.L;
-            const LP = beta_P * L;
-            const LI = (1 - beta_P) * L;
-            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
-            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta_I);
-            return dY_dI(P, I, params) * dI_dLI(LI, beta_I, params.AI, params.rho_I, params.theta_I);
+            const LP = alpha_P * L;
+            const LI = (1 - alpha_P) * L;
+            const P = computeP(LP, params.K, params.alpha_P, params.rho_P, params.theta_P);
+            const I = computeI(LI, alpha_I, params.AI, params.rho_I, params.theta_I);
+            return dY_dI(P, I, params) * dI_dLI(LI, alpha_I, params.AI, params.rho_I, params.theta_I);
         }
         
         // Brent's method for root finding
@@ -886,14 +886,14 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             return b;
         }
         
-        function betaPStar(beta_I, params) {
+        function alphaPStar(alpha_I, params) {
             const eps = 1e-6;
             
-            if (Math.abs(beta_I - 1.0) < eps) {
+            if (Math.abs(alpha_I - 1.0) < eps) {
                 return 1.0;
             }
             
-            const f = (bp) => MP_P(bp, beta_I, params) - MP_I(bp, beta_I, params);
+            const f = (ap) => MP_P(ap, alpha_I, params) - MP_I(ap, alpha_I, params);
             
             const f_low = f(eps);
             const f_high = f(1 - eps);
@@ -907,19 +907,19 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             return brentq(f, eps, 1 - eps);
         }
         
-        function computeWage(beta_P_opt, beta_I, params) {
-            if (Math.abs(beta_P_opt - 1.0) < 1e-6) return MP_P(1.0, beta_I, params);
-            if (Math.abs(beta_P_opt) < 1e-6) return MP_I(0.0, beta_I, params);
+        function computeWage(alpha_P_opt, alpha_I, params) {
+            if (Math.abs(alpha_P_opt - 1.0) < 1e-6) return MP_P(1.0, alpha_I, params);
+            if (Math.abs(alpha_P_opt) < 1e-6) return MP_I(0.0, alpha_I, params);
             // In equilibrium, MP_P = MP_I, so we can use either
-            return MP_P(beta_P_opt, beta_I, params);
+            return MP_P(alpha_P_opt, alpha_I, params);
         }
         
-        function computeTotalOutput(beta_I, params) {
-            const bp = betaPStar(beta_I, params);
-            const LP = bp * params.L;
-            const LI = (1 - bp) * params.L;
-            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_I_P);
-            const I = computeI(LI, beta_I, params.AI, params.rho_I, params.theta_I);
+        function computeTotalOutput(alpha_I, params) {
+            const ap = alphaPStar(alpha_I, params);
+            const LP = ap * params.L;
+            const LI = (1 - ap) * params.L;
+            const P = computeP(LP, params.K, params.alpha_P, params.rho_P, params.theta_P);
+            const I = computeI(LI, alpha_I, params.AI, params.rho_I, params.theta_I);
             return computeY(P, I, params);
         }
 
@@ -952,12 +952,12 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Wage vs β_I',
+                        text: 'Wage vs α_I',
                         font: { size: 16 }
                     }
                 },
                 scales: {
-                    x: { title: { display: true, text: 'β_I (AI share in I-nest)' } },
+                    x: { title: { display: true, text: 'α_I (AI share in I-nest)' } },
                     y: { title: { display: true, text: 'Wage' } }
                 }
             }
@@ -983,12 +983,12 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Total Output vs β_I',
+                        text: 'Total Output vs α_I',
                         font: { size: 16 }
                     }
                 },
                 scales: {
-                    x: { title: { display: true, text: 'β_I (AI share in I-nest)' } },
+                    x: { title: { display: true, text: 'α_I (AI share in I-nest)' } },
                     y: { title: { display: true, text: 'Output Y' } }
                 }
             }
@@ -1022,12 +1022,12 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'P and I Components vs β_I',
+                        text: 'P and I Components vs α_I',
                         font: { size: 16 }
                     }
                 },
                 scales: {
-                    x: { title: { display: true, text: 'β_I (AI share in I-nest)' } },
+                    x: { title: { display: true, text: 'α_I (AI share in I-nest)' } },
                     y: { title: { display: true, text: 'Component Output' } }
                 }
             }
@@ -1038,7 +1038,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'β_P* (Optimal P-labor share)',
+                    label: 'α_P* (Optimal P-labor share)',
                     data: [],
                     borderColor: '#3498db',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
@@ -1053,13 +1053,13 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Optimal Labor Allocation vs β_I',
+                        text: 'Optimal Labor Allocation vs α_I',
                         font: { size: 16 }
                     }
                 },
                 scales: {
-                    x: { title: { display: true, text: 'β_I (AI share in I-nest)' } },
-                    y: { title: { display: true, text: 'β_P* (P-nest labor share)' } }
+                    x: { title: { display: true, text: 'α_I (AI share in I-nest)' } },
+                    y: { title: { display: true, text: 'α_P* (P-nest labor share)' } }
                 }
             }
         });
@@ -1285,7 +1285,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             } else {
                 exponentialParams.forEach(param => param.style.display = 'block');
                 aiCapitalNote.style.display = 'block';
-                scenarioText.textContent = `We assume that AI will over time replace human workers (β_I: 0→1). Over that same time, AI capital K_I becomes more plentiful (exogenously), doubling every ${doublingTime} months.`;
+                scenarioText.textContent = `We assume that AI will over time replace human workers (α_I: 0→1). Over that same time, AI capital K_I becomes more plentiful (exogenously), doubling every ${doublingTime} months.`;
             }
         }
         
@@ -1333,9 +1333,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
         function updatePhysicalEquation() {
             const equationDiv = document.getElementById('physical-equation');
             if (currentPAgg === 'CES') {
-                equationDiv.innerHTML = '$$P = \\left[\\beta_P K_P^{\\rho_P} + (1-\\beta_P) L_P^{\\rho_P}\\right]^{1/\\rho_P}$$';
+                equationDiv.innerHTML = '$$P = \\left[\\alpha_P K_P^{\\rho_P} + (1-\\alpha_P) L_P^{\\rho_P}\\right]^{1/\\rho_P}$$';
             } else {
-                equationDiv.innerHTML = '$$P = \\left[\\beta_P^{1-\\rho_P} K_P^{\\rho_P} + (1-\\beta_P)^{1-\\rho_P} L_P^{\\rho_P}\\right]^{\\theta_P/\\rho_P}$$';
+                equationDiv.innerHTML = '$$P = \\left[\\alpha_P^{1-\\rho_P} K_P^{\\rho_P} + (1-\\alpha_P)^{1-\\rho_P} L_P^{\\rho_P}\\right]^{\\theta_P/\\rho_P}$$';
             }
             if (window.MathJax && MathJax.typesetPromise) {
                 MathJax.typesetPromise([equationDiv]);
@@ -1346,10 +1346,10 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
         function updateIntelligenceEquation() {
             const equationDiv = document.getElementById('intelligence-equation');
             if (currentIAgg === 'CES') {
-                equationDiv.innerHTML = '$$I = \\left[\\beta_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\beta_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{1/\\rho_I}$$';
+                equationDiv.innerHTML = '$$I = \\left[\\alpha_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\alpha_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{1/\\rho_I}$$';
             } else {
                 // DS case - this is the original equation that was there before
-                equationDiv.innerHTML = '$$I = \\left[\\beta_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\beta_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{\\theta_I/\\rho_I}$$';
+                equationDiv.innerHTML = '$$I = \\left[\\alpha_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\alpha_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{\\theta_I/\\rho_I}$$';
             }
             if (window.MathJax && MathJax.typesetPromise) {
                 MathJax.typesetPromise([equationDiv]);
@@ -1377,9 +1377,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             const params = getParams();
             
             // Calculate meaningful P values based on current parameters
-            const beta_P_typical = 0.5; // Assume balanced allocation
-            const LP_typical = beta_P_typical * params.L;
-            const P_typical = computeP(LP_typical, params.K, params.beta_P, params.rho_P, params.theta_I_P);
+            const alpha_P_typical = 0.5; // Assume balanced allocation
+            const LP_typical = alpha_P_typical * params.L;
+            const P_typical = computeP(LP_typical, params.K, params.alpha_P, params.rho_P, params.theta_P);
             
             const P_low = P_typical * 0.2;
             const P_medium = P_typical;
@@ -1440,9 +1440,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             const P_high = [];
             
             for (const L_P of L_P_vals) {
-                P_low.push(computeP(L_P, K_P_low, params.beta_P, params.rho_P, params.theta_I_P));
-                P_medium.push(computeP(L_P, K_P_medium, params.beta_P, params.rho_P, params.theta_I_P));
-                P_high.push(computeP(L_P, K_P_high, params.beta_P, params.rho_P, params.theta_I_P));
+                P_low.push(computeP(L_P, K_P_low, params.alpha_P, params.rho_P, params.theta_P));
+                P_medium.push(computeP(L_P, K_P_medium, params.alpha_P, params.rho_P, params.theta_P));
+                P_high.push(computeP(L_P, K_P_high, params.alpha_P, params.rho_P, params.theta_P));
             }
             
             const labels = L_P_vals.map((l, i) => i % 2 === 0 ? l.toFixed(2) : '');
@@ -1481,9 +1481,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             const I_high = [];
             
             for (const L_I of L_I_vals) {
-                I_low.push(computeI(L_I, params.beta_I, K_I_low, params.rho_I, params.theta_I));
-                I_medium.push(computeI(L_I, params.beta_I, K_I_medium, params.rho_I, params.theta_I));
-                I_high.push(computeI(L_I, params.beta_I, K_I_high, params.rho_I, params.theta_I));
+                I_low.push(computeI(L_I, params.alpha_I, K_I_low, params.rho_I, params.theta_I));
+                I_medium.push(computeI(L_I, params.alpha_I, K_I_medium, params.rho_I, params.theta_I));
+                I_high.push(computeI(L_I, params.alpha_I, K_I_high, params.rho_I, params.theta_I));
             }
             
             const labels = L_I_vals.map((l, i) => i % 2 === 0 ? l.toFixed(2) : '');
@@ -1500,9 +1500,9 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
         }
 
         // Time evolution functions
-        function beta_I_evolution(t_years, transition_time_years) {
+        function alpha_I_evolution(t_years, transition_time_years) {
             if (currentAIMode === 'Fixed') {
-                return parseFloat(document.getElementById('beta_I').value);
+                return parseFloat(document.getElementById('alpha_I').value);
             }
             return Math.min(1.0, Math.max(0.0, t_years / transition_time_years));
         }
@@ -1521,7 +1521,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                 K: parseFloat(document.getElementById('K').value),
                 AI: Math.pow(10, parseFloat(document.getElementById('AI').value)),
                 L: parseFloat(document.getElementById('L').value),
-                beta_P: parseFloat(document.getElementById('beta_P').value),
+                alpha_P: parseFloat(document.getElementById('alpha_P').value),
                 rho_P: parseFloat(document.getElementById('rho_P').value),
                 rho_I: parseFloat(document.getElementById('rho_I').value),
                 theta_P: currentPAgg === 'DS' ? parseFloat(document.getElementById('theta_P').value) : 1.0,
@@ -1530,14 +1530,14 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                 rho: parseFloat(document.getElementById('rho').value),
                 eta: parseFloat(document.getElementById('eta').value),
                 a_param: parseFloat(document.getElementById('a_param').value),
-                beta_I: parseFloat(document.getElementById('beta_I').value),
+                alpha_I: parseFloat(document.getElementById('alpha_I').value),
                 agg: currentAgg,
                 transition_time: parseFloat(document.getElementById('transition_time').value),
                 doubling_time: parseFloat(document.getElementById('doubling_time').value)
             };
             
             if (t_years !== null && currentAIMode === 'Exponential') {
-                base_params.beta_I = beta_I_evolution(t_years, base_params.transition_time);
+                base_params.alpha_I = alpha_I_evolution(t_years, base_params.transition_time);
                 base_params.AI = K_I_evolution(t_years, base_params.doubling_time, base_params.AI);
             }
             
@@ -1550,18 +1550,18 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             
             console.log('Computing productivity chart...');
             
-            // Generate beta_I range for productivity calculation
+            // Generate alpha_I range for productivity calculation
             for (let i = 0; i <= 50; i++) {
-                const beta_I = i / 50.0;
-                x_vals.push(beta_I);
+                const alpha_I = i / 50.0;
+                x_vals.push(alpha_I);
                 
                 try {
-                    // Get parameters with overridden beta_I
+                    // Get parameters with overridden alpha_I
                     const params = getParams();
-                    params.beta_I = beta_I;
+                    params.alpha_I = alpha_I;
                     
                     // Compute equilibrium output
-                    const output = computeTotalOutput(beta_I, params);
+                    const output = computeTotalOutput(alpha_I, params);
                     
                     if (isFinite(output) && params.K > 0) {
                         const productivity = output / params.K;
@@ -1629,7 +1629,7 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            title: { display: true, text: 'β_I (AI share in I-nest)' },
+                            title: { display: true, text: 'α_I (AI share in I-nest)' },
                             ticks: { maxTicksLimit: 6 }
                         },
                         y: {
@@ -1670,15 +1670,15 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                     let x_title = '';
                     
                     if (currentAIMode === 'Fixed') {
-                        // Generate beta_I grid (original behavior)
+                        // Generate alpha_I grid (original behavior)
                         for (let i = 0; i <= 50; i++) {
                             x_vals.push(i / 50.0);
                         }
                         x_labels = x_vals.map(b => b.toFixed(3));
-                        x_title = 'β_I (AI share in I-nest)';
+                        x_title = 'α_I (AI share in I-nest)';
                     } else {
                         // Generate time grid
-                        const max_time = base_params.transition_time + 5; // Show 5 years past when beta_I reaches 1
+                        const max_time = base_params.transition_time + 5; // Show 5 years past when alpha_I reaches 1
                         for (let i = 0; i <= 50; i++) {
                             x_vals.push(max_time * i / 50.0);
                         }
@@ -1698,27 +1698,27 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                         try {
                             let params;
                             if (currentAIMode === 'Fixed') {
-                                // x_val is beta_I
+                                // x_val is alpha_I
                                 params = getParams();
-                                params.beta_I = x_val; // Override beta_I for this iteration
+                                params.alpha_I = x_val; // Override alpha_I for this iteration
                             } else {
                                 // x_val is time in years
                                 params = getParams(x_val); // Get time-evolved parameters
                             }
                             
-                            const beta_P_opt = betaPStar(params.beta_I, params);
-                            const wage = computeWage(beta_P_opt, params.beta_I, params);
-                            const output = computeTotalOutput(params.beta_I, params);
+                            const alpha_P_opt = alphaPStar(params.alpha_I, params);
+                            const wage = computeWage(alpha_P_opt, params.alpha_I, params);
+                            const output = computeTotalOutput(params.alpha_I, params);
                             
                             // Calculate P and I components
-                            const LP = beta_P_opt * params.L;
-                            const LI = (1 - beta_P_opt) * params.L;
-                            const P = computeP(LP, params.K, params.beta_P, params.rho_P, params.theta_P);
-                            const I = computeI(LI, params.beta_I, params.AI, params.rho_I, params.theta_I);
+                            const LP = alpha_P_opt * params.L;
+                            const LI = (1 - alpha_P_opt) * params.L;
+                            const P = computeP(LP, params.K, params.alpha_P, params.rho_P, params.theta_P);
+                            const I = computeI(LI, params.alpha_I, params.AI, params.rho_I, params.theta_I);
                             
                             // Calculate saturation ratio
                             let saturation = null;
-                            if (params.beta_I >= 1e-6) {
+                            if (params.alpha_I >= 1e-6) {
                                 try {
                                     // Calculate Y_current (already calculated as 'output')
                                     const Y_current = output;
@@ -1743,10 +1743,10 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
                                 }
                             }
                             
-                            if (isFinite(wage) && isFinite(output) && isFinite(beta_P_opt) && isFinite(P) && isFinite(I)) {
+                            if (isFinite(wage) && isFinite(output) && isFinite(alpha_P_opt) && isFinite(P) && isFinite(I)) {
                                 wages.push(wage);
                                 outputs.push(output);
-                                allocations.push(beta_P_opt);
+                                allocations.push(alpha_P_opt);
                                 pOutputs.push(P);
                                 iOutputs.push(I);
                                 saturationVals.push(saturation);
@@ -1981,8 +1981,8 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             // Physical tab
             document.getElementById('K').value = '1.5';
             document.getElementById('K_value').textContent = '1.5';
-            document.getElementById('beta_P').value = '0.7';
-            document.getElementById('beta_P_value').textContent = '0.7';
+            document.getElementById('alpha_P').value = '0.7';
+            document.getElementById('alpha_P_value').textContent = '0.7';
             document.getElementById('rho_P').value = '-0.67';
             document.getElementById('rho_P_value').textContent = '-0.67';
             document.getElementById('theta_P').value = '1.0';
@@ -1991,8 +1991,8 @@ function dI_dLI(LI, beta_I, AI, rho_I, theta_I) {
             // Intelligence tab
             document.getElementById('AI').value = '0.95';
             document.getElementById('AI_value').textContent = '9.0e+00';
-            document.getElementById('beta_I').value = '0.9';
-            document.getElementById('beta_I_value').textContent = '0.9';
+            document.getElementById('alpha_I').value = '0.9';
+            document.getElementById('alpha_I_value').textContent = '0.9';
             document.getElementById('rho_I').value = '0.55';
             document.getElementById('rho_I_value').textContent = '0.55';
             document.getElementById('theta_I').value = '0.94';

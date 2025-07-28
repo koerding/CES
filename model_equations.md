@@ -9,22 +9,22 @@ The economy has a nested CES (Constant Elasticity of Substitution) structure wit
 ## Production Functions
 
 ### P-nest (Physical Production)
-$$P = \left[\beta_P K_P^{\rho_P} + (1-\beta_P) L_P^{\rho_P}\right]^{1/\rho_P}$$
+$$P = \left[\alpha_P K_P^{\rho_P} + (1-\alpha_P) L_P^{\rho_P}\right]^{1/\rho_P}$$
 
 Where:
 - $K_P$: Physical capital
 - $L_P$: Labor allocated to physical production
-- $\beta_P$: Capital share parameter (0 ≤ β_P ≤ 1)
+- $\alpha_P$: Capital share parameter (0 ≤ α_P ≤ 1)
 - $\rho_P$: Substitution parameter for P-nest
 - Elasticity of substitution: $\sigma_P = 1/(1-\rho_P)$
 
 ### I-nest (Intelligence Production)
-$$I = \left[\beta_I^{1-\rho_I} K_I^{\rho_I} + (1-\beta_I)^{1-\rho_I} L_I^{\rho_I}\right]^{\theta_I/\rho_I}$$
+$$I = \left[\alpha_I^{1-\rho_I} K_I^{\rho_I} + (1-\alpha_I)^{1-\rho_I} L_I^{\rho_I}\right]^{\theta_I/\rho_I}$$
 
 Where:
 - $K_I$: AI capital
 - $L_I$: Labor allocated to intelligence production
-- $\beta_I$: AI share parameter (0 ≤ β_I ≤ 1)
+- $\alpha_I$: AI share parameter (0 ≤ α_I ≤ 1)
 - $\rho_I$: Substitution parameter for I-nest
 - $\theta_I$: Returns to scale parameter (θ_I < 1 for decreasing returns)
 - Elasticity of substitution: $\sigma_I = 1/(1-\rho_I)$
@@ -52,8 +52,8 @@ Total labor constraint:
 $$L = L_P + L_I$$
 
 Define labor allocation shares:
-- $\beta_P$: Share of labor in P-nest ($L_P = \beta_P L$)
-- $(1-\beta_P)$: Share of labor in I-nest ($L_I = (1-\beta_P) L$)
+- $\alpha_P$: Share of labor in P-nest ($L_P = \alpha_P L$)
+- $(1-\alpha_P)$: Share of labor in I-nest ($L_I = (1-\alpha_P) L$)
 
 ## Equilibrium Conditions
 
@@ -63,13 +63,13 @@ Define labor allocation shares:
 $$MP_P = \frac{\partial Y}{\partial P} \cdot \frac{\partial P}{\partial L_P}$$
 
 Where:
-$$\frac{\partial P}{\partial L_P} = (1-\beta_P) L_P^{\rho_P-1} \left[\beta_P K_P^{\rho_P} + (1-\beta_P) L_P^{\rho_P}\right]^{(1/\rho_P)-1}$$
+$$\frac{\partial P}{\partial L_P} = (1-\alpha_P) L_P^{\rho_P-1} \left[\alpha_P K_P^{\rho_P} + (1-\alpha_P) L_P^{\rho_P}\right]^{(1/\rho_P)-1}$$
 
 #### I-nest Labor Marginal Product
 $$MP_I = \frac{\partial Y}{\partial I} \cdot \frac{\partial I}{\partial L_I}$$
 
 Where:
-$$\frac{\partial I}{\partial L_I} = \theta_I (1-\beta_I)^{1-\rho_I} L_I^{\rho_I-1} \left[\beta_I^{1-\rho_I} K_I^{\rho_I} + (1-\beta_I)^{1-\rho_I} L_I^{\rho_I}\right]^{(\theta_I/\rho_I)-1}$$
+$$\frac{\partial I}{\partial L_I} = \theta_I (1-\alpha_I)^{1-\rho_I} L_I^{\rho_I-1} \left[\alpha_I^{1-\rho_I} K_I^{\rho_I} + (1-\alpha_I)^{1-\rho_I} L_I^{\rho_I}\right]^{(\theta_I/\rho_I)-1}$$
 
 ### Top-Level Derivatives
 
@@ -91,14 +91,14 @@ $$\sigma'(x) = \frac{a \eta x^{\eta-1}}{(a + x^{\eta})^2}$$
 ### Labor Market Equilibrium
 
 In equilibrium, labor marginal products must equalize:
-$$MP_P(\beta_P^*) = MP_I(\beta_P^*)$$
+$$MP_P(\alpha_P^*) = MP_I(\alpha_P^*)$$
 
-This determines the optimal labor allocation $\beta_P^*$.
+This determines the optimal labor allocation $\alpha_P^*$.
 
 ### Wage Determination
 
 The equilibrium wage equals the common marginal product:
-$$w = MP_P(\beta_P^*) = MP_I(\beta_P^*)$$
+$$w = MP_P(\alpha_P^*) = MP_I(\alpha_P^*)$$
 
 ## Parameter Interpretations
 
@@ -108,10 +108,10 @@ $$w = MP_P(\beta_P^*) = MP_I(\beta_P^*)$$
 - $\rho \to -\infty$: Inputs are perfect complements ($\sigma \to 0$)
 
 ### Share Parameters
-- $\beta_P = 0$: Only labor matters in P-nest
-- $\beta_P = 1$: Only capital matters in P-nest
-- $\beta_I = 0$: Only labor matters in I-nest
-- $\beta_I = 1$: Only AI matters in I-nest
+- $\alpha_P = 0$: Only labor matters in P-nest
+- $\alpha_P = 1$: Only capital matters in P-nest
+- $\alpha_I = 0$: Only labor matters in I-nest
+- $\alpha_I = 1$: Only AI matters in I-nest
 
 ### Returns to Scale
 - $\theta_I = 1$: Constant returns to scale in I-nest
@@ -124,7 +124,7 @@ $$w = MP_P(\beta_P^*) = MP_I(\beta_P^*)$$
 ## Calibration
 
 Default parameter values are calibrated to match:
-- US capital share: ~42% (achieved with $\beta_P = 0.7$ given $K_P/L$ ratio)
+- US capital share: ~42% (achieved with $\alpha_P = 0.7$ given $K_P/L$ ratio)
 - Manufacturing elasticity: $\sigma_P \approx 0.6$ (implies $\rho_P \approx -0.67$)
 - Manual occupation share: ~18% (implies $\tau = 0.18$)
 - AI-labor substitutability: $\sigma_I \approx 2.2$ (implies $\rho_I \approx 0.55$)
