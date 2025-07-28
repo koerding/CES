@@ -61,35 +61,74 @@
             height: fit-content;
         }
         
-        .tab-header {
-            display: flex;
-            background: #e9ecef;
-            border-radius: 15px 15px 0 0;
+        .ces-diagram {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+            border-radius: 15px;
+            border: 2px solid #d4d9ff;
         }
         
-        .tab-button {
-            flex: 1;
-            padding: 10px 12px;
-            background: none;
-            border: none;
+        .diagram-section {
             cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .diagram-section:hover {
+            transform: scale(1.05) translateY(-2px);
+            filter: brightness(1.15) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+        }
+        
+        .diagram-section:active {
+            transform: scale(1.02) translateY(0px);
+            transition: all 0.1s ease;
+        }
+        
+        .diagram-section.active {
+            filter: brightness(1.2) drop-shadow(0 0 12px rgba(102, 126, 234, 0.6));
+            transform: scale(1.03);
+        }
+        
+        .section-text {
+            font-family: 'Segoe UI', sans-serif;
             font-weight: 600;
-            color: #6c757d;
-            transition: all 0.3s ease;
-            font-size: 0.85em;
+            text-anchor: middle;
+            dominant-baseline: central;
+            fill: white;
+            font-size: 14px;
         }
         
-        .tab-button.active {
-            background: #667eea;
-            color: white;
+        .equation-text {
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 400;
+            text-anchor: middle;
+            dominant-baseline: central;
+            fill: white;
+            font-size: 11px;
         }
         
-        .tab-button:first-child.active {
-            border-radius: 15px 0 0 0;
+        .input-label {
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 500;
+            text-anchor: middle;
+            dominant-baseline: central;
+            fill: #495057;
+            font-size: 10px;
         }
         
-        .tab-button:last-child.active {
-            border-radius: 0 15px 0 0;
+        .flow-arrow {
+            stroke: #495057;
+            stroke-width: 2;
+            fill: none;
+            marker-end: url(#arrowhead);
+        }
+        
+        .parameter-preview {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 9px;
+            fill: rgba(255, 255, 255, 0.8);
+            text-anchor: middle;
         }
         
         .tab-content {
@@ -329,12 +368,54 @@
         <div class="main-content">
             <div class="controls">
                 <button class="reset-button" onclick="resetAllParameters()">Reset All Parameters</button>
-                <div class="tab-header">
-                    <button class="tab-button active" onclick="switchTab(0)">Physical</button>
-                    <button class="tab-button" onclick="switchTab(1)">Intelligence</button>
-                    <button class="tab-button" onclick="switchTab(2)">Overall</button>
-                    <button class="tab-button" onclick="switchTab(3)">Analysis</button>
-                </div>
+                <svg class="ces-diagram" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                         refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#495057" />
+                        </marker>
+                    </defs>
+                    
+                    <!-- Physical Production Section -->
+                    <g class="diagram-section" data-tab="0" onclick="switchTab(0)">
+                        <rect x="20" y="20" width="120" height="60" rx="10" fill="#4285f4" stroke="#1a73e8" stroke-width="2"/>
+                        <text x="80" y="45" class="section-text">Physical</text>
+                        <text x="80" y="60" class="section-text">Production</text>
+                    </g>
+                    
+                    <!-- Intelligence Production Section -->
+                    <g class="diagram-section" data-tab="1" onclick="switchTab(1)">
+                        <rect x="260" y="20" width="120" height="60" rx="10" fill="#4285f4" stroke="#1a73e8" stroke-width="2"/>
+                        <text x="320" y="45" class="section-text">Intelligence</text>
+                        <text x="320" y="60" class="section-text">Production</text>
+                    </g>
+                    
+                    <!-- Overall Production Section -->
+                    <g class="diagram-section" data-tab="2" onclick="switchTab(2)">
+                        <rect x="100" y="150" width="200" height="60" rx="10" fill="#4285f4" stroke="#1a73e8" stroke-width="2"/>
+                        <text x="200" y="175" class="section-text">Overall Production</text>
+                        <text x="200" y="190" class="equation-text">Y = f(P, I)</text>
+                    </g>
+                    
+                    <!-- Analysis Section -->
+                    <g class="diagram-section" data-tab="3" onclick="switchTab(3)">
+                        <rect x="130" y="230" width="140" height="40" rx="10" fill="#4285f4" stroke="#1a73e8" stroke-width="2"/>
+                        <text x="200" y="245" class="section-text">Analysis & Charts</text>
+                        <text x="200" y="260" class="equation-text">Evolution & Saturation</text>
+                    </g>
+                    
+                    <!-- Labor Input Label -->
+                    <text x="200" y="105" class="input-label">Labor (L)</text>
+                    
+                    <!-- Production Flow Arrows -->
+                    <path class="flow-arrow" d="M 80 85 Q 150 120 190 150" />
+                    <path class="flow-arrow" d="M 320 85 Q 250 120 210 150" />
+                    <path class="flow-arrow" d="M 200 215 L 200 230" />
+                    
+                    <!-- Labor Allocation Arrows -->
+                    <path class="flow-arrow" d="M 170 110 Q 120 95 80 80" />
+                    <path class="flow-arrow" d="M 230 110 Q 280 95 320 80" />
+                </svg>
                 
                 <div class="tab-content active">
                     <div class="parameter-group">
@@ -359,7 +440,7 @@
                         <label class="parameter-label">P-nest Substitution (ρ_P)</label>
                         <div class="parameter-description">Controls capital-labor substitutability. ρ_P→1: perfect substitutes, ρ_P=0: Cobb-Douglas, ρ_P→-∞: perfect complements. ρ_P=-0.67 gives σ=0.6 elasticity (US manufacturing calibration)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="rho_P" min="-1.5" max="0.9" step="0.05" value="-0.67">
+                            <input type="range" class="slider" id="rho_P" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_P_value">-0.67</span>
                         </div>
                     </div>
@@ -423,7 +504,7 @@
                         <label class="parameter-label">I-nest Substitution (ρ_I)</label>
                         <div class="parameter-description">Controls AI-labor substitutability in intelligence tasks. ρ_I→1: perfect substitutes, ρ_I=0: Cobb-Douglas, ρ_I→-∞: perfect complements. ρ_I=0.55 gives σ=2.2 (high substitutability)</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="rho_I" min="-0.1" max="0.7" step="0.05" value="0.55">
+                            <input type="range" class="slider" id="rho_I" min="-2.0" max="2.0" step="0.05" value="0.55">
                             <span class="slider-value" id="rho_I_value">0.55</span>
                         </div>
                     </div>
@@ -497,7 +578,7 @@
                         <label class="parameter-label">Top-level Substitution (ρ)</label>
                         <div class="parameter-description">Substitutability between physical and intelligence outputs. ρ→1: perfect substitutes, ρ=0: Cobb-Douglas, ρ→-∞: perfect complements. ρ=-0.67 gives σ=0.6 elasticity</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="rho" min="-2.0" max="0.9" step="0.05" value="-0.67">
+                            <input type="range" class="slider" id="rho" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_value">-0.67</span>
                         </div>
                     </div>
@@ -639,6 +720,40 @@
         let currentAIMode = 'Fixed';
         let currentPAgg = 'CES'; // Physical nest aggregation method (default)
         let currentIAgg = 'DS'; // Intelligence nest aggregation method (default to maintain existing behavior)
+        let currentTab = 0; // Current active tab (0=Physical, 1=Intelligence, 2=Overall, 3=Analysis)
+        
+        // Tab switching functionality
+        function switchTab(tabIndex) {
+            // Update global state
+            currentTab = tabIndex;
+            
+            // Update SVG diagram visual state
+            const sections = document.querySelectorAll('.diagram-section');
+            sections.forEach((section, index) => {
+                if (index === tabIndex) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+            
+            // Update tab content visibility
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach((content, index) => {
+                if (index === tabIndex) {
+                    content.classList.add('active');
+                    content.style.display = 'block';
+                } else {
+                    content.classList.remove('active');
+                    content.style.display = 'none';
+                }
+            });
+            
+            // Update charts when switching tabs
+            setTimeout(() => {
+                updateCharts();
+            }, 100);
+        }
         
         // Mathematical functions
         // Generic CES production function
@@ -653,16 +768,41 @@
 
         // Generic DS (Dixit-Stiglitz) production function
         function computeDS(input1, input2, alpha, rho, theta) {
+            // Safety bounds to prevent singularities
+            const safe_alpha = Math.min(Math.max(alpha, 1e-6), 1 - 1e-6);
+            const safe_input1 = Math.max(input1, 1e-10);
+            const safe_input2 = Math.max(input2, 1e-10);
+            
             if (Math.abs(rho) < 1e-8) {
                 // Lazy continuity approach: average of DS(+0.01) and DS(-0.01)
                 const eps = 0.01;
-                const pos_inside = Math.pow(alpha, 1 - eps) * Math.pow(input1, eps) + Math.pow(1 - alpha, 1 - eps) * Math.pow(input2, eps);
+                const pos_inside = Math.pow(safe_alpha, 1 - eps) * Math.pow(safe_input1, eps) + Math.pow(1 - safe_alpha, 1 - eps) * Math.pow(safe_input2, eps);
                 const pos_result = Math.pow(pos_inside, theta / eps);
-                const neg_inside = Math.pow(alpha, 1 + eps) * Math.pow(input1, -eps) + Math.pow(1 - alpha, 1 + eps) * Math.pow(input2, -eps);
+                const neg_inside = Math.pow(safe_alpha, 1 + eps) * Math.pow(safe_input1, -eps) + Math.pow(1 - safe_alpha, 1 + eps) * Math.pow(safe_input2, -eps);
                 const neg_result = Math.pow(neg_inside, theta / (-eps));
                 return (pos_result + neg_result) / 2;
             }
-            const inside = Math.pow(alpha, 1 - rho) * Math.pow(input1, rho) + Math.pow(1 - alpha, 1 - rho) * Math.pow(input2, rho);
+            
+            // For negative rho and alpha near 1, use additional safety measures
+            if (rho < 0 && safe_alpha > 0.99) {
+                // Gradually transition to Cobb-Douglas near the boundary
+                const transition_alpha = 0.99;
+                const weight = Math.max(0, Math.min(1, (safe_alpha - transition_alpha) / (1 - transition_alpha)));
+                
+                // Cobb-Douglas approximation
+                const cd_result = Math.pow(safe_input1, safe_alpha) * Math.pow(safe_input2, 1 - safe_alpha);
+                const cd_scaled = Math.pow(cd_result, theta);
+                
+                // DS computation with clamped alpha
+                const ds_alpha = Math.min(safe_alpha, transition_alpha);
+                const inside = Math.pow(ds_alpha, 1 - rho) * Math.pow(safe_input1, rho) + Math.pow(1 - ds_alpha, 1 - rho) * Math.pow(safe_input2, rho);
+                const ds_result = Math.pow(inside, theta / rho);
+                
+                // Interpolate between DS and Cobb-Douglas
+                return (1 - weight) * ds_result + weight * cd_scaled;
+            }
+            
+            const inside = Math.pow(safe_alpha, 1 - rho) * Math.pow(safe_input1, rho) + Math.pow(1 - safe_alpha, 1 - rho) * Math.pow(safe_input2, rho);
             return Math.pow(inside, theta / rho);
         }
 
@@ -678,17 +818,32 @@
 
         // Generic DS derivative with respect to input2
         function dDS_dinput2(input1, input2, alpha, rho, theta) {
+            // Safety bounds to prevent singularities
+            const safe_alpha = Math.min(Math.max(alpha, 1e-6), 1 - 1e-6);
+            const safe_input1 = Math.max(input1, 1e-10);
+            const safe_input2 = Math.max(input2, 1e-10);
+            
             if (Math.abs(rho) < 1e-8) {
                 // Lazy continuity approach: average of derivatives at +0.01 and -0.01
                 const eps = 0.01;
-                const pos_inside = Math.pow(alpha, 1 - eps) * Math.pow(input1, eps) + Math.pow(1 - alpha, 1 - eps) * Math.pow(input2, eps);
-                const pos_deriv = theta * Math.pow(1 - alpha, 1 - eps) * Math.pow(input2, eps - 1) * Math.pow(pos_inside, (theta / eps) - 1);
-                const neg_inside = Math.pow(alpha, 1 + eps) * Math.pow(input1, -eps) + Math.pow(1 - alpha, 1 + eps) * Math.pow(input2, -eps);
-                const neg_deriv = theta * Math.pow(1 - alpha, 1 + eps) * Math.pow(input2, -eps - 1) * Math.pow(neg_inside, (theta / (-eps)) - 1);
+                const pos_inside = Math.pow(safe_alpha, 1 - eps) * Math.pow(safe_input1, eps) + Math.pow(1 - safe_alpha, 1 - eps) * Math.pow(safe_input2, eps);
+                const pos_deriv = theta * Math.pow(1 - safe_alpha, 1 - eps) * Math.pow(safe_input2, eps - 1) * Math.pow(pos_inside, (theta / eps) - 1);
+                const neg_inside = Math.pow(safe_alpha, 1 + eps) * Math.pow(safe_input1, -eps) + Math.pow(1 - safe_alpha, 1 + eps) * Math.pow(safe_input2, -eps);
+                const neg_deriv = theta * Math.pow(1 - safe_alpha, 1 + eps) * Math.pow(safe_input2, -eps - 1) * Math.pow(neg_inside, (theta / (-eps)) - 1);
                 return (pos_deriv + neg_deriv) / 2;
             }
-            const inside = Math.pow(alpha, 1 - rho) * Math.pow(input1, rho) + Math.pow(1 - alpha, 1 - rho) * Math.pow(input2, rho);
-            return theta * Math.pow(1 - alpha, 1 - rho) * Math.pow(input2, rho - 1) * Math.pow(inside, (theta / rho) - 1);
+            
+            // For negative rho and alpha near 1, use additional safety measures
+            if (rho < 0 && safe_alpha > 0.99) {
+                // Use finite difference approximation for the derivative near the boundary
+                const h = 1e-6;
+                const f_plus = computeDS(safe_input1, safe_input2 + h, safe_alpha, rho, theta);
+                const f_minus = computeDS(safe_input1, safe_input2 - h, safe_alpha, rho, theta);
+                return (f_plus - f_minus) / (2 * h);
+            }
+            
+            const inside = Math.pow(safe_alpha, 1 - rho) * Math.pow(safe_input1, rho) + Math.pow(1 - safe_alpha, 1 - rho) * Math.pow(safe_input2, rho);
+            return theta * Math.pow(1 - safe_alpha, 1 - rho) * Math.pow(safe_input2, rho - 1) * Math.pow(inside, (theta / rho) - 1);
         }
 
         function computeP(LP, K, alpha_P, rho_P, theta_P = 1.0) {
@@ -2234,6 +2389,8 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         document.addEventListener('keydown', handleSecretKeypress);
 
         // Initialize
+        // Initialize the first tab as active
+        switchTab(0);
         setupSliders();
         updateParameterVisibility();
         updateNestParameterVisibility();
