@@ -1101,7 +1101,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             return b;
         }
         
-        function alphaPStar(alpha_I, params) {
+        function betaStar(alpha_I, params) {
             const eps = 1e-6;
             
             if (Math.abs(alpha_I - 1.0) < eps) {
@@ -1122,15 +1122,15 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             return brentq(f, eps, 1 - eps);
         }
         
-        function computeWage(alpha_P_opt, alpha_I, params) {
-            if (Math.abs(alpha_P_opt - 1.0) < 1e-6) return MP_P(1.0, alpha_I, params);
-            if (Math.abs(alpha_P_opt) < 1e-6) return MP_I(0.0, alpha_I, params);
+        function computeWage(beta_star, alpha_I, params) {
+            if (Math.abs(beta_star - 1.0) < 1e-6) return MP_P(1.0, alpha_I, params);
+            if (Math.abs(beta_star) < 1e-6) return MP_I(0.0, alpha_I, params);
             // In equilibrium, MP_P = MP_I, so we can use either
-            return MP_P(alpha_P_opt, alpha_I, params);
+            return MP_P(beta_star, alpha_I, params);
         }
         
         function computeTotalOutput(alpha_I, params) {
-            const ap = alphaPStar(alpha_I, params);
+            const ap = betaStar(alpha_I, params);
             const LP = ap * params.L;
             const LI = (1 - ap) * params.L;
             const P = computeP(LP, params.K, params.alpha_P, params.rho_P, params.theta_P);
@@ -1253,7 +1253,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'α_P* (Optimal P-labor share)',
+                    label: 'β* (Optimal P-labor share)',
                     data: [],
                     borderColor: '#3498db',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
@@ -1274,7 +1274,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 },
                 scales: {
                     x: { title: { display: true, text: 'α_I (AI share in I-nest)' } },
-                    y: { title: { display: true, text: 'α_P* (P-nest labor share)' } }
+                    y: { title: { display: true, text: 'β* (P-nest labor share)' } }
                 }
             }
         });
@@ -1921,13 +1921,13 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                                 params = getParams(x_val); // Get time-evolved parameters
                             }
                             
-                            const alpha_P_opt = alphaPStar(params.alpha_I, params);
-                            const wage = computeWage(alpha_P_opt, params.alpha_I, params);
+                            const beta_star = betaStar(params.alpha_I, params);
+                            const wage = computeWage(beta_star, params.alpha_I, params);
                             const output = computeTotalOutput(params.alpha_I, params);
                             
                             // Calculate P and I components
-                            const LP = alpha_P_opt * params.L;
-                            const LI = (1 - alpha_P_opt) * params.L;
+                            const LP = beta_star * params.L;
+                            const LI = (1 - beta_star) * params.L;
                             const P = computeP(LP, params.K, params.alpha_P, params.rho_P, params.theta_P);
                             const I = computeI(LI, params.alpha_I, params.AI, params.rho_I, params.theta_I);
                             
@@ -1958,10 +1958,10 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                                 }
                             }
                             
-                            if (isFinite(wage) && isFinite(output) && isFinite(alpha_P_opt) && isFinite(P) && isFinite(I)) {
+                            if (isFinite(wage) && isFinite(output) && isFinite(beta_star) && isFinite(P) && isFinite(I)) {
                                 wages.push(wage);
                                 outputs.push(output);
-                                allocations.push(alpha_P_opt);
+                                allocations.push(beta_star);
                                 pOutputs.push(P);
                                 iOutputs.push(I);
                                 saturationVals.push(saturation);
