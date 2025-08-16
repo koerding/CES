@@ -377,10 +377,15 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .reset-button {
-            width: 100%;
-            padding: 12px;
+        .button-container {
+            display: flex;
+            gap: 10px;
             margin-bottom: 15px;
+        }
+        
+        .reset-button, .toggle-explanations {
+            flex: 1;
+            padding: 12px;
             background: #f8f9fa;
             border: 2px solid #e9ecef;
             border-radius: 10px;
@@ -399,9 +404,66 @@
             box-shadow: 0 4px 8px rgba(231, 76, 60, 0.2);
         }
         
-        .reset-button:active {
+        .toggle-explanations:hover {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+        }
+        
+        .toggle-explanations.explanations-off {
+            background: #95a5a6;
+            color: white;
+            border-color: #95a5a6;
+        }
+        
+        .toggle-explanations.explanations-off:hover {
+            background: #7f8c8d;
+            border-color: #7f8c8d;
+        }
+        
+        .reset-button:active, .toggle-explanations:active {
             transform: translateY(0);
             box-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
+        }
+        
+        .parameter-description.minimized {
+            display: none;
+        }
+        
+        .parameter-label.has-tooltip {
+            cursor: help;
+            border-bottom: 1px dotted #666;
+            position: relative;
+        }
+        
+        .parameter-label.has-tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 24px;
+            font-weight: normal;
+            white-space: pre-wrap;
+            max-width: 390px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            margin-bottom: 5px;
+        }
+        
+        .parameter-label.has-tooltip:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 15px;
+            border: 5px solid transparent;
+            border-top-color: #333;
+            z-index: 1001;
         }
         
         @media (max-width: 1200px) {
@@ -417,7 +479,10 @@
         
         <div class="main-content">
             <div class="controls">
-                <button class="reset-button" onclick="resetAllParameters()">Reset All Parameters</button>
+                <div class="button-container">
+                    <button class="reset-button" onclick="resetAllParameters()">Reset All Parameters</button>
+                    <button class="toggle-explanations" onclick="toggleExplanations()" id="explanationsToggle">Hide Explanations</button>
+                </div>
                 <svg class="ces-diagram" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <marker id="arrowhead" markerWidth="10" markerHeight="7" 
@@ -479,8 +544,8 @@
                 
                 <div class="tab-content active physical-tab">
                     <div class="parameter-group">
-                        <label class="parameter-label">Physical Capital (K_P)</label>
-                        <div class="parameter-description">Physical capital stock relative to labor. K_P=1.5 calibrated to 2023 US capital/labor ratio. Higher values = more capital-intensive economy</div>
+                        <label class="parameter-label">Physical Capital (K<sub>P</sub>)</label>
+                        <div class="parameter-description">Physical capital ($K_P$) represents traditional capital goods like machines, buildings, and equipment used in physical production. This is distinct from AI/intelligence capital. Higher $K_P$ means more physical infrastructure per worker - think factories with more machines, construction with better equipment, or restaurants with more kitchen tools. $K_P=1.5$ is calibrated to match the 2023 US economy's capital-to-labor ratio of about 5.8. Increasing $K_P$ helps maintain wages as workers shift to physical tasks during AI automation.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="K" min="0.5" max="3.0" step="0.1" value="1.5">
                             <span class="slider-value" id="K_value">1.5</span>
@@ -488,8 +553,8 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">Capital Share in P-nest (α_P)</label>
-                        <div class="parameter-description">Weight of capital vs labor in P-nest. α_P=0: only labor matters, α_P=1: only capital matters. α_P=0.7 calibrated to achieve 42% capital share in 2023 US economy</div>
+                        <label class="parameter-label">Capital Share in P-nest (α<sub>P</sub>)</label>
+                        <div class="parameter-description">Capital share ($\alpha_P$) determines how much physical production relies on capital versus labor in the CES production function. It's the relative importance of machines vs workers in creating physical output. $\alpha_P=0$ means production uses only labor (pure handicraft economy), $\alpha_P=1$ means only capital matters (fully automated physical production). $\alpha_P=0.7$ reflects that in the US economy, about 42% of income goes to capital owners while 58% goes to workers. This parameter affects how easily capital can replace workers in physical tasks.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="alpha_P" min="0.1" max="0.9" step="0.05" value="0.7">
                             <span class="slider-value" id="alpha_P_value">0.7</span>
@@ -497,8 +562,8 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">P-nest Substitution (ρ_P)</label>
-                        <div class="parameter-description">Controls capital-labor substitutability. ρ_P→1: perfect substitutes, ρ_P=0: Cobb-Douglas, ρ_P→-∞: perfect complements. ρ_P=-0.67 gives σ=0.6 elasticity (US manufacturing calibration)</div>
+                        <label class="parameter-label">P-nest Substitution (ρ<sub>P</sub>)</label>
+                        <div class="parameter-description">The substitution parameter ($\rho_P$) controls how easily physical capital can replace human labor in physical tasks. When $\rho_P\to 1$, robots can perfectly replace workers (perfect substitutes). When $\rho_P=0$, you get the standard Cobb-Douglas case where both are needed in fixed proportions. When $\rho_P\to -\infty$, capital and labor are perfect complements - you need both, like a driver and a truck. Our baseline $\rho_P=-0.67$ gives an elasticity of substitution $\sigma=0.6$, matching empirical estimates from US manufacturing where machines and workers are somewhat complementary but not perfectly so. Lower $\rho_P$ means it's harder for robots to replace physical workers.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_P" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_P_value">-0.67</span>
@@ -507,7 +572,7 @@
                     
                     <div class="parameter-group">
                         <label class="parameter-label">P-nest Aggregation Method</label>
-                        <div class="parameter-description">CES: constant elasticity of substitution, DS: Dixit-Stiglitz (allows scaling)</div>
+                        <div class="parameter-description">Choose how to aggregate capital and labor in physical production. CES (Constant Elasticity of Substitution) is the standard economic production function where substitutability between inputs stays constant. DS (Dixit-Stiglitz) is similar but adds a scaling parameter $\theta_P$ that allows for increasing or decreasing returns to scale - useful for modeling situations where doubling all inputs might more than double output (economies of scale) or less than double it (congestion effects). Most economists use CES; DS gives more flexibility.</div>
                         <div class="toggle-container">
                             <span>CES</span>
                             <div class="toggle" id="p_agg_toggle" onclick="togglePAggregation()">
@@ -518,8 +583,8 @@
                     </div>
                     
                     <div class="parameter-group p-ds-params" style="display: none;">
-                        <label class="parameter-label">P-nest Scaling (θ_P)</label>
-                        <div class="parameter-description">Returns to scale in P-nest. θ_P=1: constant returns, θ_P<1: decreasing returns. DS version allows scaling effects</div>
+                        <label class="parameter-label">P-nest Scaling (θ<sub>P</sub>)</label>
+                        <div class="parameter-description">Returns to scale ($\theta_P$) captures whether physical production exhibits economies or diseconomies of scale. $\theta_P=1$ means constant returns - doubling all inputs doubles output (standard assumption). $\theta_P<1$ means decreasing returns - doubling inputs less than doubles output, perhaps due to coordination costs, limited space, or management complexity. $\theta_P>1$ would mean increasing returns from economies of scale. This only appears with DS aggregation and helps model realistic production constraints in the physical world. Lower $\theta_P$ means intelligence saturation happens faster.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="theta_P" min="0.1" max="1.0" step="0.02" value="1.0">
                             <span class="slider-value" id="theta_P_value">1.0</span>
@@ -541,8 +606,8 @@
                 
                 <div class="tab-content intelligence-tab">
                     <div class="parameter-group">
-                        <label class="parameter-label">AI Capital (K_I)</label>
-                        <div class="parameter-description">AI capital relative to labor. K_I=9 represents abundant AI (6× physical capital). Higher values = more AI automation potential</div>
+                        <label class="parameter-label">AI Capital (K<sub>I</sub>)</label>
+                        <div class="parameter-description">AI capital ($K_I$) represents the effective computational capacity available for intelligence tasks - think of it as the total "brain power" from all AI systems combined. This includes hardware (GPUs, servers), software efficiency, and algorithmic improvements. $K_I=9$ represents an "abundant AI" scenario where there's about 6 times more AI capital than physical capital. Higher $K_I$ means more tasks can be automated and AI can substitute for human cognitive work more easily. Unlike physical capital, AI capital has been growing exponentially - costs halving every 3 months in some domains.</div>
                         <div id="ai-capital-note" class="parameter-note" style="display: none; margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="AI" min="0" max="5" step="0.1" value="0.95">
@@ -551,8 +616,8 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">AI Share in I-nest (α_I)</label>
-                        <div class="parameter-description">Weight of AI vs labor in I-nest. α_I=0: only labor matters, α_I=1: only AI matters. α_I=0.9 represents abundant AI scenario</div>
+                        <label class="parameter-label">AI Share in I-nest (α<sub>I</sub>)</label>
+                        <div class="parameter-description">Automation share ($\alpha_I$) is the fraction of intelligence tasks that have been automated by AI. This is the key parameter that increases as AI capabilities expand over time. $\alpha_I=0$ means no tasks are automated (all intelligence work done by humans), $\alpha_I=0.5$ means half of cognitive tasks are automated, and $\alpha_I=1$ means full automation of intelligence work. Our baseline $\alpha_I=0.9$ represents a near-future scenario where 90% of cognitive tasks can be done by AI. This parameter drives the main dynamics in our model - as it increases, workers reallocate from intelligence to physical tasks.</div>
                         <div class="parameter-note" style="margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="alpha_I" min="0" max="1" step="0.05" value="0.9">
@@ -561,8 +626,8 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">I-nest Substitution (ρ_I)</label>
-                        <div class="parameter-description">Controls AI-labor substitutability in intelligence tasks. ρ_I→1: perfect substitutes, ρ_I=0: Cobb-Douglas, ρ_I→-∞: perfect complements. ρ_I=0.55 gives σ=2.2 (high substitutability)</div>
+                        <label class="parameter-label">I-nest Substitution (ρ<sub>I</sub>)</label>
+                        <div class="parameter-description">Intelligence substitution parameter ($\rho_I$) controls how easily AI can replace humans in cognitive tasks and how different intelligence tasks substitute for each other. High $\rho_I$ means AI and human intelligence are nearly perfect substitutes - AI can easily replace human cognitive work. Low $\rho_I$ means they're more complementary - humans and AI work better together. Our baseline $\rho_I=0.55$ gives an elasticity of substitution $\sigma=2.2$, reflecting high substitutability between intelligence tasks (consistent with how programming, writing, analysis, and other cognitive tasks can often substitute for each other). This parameter critically affects wage dynamics during automation.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_I" min="-2.0" max="2.0" step="0.05" value="0.55">
                             <span class="slider-value" id="rho_I_value">0.55</span>
@@ -571,7 +636,7 @@
                     
                     <div class="parameter-group">
                         <label class="parameter-label">I-nest Aggregation Method</label>
-                        <div class="parameter-description">CES: constant elasticity of substitution, DS: Dixit-Stiglitz (allows scaling)</div>
+                        <div class="parameter-description">Choose how to aggregate AI capital and human intelligence. CES (Constant Elasticity of Substitution) treats AI and human intelligence with fixed substitutability. DS (Dixit-Stiglitz) adds a scaling parameter $\theta_I$ that captures the power-law relationships observed in AI research - where doubling compute might give sublinear performance improvements. This reflects empirical AI scaling laws showing diminishing returns to additional compute, consistent with findings that model performance scales as a power of training compute, data, and parameters.</div>
                         <div class="toggle-container">
                             <span>CES</span>
                             <div class="toggle active" id="i_agg_toggle" onclick="toggleIAggregation()">
@@ -582,8 +647,8 @@
                     </div>
                     
                     <div class="parameter-group i-ds-params">
-                        <label class="parameter-label">I-nest Scaling (θ_I)</label>
-                        <div class="parameter-description">Returns to scale in I-nest. θ_I=1: constant returns, θ_I<1: decreasing returns. DS version allows scaling effects</div>
+                        <label class="parameter-label">I-nest Scaling (θ<sub>I</sub>)</label>
+                        <div class="parameter-description">Intelligence scaling parameter ($\theta_I$) captures the diminishing returns to AI observed in machine learning research. $\theta_I=1$ means constant returns - doubling AI compute doubles intelligence output. $\theta_I<1$ means decreasing returns, consistent with AI scaling laws where performance follows power laws in compute. Our baseline $\theta_I=0.94$ reflects empirical estimates from professional services sectors. Lower $\theta_I$ means stronger diminishing returns to AI investment, leading to earlier intelligence saturation. This parameter bridges economic modeling with computer science scaling laws, explaining why exponential AI progress might not translate to exponential economic growth.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="theta_I" min="0.1" max="1.0" step="0.02" value="0.94">
                             <span class="slider-value" id="theta_I_value">0.94</span>
@@ -606,7 +671,7 @@
                 <div class="tab-content overall-tab">
                     <div class="parameter-group">
                         <label class="parameter-label">Aggregation Method</label>
-                        <div class="parameter-description">CES: constant elasticity of substitution (smooth), PSI: S-curve aggregation (allows phase transitions between P and I dominance)</div>
+                        <div class="parameter-description">Choose how to combine physical and intelligence outputs into final production. CES (Constant Elasticity of Substitution) provides smooth substitution with constant elasticity throughout. PSI (S-curve) has fundamentally different behavior: it acts like perfect complements when intelligence is low (you need both physical and intelligence inputs), but approaches perfect substitutes when intelligence is very high (pure intelligence can completely replace physical production). This captures scenarios where AI might initially complement human work but eventually completely automate entire sectors, achieving full saturation that CES cannot model.</div>
                         <div class="toggle-container">
                             <span>CES</span>
                             <div class="toggle" id="agg_toggle" onclick="toggleAggregation()">
@@ -618,7 +683,7 @@
                     
                     <div class="parameter-group">
                         <label class="parameter-label">Total Labor (L)</label>
-                        <div class="parameter-description">Total labor endowment (normalized). L=1 baseline, adjust to simulate labor force changes. Labor allocates endogenously between P and I nests</div>
+                        <div class="parameter-description">Total labor supply ($L$) represents the size of the workforce, normalized to $L=1$ as baseline. Unlike traditional models where labor allocation is fixed, here labor endogenously reallocates between physical and intelligence tasks to equalize marginal productivity (wages) across sectors. As AI automates more intelligence tasks, workers optimally shift toward physical production. Increasing $L$ simulates population growth or immigration; decreasing $L$ simulates demographic decline. The model solves for the optimal allocation $\beta^*$ that balances wages between sectors.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="L" min="0.5" max="2.0" step="0.1" value="1.0">
                             <span class="slider-value" id="L_value">1.0</span>
@@ -627,7 +692,7 @@
                     
                     <div class="parameter-group ces-params">
                         <label class="parameter-label">P-weight in Top CES (τ)</label>
-                        <div class="parameter-description">Weight of P-nest in final output. τ=0: pure intelligence economy, τ=1: pure physical economy. τ=0.18 calibrated to manual occupation share</div>
+                        <div class="parameter-description">Physical weight ($\tau$) determines how much the economy depends on physical versus intelligence inputs in final production. $\tau=0$ would be a pure virtual economy (like a metaverse) where only intelligence matters. $\tau=1$ would be a pure physical economy where intelligence adds no value. Our baseline $\tau=0.18$ reflects that about 26% of US workers are in manual occupations. This parameter is crucial for wage effects: higher $\tau$ protects workers during automation by giving them more physical tasks to move into. Lower $\tau$ makes automation more beneficial for output but potentially harmful for wages.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="tau" min="0.15" max="0.4" step="0.01" value="0.18">
                             <span class="slider-value" id="tau_value">0.18</span>
@@ -636,7 +701,7 @@
                     
                     <div class="parameter-group ces-params">
                         <label class="parameter-label">Top-level Substitution (ρ)</label>
-                        <div class="parameter-description">Substitutability between physical and intelligence outputs. ρ→1: perfect substitutes, ρ=0: Cobb-Douglas, ρ→-∞: perfect complements. ρ=-0.67 gives σ=0.6 elasticity</div>
+                        <div class="parameter-description">The macro substitution parameter ($\rho$) is the most important parameter in the model - it determines whether we get intelligence saturation or explosive AI growth. When $\rho<0$, physical and intelligence inputs are complements, leading to intelligence saturation where additional AI yields diminishing returns. When $\rho>0$, they're substitutes, allowing unbounded growth as AI replaces physical production. Our baseline $\rho=-0.67$ ($\sigma=0.6$ elasticity) treats them as complements, reflecting that you can't build cars with pure intelligence - you need both smart control systems AND physical materials/assembly. This parameter determines whether we get the economists' 'bounded growth' view or the AI experts' 'singularity' scenario.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_value">-0.67</span>
@@ -645,7 +710,7 @@
                     
                     <div class="parameter-group psi-params" style="display: none;">
                         <label class="parameter-label">PSI Exponent (η)</label>
-                        <div class="parameter-description">PSI S-curve shape parameter. Higher values = steeper S-curve transition. η=0.5 gives smooth transition between P and I dominance</div>
+                        <div class="parameter-description">PSI S-curve exponent ($\eta$) controls how sharp the transition is from the low-intelligence regime (where physical and intelligence are complements) to the high-intelligence regime (where intelligence can fully substitute for physical production). Low $\eta$ means a gradual S-curve transition between these regimes. High $\eta$ means a sharp transition - the economy quickly flips from needing both inputs to intelligence being able to completely replace physical production. $\eta=0.5$ gives moderate transition sharpness. This captures whether intelligence saturation happens gradually or suddenly.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="eta" min="0.01" max="2.0" step="0.01" value="0.5">
                             <span class="slider-value" id="eta_value">0.5</span>
@@ -654,7 +719,7 @@
                     
                     <div class="parameter-group psi-params" style="display: none;">
                         <label class="parameter-label">PSI Denominator (a)</label>
-                        <div class="parameter-description">PSI transition point. Higher a = I-nest needs higher relative productivity to dominate. a=4.6 means I must be 4.6× more productive than P</div>
+                        <div class="parameter-description">PSI transition parameter ($a$) sets the intelligence level where the S-curve transitions from the complementary regime (low intelligence) to the substitutable regime (high intelligence). Higher $a$ means you need much more intelligence before it can start fully replacing physical production. $a=4.6$ means intelligence must reach 4.6 times its baseline level before complete substitution becomes possible. This captures the idea that AI might need to be extraordinarily capable before it can fully replace physical processes - reflecting real-world constraints where even very smart AI still needs physical implementation.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="a_param" min="0.1" max="10.0" step="0.1" value="4.6">
                             <span class="slider-value" id="a_param_value">4.6</span>
@@ -677,7 +742,7 @@
                 <div class="tab-content analysis-tab">
                     <div class="parameter-group">
                         <label class="parameter-label">AI Evolution Mode</label>
-                        <div class="parameter-description">Fixed AI: constant AI parameters, Exponential AI: AI replaces workers over time</div>
+                        <div class="parameter-description">Choose the AI development scenario. 'Fixed AI' holds AI capital and automation levels constant - useful for understanding static equilibrium effects of different automation levels. 'Exponential AI' simulates realistic AI development where both AI capital ($K_I$) grows exponentially (following observed cost reductions) and automation ($\alpha_I$) progresses over time as AI capabilities expand. Exponential mode captures the dynamic transition that we're likely experiencing now, while Fixed mode helps isolate the effects of different automation equilibria.</div>
                         <div class="toggle-container">
                             <span>Fixed AI</span>
                             <div class="toggle" id="ai_mode_toggle" onclick="toggleAIMode()">
@@ -695,7 +760,7 @@
                     
                     <div class="parameter-group exponential-params" style="display: none;">
                         <label class="parameter-label">Transition Time (years)</label>
-                        <div class="parameter-description">Time for AI to fully replace human workers (α_I: 0→1)</div>
+                        <div class="parameter-description">Transition time sets how quickly automation progresses from $\alpha_I=0$ (no automation) to $\alpha_I=1$ (full automation of intelligence tasks). Shorter transitions (2-5 years) reflect rapid AI development scenarios like the current LLM revolution. Longer transitions (20-50 years) reflect more gradual technological adoption considering institutional inertia, regulation, and training time. The speed affects wage dynamics: very fast automation can cause sharp wage declines as workers can't reallocate quickly enough, while slower automation allows smoother labor market adjustment.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="transition_time" min="2" max="100" step="1" value="10">
                             <span class="slider-value" id="transition_time_value">10</span>
@@ -704,7 +769,7 @@
                     
                     <div class="parameter-group exponential-params" style="display: none;">
                         <label class="parameter-label">AI Capital Doubling Time (months)</label>
-                        <div class="parameter-description">How frequently AI capital doubles exogenously</div>
+                        <div class="parameter-description">AI capital doubling time reflects the exponential cost improvements observed in AI deployment. Current AI costs halve every 3-6 months in some domains, driven by hardware improvements (faster chips), software advances (better algorithms), and scale economies (larger deployments). Faster doubling (1-6 months) reflects the breakneck pace of current AI development. Slower doubling (12-24 months) reflects more mature technology phases or potential slowdowns due to physical limits or economic constraints. This parameter captures the computer science scaling that economists typically don't model.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="doubling_time" min="1" max="24" step="1" value="3">
                             <span class="slider-value" id="doubling_time_value">3</span>
@@ -1167,7 +1232,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Wage vs α_I',
+                        text: 'Wage vs αᵢ',
                         font: { size: 16 }
                     }
                 },
@@ -1198,7 +1263,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Total Output vs α_I',
+                        text: 'Total Output vs αᵢ',
                         font: { size: 16 }
                     }
                 },
@@ -1237,7 +1302,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'P and I Components vs α_I',
+                        text: 'P and I Components vs αᵢ',
                         font: { size: 16 }
                     }
                 },
@@ -1268,7 +1333,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Optimal Labor Allocation vs α_I',
+                        text: 'Optimal Labor Allocation vs αᵢ',
                         font: { size: 16 }
                     }
                 },
@@ -2253,6 +2318,38 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             updateIntelligenceChart();
             updateFunctionChart();
             updateCharts();
+        }
+        
+        // Toggle explanations visibility
+        function toggleExplanations() {
+            const descriptions = document.querySelectorAll('.parameter-description');
+            const labels = document.querySelectorAll('.parameter-label');
+            const toggleButton = document.getElementById('explanationsToggle');
+            
+            const isCurrentlyHidden = toggleButton.classList.contains('explanations-off');
+            
+            if (isCurrentlyHidden) {
+                // Show explanations
+                descriptions.forEach(desc => desc.classList.remove('minimized'));
+                labels.forEach(label => {
+                    label.classList.remove('has-tooltip');
+                    label.removeAttribute('data-tooltip');
+                });
+                toggleButton.textContent = 'Hide Explanations';
+                toggleButton.classList.remove('explanations-off');
+            } else {
+                // Hide explanations and add tooltips
+                descriptions.forEach(desc => {
+                    desc.classList.add('minimized');
+                    const label = desc.previousElementSibling;
+                    if (label && label.classList.contains('parameter-label')) {
+                        label.classList.add('has-tooltip');
+                        label.setAttribute('data-tooltip', desc.textContent);
+                    }
+                });
+                toggleButton.textContent = 'Show Explanations';
+                toggleButton.classList.add('explanations-off');
+            }
         }
         
         // Export functions
