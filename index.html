@@ -197,11 +197,17 @@
         
         .chart-container {
             background: white;
-            padding: 15px 20px 20px 20px;
+            padding: 10px 20px 20px 20px;
+            border-radius: 0 0 15px 15px;
+            position: relative;
+            height: 260px;
+        }
+        
+        .chart-wrapper-with-header {
+            background: white;
             border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            position: relative;
-            height: 280px;
+            margin-bottom: 20px;
         }
         
         .parameter-group {
@@ -348,13 +354,47 @@
             margin-bottom: 20px;
         }
         
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px 5px 20px;
+            background: white;
+            border-radius: 15px 15px 0 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .chart-legend {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 3px;
+            border-radius: 1px;
+        }
+        
         .export-buttons {
-            position: absolute;
-            top: 15px;
-            right: 20px;
             display: flex;
             gap: 5px;
-            z-index: 10;
         }
         
         .export-btn {
@@ -781,55 +821,113 @@
             </div>
             
             <div class="charts">
-                <div class="chart-wrapper">
-                    <div class="export-buttons">
-                        <button class="export-btn" onclick="exportChartPNG('wageChart', 'wage')">PNG</button>
-                        <button class="export-btn" onclick="exportChartCSV('wageChart', 'wage')">CSV</button>
+                <div class="chart-wrapper-with-header">
+                    <div class="chart-header">
+                        <div class="chart-title">Wage vs α<sub>i</sub></div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #e74c3c;"></div>
+                                <span>Wage</span>
+                            </div>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportChartPNG('wageChart', 'wage')">PNG</button>
+                            <button class="export-btn" onclick="exportChartCSV('wageChart', 'wage')">CSV</button>
+                        </div>
                     </div>
                     <div class="chart-container">
                         <canvas id="wageChart"></canvas>
                     </div>
                 </div>
-                <div class="chart-wrapper">
-                    <div class="export-buttons">
-                        <button class="export-btn" onclick="exportChartPNG('outputChart', 'output')">PNG</button>
-                        <button class="export-btn" onclick="exportChartCSV('outputChart', 'output')">CSV</button>
+                <div class="chart-wrapper-with-header">
+                    <div class="chart-header">
+                        <div class="chart-title">Total Output vs α<sub>i</sub></div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #27ae60;"></div>
+                                <span>Total Output Y</span>
+                            </div>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportChartPNG('outputChart', 'output')">PNG</button>
+                            <button class="export-btn" onclick="exportChartCSV('outputChart', 'output')">CSV</button>
+                        </div>
                     </div>
                     <div class="chart-container">
                         <canvas id="outputChart"></canvas>
                     </div>
                 </div>
-                <div class="chart-wrapper">
-                    <div class="export-buttons">
-                        <button class="export-btn" onclick="exportChartPNG('componentsChart', 'components')">PNG</button>
-                        <button class="export-btn" onclick="exportChartCSV('componentsChart', 'components')">CSV</button>
+                <div class="chart-wrapper-with-header">
+                    <div class="chart-header">
+                        <div class="chart-title">P and I Components vs α<sub>i</sub></div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #9b59b6;"></div>
+                                <span>P-nest Output</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #f39c12;"></div>
+                                <span>I-nest Output</span>
+                            </div>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportChartPNG('componentsChart', 'components')">PNG</button>
+                            <button class="export-btn" onclick="exportChartCSV('componentsChart', 'components')">CSV</button>
+                        </div>
                     </div>
                     <div class="chart-container">
                         <canvas id="componentsChart"></canvas>
                     </div>
                 </div>
-                <div class="chart-wrapper">
-                    <div class="export-buttons">
-                        <button class="export-btn" onclick="exportChartPNG('allocationChart', 'allocation')">PNG</button>
-                        <button class="export-btn" onclick="exportChartCSV('allocationChart', 'allocation')">CSV</button>
+                <div class="chart-wrapper-with-header">
+                    <div class="chart-header">
+                        <div class="chart-title">Optimal Labor Allocation vs α<sub>i</sub></div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #3498db;"></div>
+                                <span>β* (Optimal P-labor share)</span>
+                            </div>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportChartPNG('allocationChart', 'allocation')">PNG</button>
+                            <button class="export-btn" onclick="exportChartCSV('allocationChart', 'allocation')">CSV</button>
+                        </div>
                     </div>
                     <div class="chart-container">
                         <canvas id="allocationChart"></canvas>
                     </div>
                 </div>
-                <div class="chart-wrapper">
-                    <div class="export-buttons">
-                        <button class="export-btn" onclick="exportChartPNG('saturationChart', 'saturation')">PNG</button>
-                        <button class="export-btn" onclick="exportChartCSV('saturationChart', 'saturation')">CSV</button>
+                <div class="chart-wrapper-with-header">
+                    <div class="chart-header">
+                        <div class="chart-title">Intelligence Saturation</div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #9b59b6;"></div>
+                                <span>Intelligence Saturation</span>
+                            </div>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportChartPNG('saturationChart', 'saturation')">PNG</button>
+                            <button class="export-btn" onclick="exportChartCSV('saturationChart', 'saturation')">CSV</button>
+                        </div>
                     </div>
                     <div class="chart-container">
                         <canvas id="saturationChart"></canvas>
                     </div>
                 </div>
-                <div class="chart-wrapper" id="secretChart" style="display: none;">
-                    <div class="export-buttons">
-                        <button class="export-btn" onclick="exportChartPNG('productivityChart', 'productivity')">PNG</button>
-                        <button class="export-btn" onclick="exportChartCSV('productivityChart', 'productivity')">CSV</button>
+                <div class="chart-wrapper-with-header" id="secretChart" style="display: none;">
+                    <div class="chart-header">
+                        <div class="chart-title">Productivity Analysis</div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #e74c3c;"></div>
+                                <span>Productivity</span>
+                            </div>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="export-btn" onclick="exportChartPNG('productivityChart', 'productivity')">PNG</button>
+                            <button class="export-btn" onclick="exportChartCSV('productivityChart', 'productivity')">CSV</button>
+                        </div>
                     </div>
                     <div class="chart-container">
                         <canvas id="productivityChart"></canvas>
@@ -1231,29 +1329,18 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        right: 80,
+                        top: 5,
+                        right: 0,
                         bottom: 0,
                         left: 0
                     }
                 },
                 plugins: {
                     title: {
-                        display: true,
-                        text: 'Wage vs αᵢ',
-                        font: { size: 14 },
-                        padding: { top: 5, bottom: 5 },
-                        align: 'start'
+                        display: false
                     },
                     legend: {
-                        display: true,
-                        position: 'top',
-                        align: 'center',
-                        labels: {
-                            boxWidth: 15,
-                            padding: 10,
-                            font: { size: 11 }
-                        }
+                        display: false
                     }
                 },
                 scales: {
@@ -1289,29 +1376,18 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        right: 80,
+                        top: 5,
+                        right: 0,
                         bottom: 0,
                         left: 0
                     }
                 },
                 plugins: {
                     title: {
-                        display: true,
-                        text: 'Total Output vs αᵢ',
-                        font: { size: 14 },
-                        padding: { top: 5, bottom: 5 },
-                        align: 'start'
+                        display: false
                     },
                     legend: {
-                        display: true,
-                        position: 'top',
-                        align: 'center',
-                        labels: {
-                            boxWidth: 15,
-                            padding: 10,
-                            font: { size: 11 }
-                        }
+                        display: false
                     }
                 },
                 scales: {
@@ -1355,29 +1431,18 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        right: 80,
+                        top: 5,
+                        right: 0,
                         bottom: 0,
                         left: 0
                     }
                 },
                 plugins: {
                     title: {
-                        display: true,
-                        text: 'P and I Components vs αᵢ',
-                        font: { size: 14 },
-                        padding: { top: 5, bottom: 5 },
-                        align: 'start'
+                        display: false
                     },
                     legend: {
-                        display: true,
-                        position: 'top',
-                        align: 'center',
-                        labels: {
-                            boxWidth: 15,
-                            padding: 10,
-                            font: { size: 11 }
-                        }
+                        display: false
                     }
                 },
                 scales: {
@@ -1413,29 +1478,18 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        right: 80,
+                        top: 5,
+                        right: 0,
                         bottom: 0,
                         left: 0
                     }
                 },
                 plugins: {
                     title: {
-                        display: true,
-                        text: 'Optimal Labor Allocation vs αᵢ',
-                        font: { size: 14 },
-                        padding: { top: 5, bottom: 5 },
-                        align: 'start'
+                        display: false
                     },
                     legend: {
-                        display: true,
-                        position: 'top',
-                        align: 'center',
-                        labels: {
-                            boxWidth: 15,
-                            padding: 10,
-                            font: { size: 11 }
-                        }
+                        display: false
                     }
                 },
                 scales: {
@@ -1538,8 +1592,8 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        right: 80,
+                        top: 5,
+                        right: 0,
                         bottom: 0,
                         left: 0
                     }
@@ -1612,8 +1666,8 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        top: 10,
-                        right: 80,
+                        top: 5,
+                        right: 0,
                         bottom: 0,
                         left: 0
                     }
@@ -2359,10 +2413,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                                 },
                                 plugins: {
                                     title: {
-                                        display: true,
-                                        text: 'Intelligence Saturation',
-                                        font: { size: 16, weight: 'bold' },
-                                        color: '#9b59b6'
+                                        display: false
                                     },
                                     legend: { display: false }
                                 }
