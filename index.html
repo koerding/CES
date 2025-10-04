@@ -587,8 +587,8 @@
                         <label class="parameter-label">Physical Capital (K<sub>P</sub>)</label>
                         <div class="parameter-description">Physical capital ($K_P$) represents traditional capital goods like machines, buildings, and equipment used in physical production. This is distinct from AI/intelligence capital. Higher $K_P$ means more physical infrastructure per worker - think factories with more machines, construction with better equipment, or restaurants with more kitchen tools. $K_P=1.5$ is calibrated to match the 2023 US economy's capital-to-labor ratio of about 5.8. Increasing $K_P$ helps maintain wages as workers shift to physical tasks during AI automation.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="K" min="0.5" max="3.0" step="0.1" value="1.5">
-                            <span class="slider-value" id="K_value">1.5</span>
+                            <input type="range" class="slider" id="K" min="0.5" max="3.0" step="0.1" value="1.74">
+                            <span class="slider-value" id="K_value">1.74</span>
                         </div>
                     </div>
                     
@@ -725,8 +725,8 @@
                         <label class="parameter-label">Total Labor (L)</label>
                         <div class="parameter-description">Total labor supply ($L$) represents the size of the workforce, normalized to $L=1$ as baseline. Unlike traditional models where labor allocation is fixed, here labor endogenously reallocates between physical and intelligence tasks to equalize marginal productivity (wages) across sectors. As AI automates more intelligence tasks, workers optimally shift toward physical production. Increasing $L$ simulates population growth or immigration; decreasing $L$ simulates demographic decline. The model solves for the optimal allocation $\beta^*$ that balances wages between sectors.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="L" min="0.5" max="2.0" step="0.1" value="1.0">
-                            <span class="slider-value" id="L_value">1.0</span>
+                            <input type="range" class="slider" id="L" min="0.5" max="2.0" step="0.1" value="0.30">
+                            <span class="slider-value" id="L_value">0.30</span>
                         </div>
                     </div>
                     
@@ -734,8 +734,8 @@
                         <label class="parameter-label">P-weight in Top CES (τ)</label>
                         <div class="parameter-description">Physical weight ($\tau$) determines how much the economy depends on physical versus intelligence inputs in final production. $\tau=0$ would be a pure virtual economy (like a metaverse) where only intelligence matters. $\tau=1$ would be a pure physical economy where intelligence adds no value. Our baseline $\tau=0.18$ reflects that about 26% of US workers are in manual occupations. This parameter is crucial for wage effects: higher $\tau$ protects workers during automation by giving them more physical tasks to move into. Lower $\tau$ makes automation more beneficial for output but potentially harmful for wages.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="tau" min="0.15" max="0.4" step="0.01" value="0.18">
-                            <span class="slider-value" id="tau_value">0.18</span>
+                            <input type="range" class="slider" id="tau" min="0.15" max="0.4" step="0.01" value="0.20">
+                            <span class="slider-value" id="tau_value">0.20</span>
                         </div>
                     </div>
                     
@@ -2464,8 +2464,8 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         // Reset all parameters to defaults
         function resetAllParameters() {
             // Physical tab
-            document.getElementById('K').value = '1.5';
-            document.getElementById('K_value').textContent = '1.5';
+            document.getElementById('K').value = '1.74';
+            document.getElementById('K_value').textContent = '1.74';
             document.getElementById('alpha_P').value = '0.7';
             document.getElementById('alpha_P_value').textContent = '0.7';
             document.getElementById('rho_P').value = '-0.67';
@@ -2484,10 +2484,10 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             document.getElementById('theta_I_value').textContent = '0.94';
             
             // Overall tab
-            document.getElementById('L').value = '1.0';
-            document.getElementById('L_value').textContent = '1.0';
-            document.getElementById('tau').value = '0.18';
-            document.getElementById('tau_value').textContent = '0.18';
+            document.getElementById('L').value = '0.30';
+            document.getElementById('L_value').textContent = '0.30';
+            document.getElementById('tau').value = '0.20';
+            document.getElementById('tau_value').textContent = '0.20';
             document.getElementById('rho').value = '-0.67';
             document.getElementById('rho_value').textContent = '-0.67';
             document.getElementById('eta').value = '0.5';
