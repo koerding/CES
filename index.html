@@ -515,13 +515,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>An Economy with Physical and Intellectual Inputs, Each Consisting of Labor and Capital</h1>
+        <h1>Interactive 2‑Nest CES: Physical vs. Intelligence</h1>
         
         <div class="main-content">
             <div class="controls">
                 <div class="button-container">
-                    <button class="reset-button" onclick="resetAllParameters()">Reset All Parameters</button>
-                    <button class="toggle-explanations" onclick="toggleExplanations()" id="explanationsToggle">Hide Explanations</button>
+                    <button class="reset-button" onclick="resetAllParameters()">Reset to Baseline</button>
+                    <button class="toggle-explanations" onclick="toggleExplanations()" id="explanationsToggle">Toggle Tooltips</button>
                 </div>
                 <svg class="ces-diagram" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
                     <defs>
@@ -585,7 +585,7 @@
                 <div class="tab-content active physical-tab">
                     <div class="parameter-group">
                         <label class="parameter-label">Physical Capital (K<sub>P</sub>)</label>
-                        <div class="parameter-description">Physical capital ($K_P$) represents traditional capital goods like machines, buildings, and equipment used in physical production. This is distinct from AI/intelligence capital. Higher $K_P$ means more physical infrastructure per worker - think factories with more machines, construction with better equipment, or restaurants with more kitchen tools. $K_P=1.5$ is calibrated to match the 2023 US economy's capital-to-labor ratio of about 5.8. Increasing $K_P$ helps maintain wages as workers shift to physical tasks during AI automation.</div>
+                        <div class="parameter-description">Physical capital ($K_P$) represents traditional capital goods like machines, buildings, and equipment used in physical production. This is distinct from AI/intelligence capital. Higher $K_P$ means more physical infrastructure per worker - think factories with more machines, construction with better equipment, or restaurants with more kitchen tools. $K_P=1.74$ is calibrated to match the 2023 US economy's capital-to-labor ratio of about 5.8. Increasing $K_P$ helps maintain wages as workers shift to physical tasks during AI automation.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="K" min="0.5" max="3.0" step="0.1" value="1.74">
                             <span class="slider-value" id="K_value">1.74</span>
@@ -607,18 +607,19 @@
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_P" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_P_value">-0.67</span>
+                            <span class="elasticity-display" id="sigma_P_display" style="margin-left: 10px; font-size: 0.9em; color: #666;">σ = 0.6</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
                         <label class="parameter-label">P-nest Aggregation Method</label>
-                        <div class="parameter-description">Choose how to aggregate capital and labor in physical production. CES (Constant Elasticity of Substitution) is the standard economic production function where substitutability between inputs stays constant. DS (Dixit-Stiglitz) is similar but adds a scaling parameter $\theta_P$ that allows for increasing or decreasing returns to scale - useful for modeling situations where doubling all inputs might more than double output (economies of scale) or less than double it (congestion effects). Most economists use CES; DS gives more flexibility.</div>
+                        <div class="parameter-description">Choose how to aggregate capital and labor in physical production. CES: Standard production function. CES with scale (DS-weights): Adds θ and DS-style weights α^(1-ρ); no love-of-variety micro-foundation implied.</div>
                         <div class="toggle-container">
                             <span>CES</span>
                             <div class="toggle" id="p_agg_toggle" onclick="togglePAggregation()">
                                 <div class="toggle-knob"></div>
                             </div>
-                            <span>DS</span>
+                            <span>CES with scale</span>
                         </div>
                     </div>
                     
@@ -647,21 +648,21 @@
                 <div class="tab-content intelligence-tab">
                     <div class="parameter-group">
                         <label class="parameter-label">AI Capital (K<sub>I</sub>)</label>
-                        <div class="parameter-description">AI capital ($K_I$) represents the effective computational capacity available for intelligence tasks - think of it as the total "brain power" from all AI systems combined. This includes hardware (GPUs, servers), software efficiency, and algorithmic improvements. $K_I=9$ represents an "abundant AI" scenario where there's about 6 times more AI capital than physical capital. Higher $K_I$ means more tasks can be automated and AI can substitute for human cognitive work more easily. Unlike physical capital, AI capital has been growing exponentially - costs halving every 3 months in some domains.</div>
+                        <div class="parameter-description">AI capital ($K_I$) represents the effective computational capacity available for intelligence tasks - think of it as the total "brain power" from all AI systems combined. This includes hardware (GPUs, servers), software efficiency, and algorithmic improvements. $K_I=9$ represents an "abundant AI" scenario where there's about 5 times more AI capital than physical capital. Higher $K_I$ means more tasks can be automated and AI can substitute for human cognitive work more easily. Unlike physical capital, AI capital has been growing exponentially - costs halving every 3 months in some domains.</div>
                         <div id="ai-capital-note" class="parameter-note" style="display: none; margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="AI" min="0" max="5" step="0.1" value="0.95">
-                            <span class="slider-value" id="AI_value">9.0e+00</span>
+                            <span class="slider-value" id="AI_value">9.0</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
                         <label class="parameter-label">AI Share in I-nest (α<sub>I</sub>)</label>
-                        <div class="parameter-description">Automation share ($\alpha_I$) is the fraction of intelligence tasks that have been automated by AI. This is the key parameter that increases as AI capabilities expand over time. $\alpha_I=0$ means no tasks are automated (all intelligence work done by humans), $\alpha_I=0.5$ means half of cognitive tasks are automated, and $\alpha_I=1$ means full automation of intelligence work. Our baseline $\alpha_I=0.9$ represents a near-future scenario where 90% of cognitive tasks can be done by AI. This parameter drives the main dynamics in our model - as it increases, workers reallocate from intelligence to physical tasks.</div>
+                        <div class="parameter-description">Automation share ($\alpha_I$) is the fraction of intelligence tasks that have been automated by AI. This is the key parameter that increases as AI capabilities expand over time. $\alpha_I=0$ means no tasks are automated (all intelligence work done by humans), $\alpha_I=0.5$ means half of cognitive tasks are automated, and $\alpha_I=1$ means full automation of intelligence work. Our baseline $\alpha_I=0.2$ represents a near-term scenario where 20% of cognitive tasks can be done by AI. This parameter drives the main dynamics in our model - as it increases, workers reallocate from intelligence to physical tasks.</div>
                         <div class="parameter-note" style="margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="alpha_I" min="0" max="1" step="0.05" value="0.9">
-                            <span class="slider-value" id="alpha_I_value">0.9</span>
+                            <input type="range" class="slider" id="alpha_I" min="0" max="1" step="0.05" value="0.2">
+                            <span class="slider-value" id="alpha_I_value">0.2</span>
                         </div>
                     </div>
                     
@@ -671,18 +672,19 @@
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_I" min="-2.0" max="2.0" step="0.05" value="0.55">
                             <span class="slider-value" id="rho_I_value">0.55</span>
+                            <span class="elasticity-display" id="sigma_I_display" style="margin-left: 10px; font-size: 0.9em; color: #666;">σ = 2.2</span>
                         </div>
                     </div>
                     
                     <div class="parameter-group">
                         <label class="parameter-label">I-nest Aggregation Method</label>
-                        <div class="parameter-description">Choose how to aggregate AI capital and human intelligence. CES (Constant Elasticity of Substitution) treats AI and human intelligence with fixed substitutability. DS (Dixit-Stiglitz) adds a scaling parameter $\theta_I$ that captures the power-law relationships observed in AI research - where doubling compute might give sublinear performance improvements. This reflects empirical AI scaling laws showing diminishing returns to additional compute, consistent with findings that model performance scales as a power of training compute, data, and parameters.</div>
+                        <div class="parameter-description">Choose how to aggregate AI capital and human intelligence. CES: Standard aggregation function. CES with scale (DS-weights): Adds θ_I and DS-style weights α^(1-ρ); no love-of-variety micro-foundation implied.</div>
                         <div class="toggle-container">
                             <span>CES</span>
                             <div class="toggle active" id="i_agg_toggle" onclick="toggleIAggregation()">
                                 <div class="toggle-knob"></div>
                             </div>
-                            <span>DS</span>
+                            <span>CES with scale</span>
                         </div>
                     </div>
                     
@@ -711,7 +713,7 @@
                 <div class="tab-content overall-tab">
                     <div class="parameter-group">
                         <label class="parameter-label">Aggregation Method</label>
-                        <div class="parameter-description">Choose how to combine physical and intelligence outputs into final production. CES (Constant Elasticity of Substitution) provides smooth substitution with constant elasticity throughout. PSI (S-curve) has fundamentally different behavior: it acts like perfect complements when intelligence is low (you need both physical and intelligence inputs), but approaches perfect substitutes when intelligence is very high (pure intelligence can completely replace physical production). This captures scenarios where AI might initially complement human work but eventually completely automate entire sectors, achieving full saturation that CES cannot model.</div>
+                        <div class="parameter-description">Choose how to combine physical and intelligence outputs into final production. CES (paper baseline): standard top-nest CES in P,I; with ρ<0 we get intelligence saturation. PSI (S-curve — experimental): Toy S-curve that saturates at Y≈P as I grows (Y=P·(I/P)^η/(a+(I/P)^η)). Useful for thought experiments; not in the paper's baseline.</div>
                         <div class="toggle-container">
                             <span>CES</span>
                             <div class="toggle" id="agg_toggle" onclick="toggleAggregation()">
@@ -732,7 +734,7 @@
                     
                     <div class="parameter-group ces-params">
                         <label class="parameter-label">P-weight in Top CES (τ)</label>
-                        <div class="parameter-description">Physical weight ($\tau$) determines how much the economy depends on physical versus intelligence inputs in final production. $\tau=0$ would be a pure virtual economy (like a metaverse) where only intelligence matters. $\tau=1$ would be a pure physical economy where intelligence adds no value. Our baseline $\tau=0.18$ reflects that about 26% of US workers are in manual occupations. This parameter is crucial for wage effects: higher $\tau$ protects workers during automation by giving them more physical tasks to move into. Lower $\tau$ makes automation more beneficial for output but potentially harmful for wages.</div>
+                        <div class="parameter-description">Physical weight ($\tau$) determines how much the economy depends on physical versus intelligence inputs in final production. $\tau=0$ would be a pure virtual economy (like a metaverse) where only intelligence matters. $\tau=1$ would be a pure physical economy where intelligence adds no value. Our baseline $\tau=0.20$ reflects that about 26% of US workers are in manual occupations. This parameter is crucial for wage effects: higher $\tau$ protects workers during automation by giving them more physical tasks to move into. Lower $\tau$ makes automation more beneficial for output but potentially harmful for wages.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="tau" min="0.15" max="0.4" step="0.01" value="0.20">
                             <span class="slider-value" id="tau_value">0.20</span>
@@ -745,6 +747,7 @@
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_value">-0.67</span>
+                            <span class="elasticity-display" id="sigma_display" style="margin-left: 10px; font-size: 0.9em; color: #666;">σ = 0.6</span>
                         </div>
                     </div>
                     
@@ -823,7 +826,7 @@
             <div class="charts">
                 <div class="chart-wrapper-with-header">
                     <div class="chart-header">
-                        <div class="chart-title">Wage vs α<sub>i</sub></div>
+                        <div class="chart-title">Wage vs α<sub>I</sub></div>
                         <div class="chart-legend">
                             <div class="legend-item">
                                 <div class="legend-color" style="background: #e74c3c;"></div>
@@ -841,7 +844,7 @@
                 </div>
                 <div class="chart-wrapper-with-header">
                     <div class="chart-header">
-                        <div class="chart-title">Total Output vs α<sub>i</sub></div>
+                        <div class="chart-title">Total Output vs α<sub>I</sub></div>
                         <div class="chart-legend">
                             <div class="legend-item">
                                 <div class="legend-color" style="background: #27ae60;"></div>
@@ -859,7 +862,7 @@
                 </div>
                 <div class="chart-wrapper-with-header">
                     <div class="chart-header">
-                        <div class="chart-title">P and I Components vs α<sub>i</sub></div>
+                        <div class="chart-title">P and I Components vs α<sub>I</sub></div>
                         <div class="chart-legend">
                             <div class="legend-item">
                                 <div class="legend-color" style="background: #9b59b6;"></div>
@@ -881,7 +884,7 @@
                 </div>
                 <div class="chart-wrapper-with-header">
                     <div class="chart-header">
-                        <div class="chart-title">Optimal Labor Allocation vs α<sub>i</sub></div>
+                        <div class="chart-title">Optimal Labor Allocation vs α<sub>I</sub></div>
                         <div class="chart-legend">
                             <div class="legend-item">
                                 <div class="legend-color" style="background: #3498db;"></div>
@@ -1834,7 +1837,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         function updateIntelligenceEquation() {
             const equationDiv = document.getElementById('intelligence-equation');
             if (currentIAgg === 'CES') {
-                equationDiv.innerHTML = '$$I = \\left[\\alpha_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\alpha_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{1/\\rho_I}$$';
+                equationDiv.innerHTML = '$$I = \\left[\\alpha_I K_I^{\\rho_I} + (1-\\alpha_I) L_I^{\\rho_I}\\right]^{1/\\rho_I}$$';
             } else {
                 // DS case - this is the original equation that was there before
                 equationDiv.innerHTML = '$$I = \\left[\\alpha_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\alpha_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{\\theta_I/\\rho_I}$$';
@@ -2279,7 +2282,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                                     borderWidth: 2,
                                     borderDash: [5, 5],
                                     label: {
-                                        content: 'β_I = 1',
+                                        content: 'α_I = 1 (full automation)',
                                         enabled: true,
                                         position: 'top'
                                     }
@@ -2296,7 +2299,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                                     borderWidth: 2,
                                     borderDash: [5, 5],
                                     label: {
-                                        content: 'β_I = 1',
+                                        content: 'α_I = 1 (full automation)',
                                         enabled: true,
                                         position: 'top'
                                     }
@@ -2313,7 +2316,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                                     borderWidth: 2,
                                     borderDash: [5, 5],
                                     label: {
-                                        content: 'β_I = 1',
+                                        content: 'α_I = 1 (full automation)',
                                         enabled: true,
                                         position: 'top'
                                     }
@@ -2330,7 +2333,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                                     borderWidth: 2,
                                     borderDash: [5, 5],
                                     label: {
-                                        content: 'β_I = 1',
+                                        content: 'α_I = 1 (full automation)',
                                         enabled: true,
                                         position: 'top'
                                     }
@@ -2442,10 +2445,22 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 slider.addEventListener('input', function() {
                     if (this.id === 'AI') {
                         // Log scale display: show 10^value
-                        const logValue = Math.pow(10, parseFloat(this.value));
-                        valueSpan.textContent = logValue.toExponential(2);
+                        const x = Math.pow(10, parseFloat(this.value));
+                        valueSpan.textContent = (x >= 0.001 && x < 10000) ? x.toFixed(1) : x.toExponential(2);
                     } else {
                         valueSpan.textContent = this.value;
+                    }
+
+                    // Update elasticity displays for rho parameters
+                    if (this.id === 'rho_P') {
+                        const sigma = 1 / (1 - parseFloat(this.value));
+                        document.getElementById('sigma_P_display').textContent = `σ = ${sigma.toFixed(1)}`;
+                    } else if (this.id === 'rho_I') {
+                        const sigma = 1 / (1 - parseFloat(this.value));
+                        document.getElementById('sigma_I_display').textContent = `σ = ${sigma.toFixed(1)}`;
+                    } else if (this.id === 'rho') {
+                        const sigma = 1 / (1 - parseFloat(this.value));
+                        document.getElementById('sigma_display').textContent = `σ = ${sigma.toFixed(1)}`;
                     }
                 });
                 
@@ -2475,9 +2490,9 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             
             // Intelligence tab
             document.getElementById('AI').value = '0.95';
-            document.getElementById('AI_value').textContent = '9.0e+00';
-            document.getElementById('alpha_I').value = '0.9';
-            document.getElementById('alpha_I_value').textContent = '0.9';
+            document.getElementById('AI_value').textContent = '9.0';
+            document.getElementById('alpha_I').value = '0.2';
+            document.getElementById('alpha_I_value').textContent = '0.2';
             document.getElementById('rho_I').value = '0.55';
             document.getElementById('rho_I_value').textContent = '0.55';
             document.getElementById('theta_I').value = '0.94';
@@ -2540,7 +2555,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                     label.classList.remove('has-tooltip');
                     label.removeAttribute('data-tooltip');
                 });
-                toggleButton.textContent = 'Hide Explanations';
+                toggleButton.textContent = 'Toggle Tooltips';
                 toggleButton.classList.remove('explanations-off');
             } else {
                 // Hide explanations and add tooltips
@@ -2552,7 +2567,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                         label.setAttribute('data-tooltip', desc.textContent);
                     }
                 });
-                toggleButton.textContent = 'Show Explanations';
+                toggleButton.textContent = 'Toggle Tooltips';
                 toggleButton.classList.add('explanations-off');
             }
         }
