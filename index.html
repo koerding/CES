@@ -521,7 +521,7 @@
             <div class="controls">
                 <div class="button-container">
                     <button class="reset-button" onclick="resetAllParameters()">Reset to Baseline</button>
-                    <button class="toggle-explanations" onclick="toggleExplanations()" id="explanationsToggle">Toggle Tooltips</button>
+                    <button class="toggle-explanations" onclick="toggleExplanations()" id="explanationsToggle">Toggle tool tips</button>
                 </div>
                 <svg class="ces-diagram" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
                     <defs>
@@ -593,21 +593,21 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">Capital Share in P-nest (α<sub>P</sub>)</label>
-                        <div class="parameter-description">Capital share ($\alpha_P$) determines how much physical production relies on capital versus labor in the CES production function. It's the relative importance of machines vs workers in creating physical output. $\alpha_P=0$ means production uses only labor (pure handicraft economy), $\alpha_P=1$ means only capital matters (fully automated physical production). $\alpha_P=0.7$ reflects that in the US economy, about 42% of income goes to capital owners while 58% goes to workers. This parameter affects how easily capital can replace workers in physical tasks.</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="alpha_P" min="0.1" max="0.9" step="0.05" value="0.7">
-                            <span class="slider-value" id="alpha_P_value">0.7</span>
-                        </div>
-                    </div>
-                    
-                    <div class="parameter-group">
                         <label class="parameter-label">P-nest Substitution (ρ<sub>P</sub>)</label>
                         <div class="parameter-description">The substitution parameter ($\rho_P$) controls how easily physical capital can replace human labor in physical tasks. When $\rho_P\to 1$, robots can perfectly replace workers (perfect substitutes). When $\rho_P=0$, you get the standard Cobb-Douglas case where both are needed in fixed proportions. When $\rho_P\to -\infty$, capital and labor are perfect complements - you need both, like a driver and a truck. Our baseline $\rho_P=-0.67$ gives an elasticity of substitution $\sigma=0.6$, matching empirical estimates from US manufacturing where machines and workers are somewhat complementary but not perfectly so. Lower $\rho_P$ means it's harder for robots to replace physical workers.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_P" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_P_value">-0.67</span>
                             <span class="elasticity-display" id="sigma_P_display" style="margin-left: 10px; font-size: 0.9em; color: #666;">σ = 0.6</span>
+                        </div>
+                    </div>
+
+                    <div class="parameter-group">
+                        <label class="parameter-label">Capital Share in P-nest (α<sub>P</sub>)</label>
+                        <div class="parameter-description">Capital share ($\alpha_P$) determines how much physical production relies on capital versus labor in the CES production function. It's the relative importance of machines vs workers in creating physical output. $\alpha_P=0$ means production uses only labor (pure handicraft economy), $\alpha_P=1$ means only capital matters (fully automated physical production). $\alpha_P=0.7$ reflects that in the US economy, about 42% of income goes to capital owners while 58% goes to workers.</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="alpha_P" min="0.1" max="0.9" step="0.05" value="0.7">
+                            <span class="slider-value" id="alpha_P_value">0.7</span>
                         </div>
                     </div>
                     
@@ -676,17 +676,6 @@
                         </div>
                     </div>
                     
-                    <div class="parameter-group">
-                        <label class="parameter-label">I-nest Aggregation Method</label>
-                        <div class="parameter-description">Choose how to aggregate AI capital and human intelligence. CES: Standard aggregation function. CES with scale (DS-weights): Adds θ_I and DS-style weights α^(1-ρ); no love-of-variety micro-foundation implied.</div>
-                        <div class="toggle-container">
-                            <span>CES</span>
-                            <div class="toggle active" id="i_agg_toggle" onclick="toggleIAggregation()">
-                                <div class="toggle-knob"></div>
-                            </div>
-                            <span>CES with scale</span>
-                        </div>
-                    </div>
                     
                     <div class="parameter-group i-ds-params">
                         <label class="parameter-label">I-nest Scaling (θ<sub>I</sub>)</label>
@@ -711,17 +700,6 @@
                 </div>
                 
                 <div class="tab-content overall-tab">
-                    <div class="parameter-group">
-                        <label class="parameter-label">Aggregation Method</label>
-                        <div class="parameter-description">Choose how to combine physical and intelligence outputs into final production. CES (paper baseline): standard top-nest CES in P,I; with ρ<0 we get intelligence saturation. PSI (S-curve — experimental): Toy S-curve that saturates at Y≈P as I grows (Y=P·(I/P)^η/(a+(I/P)^η)). Useful for thought experiments; not in the paper's baseline.</div>
-                        <div class="toggle-container">
-                            <span>CES</span>
-                            <div class="toggle" id="agg_toggle" onclick="toggleAggregation()">
-                                <div class="toggle-knob"></div>
-                            </div>
-                            <span>PSI</span>
-                        </div>
-                    </div>
                     
                     <div class="parameter-group">
                         <label class="parameter-label">Total Labor (L)</label>
@@ -751,23 +729,6 @@
                         </div>
                     </div>
                     
-                    <div class="parameter-group psi-params" style="display: none;">
-                        <label class="parameter-label">PSI Exponent (η)</label>
-                        <div class="parameter-description">PSI S-curve exponent ($\eta$) controls how sharp the transition is from the low-intelligence regime (where physical and intelligence are complements) to the high-intelligence regime (where intelligence can fully substitute for physical production). Low $\eta$ means a gradual S-curve transition between these regimes. High $\eta$ means a sharp transition - the economy quickly flips from needing both inputs to intelligence being able to completely replace physical production. $\eta=0.5$ gives moderate transition sharpness. This captures whether intelligence saturation happens gradually or suddenly.</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="eta" min="0.01" max="2.0" step="0.01" value="0.5">
-                            <span class="slider-value" id="eta_value">0.5</span>
-                        </div>
-                    </div>
-                    
-                    <div class="parameter-group psi-params" style="display: none;">
-                        <label class="parameter-label">PSI Denominator (a)</label>
-                        <div class="parameter-description">PSI transition parameter ($a$) sets the intelligence level where the S-curve transitions from the complementary regime (low intelligence) to the substitutable regime (high intelligence). Higher $a$ means you need much more intelligence before it can start fully replacing physical production. $a=4.6$ means intelligence must reach 4.6 times its baseline level before complete substitution becomes possible. This captures the idea that AI might need to be extraordinarily capable before it can fully replace physical processes - reflecting real-world constraints where even very smart AI still needs physical implementation.</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="a_param" min="0.1" max="10.0" step="0.1" value="4.6">
-                            <span class="slider-value" id="a_param_value">4.6</span>
-                        </div>
-                    </div>
                     
                     <div class="equation-display" id="overall-equation">
                         $$Y = \left[\tau P^{\rho} + (1-\tau) I^{\rho}\right]^{1/\rho}$$
@@ -942,6 +903,7 @@
 
     <script>
         // Global state
+        const ALPHA_EPS = 1e-6;   // use right-limit at 0 and left-limit at 1
         let currentAgg = 'CES';
         let currentAIMode = 'Fixed';
         let currentPAgg = 'CES'; // Physical nest aggregation method (default)
@@ -1089,26 +1051,15 @@
         }
         
 function computeI(LI, alpha_I, AI, rho_I, theta_I) {
-    if (currentIAgg === 'DS') {
-        return computeDS(AI, LI, alpha_I, rho_I, theta_I);
-    } else {
-        return computeCES(AI, LI, alpha_I, rho_I);
-    }
+    // Intelligence nest always uses DS (CES with scale)
+    return computeDS(AI, LI, alpha_I, rho_I, theta_I);
 }
 
 function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
-    if (currentIAgg === 'DS') {
-        return dDS_dinput2(AI, LI, alpha_I, rho_I, theta_I);
-    } else {
-        return dCES_dinput2(AI, LI, alpha_I, rho_I);
-    }
+    // Intelligence nest always uses DS (CES with scale)
+    return dDS_dinput2(AI, LI, alpha_I, rho_I, theta_I);
 }
-        function computePSI(P, I, params) {
-            const x = P != 0 ? I / P : 0.0;
-            const eta = params.eta;
-            const a = params.a_param;
-            return P * (Math.pow(x, eta) / (a + Math.pow(x, eta)));
-        }
+        // PSI function removed - overall aggregation always uses CES
         
         function dY_dP_psi(P, I, params) {
             const x = P != 0 ? I / P : 0.0;
@@ -1129,20 +1080,17 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         }
         
         function computeY(P, I, params) {
-            if (params.agg === 'CES') {
-                const rho = params.rho;
-                const tau = params.tau;
-                
-                if (Math.abs(rho) < 1e-10) {
-                    // Cobb-Douglas case: Y = P^τ * I^(1-τ)
-                    return Math.pow(P, tau) * Math.pow(I, 1 - tau);
-                }
-                
-                const inside = tau * Math.pow(P, rho) + (1 - tau) * Math.pow(I, rho);
-                return Math.pow(inside, 1 / rho);
-            } else {
-                return computePSI(P, I, params);
+            // Overall aggregation always uses CES
+            const rho = params.rho;
+            const tau = params.tau;
+
+            if (Math.abs(rho) < 1e-10) {
+                // Cobb-Douglas case: Y = P^τ * I^(1-τ)
+                return Math.pow(P, tau) * Math.pow(I, 1 - tau);
             }
+
+            const inside = tau * Math.pow(P, rho) + (1 - tau) * Math.pow(I, rho);
+            return Math.pow(inside, 1 / rho);
         }
         
         function dY_dP(P, I, params) {
@@ -1732,15 +1680,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         }
         
         // Toggle aggregation method
-        function toggleAggregation() {
-            const toggle = document.getElementById('agg_toggle');
-            toggle.classList.toggle('active');
-            currentAgg = toggle.classList.contains('active') ? 'PSI' : 'CES';
-            updateParameterVisibility();
-            updateEquation();
-            updateFunctionChart();
-            updateCharts();
-        }
+        // Aggregation toggle removed - overall production always uses CES
         
         function togglePAggregation() {
             const toggle = document.getElementById('p_agg_toggle');
@@ -1752,15 +1692,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             updateCharts();
         }
         
-        function toggleIAggregation() {
-            const toggle = document.getElementById('i_agg_toggle');
-            toggle.classList.toggle('active');
-            currentIAgg = toggle.classList.contains('active') ? 'DS' : 'CES';
-            updateNestParameterVisibility();
-            updateIntelligenceEquation();
-            updateIntelligenceChart();
-            updateCharts();
-        }
+        // I-aggregation toggle removed - intelligence nest always uses DS
         
         // Update AI mode visibility and text
         function updateAIModeVisibility() {
@@ -1782,16 +1714,12 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         
         // Update parameter visibility based on aggregation method
         function updateParameterVisibility() {
+            // Overall aggregation always uses CES
             const cesParams = document.querySelectorAll('.ces-params');
             const psiParams = document.querySelectorAll('.psi-params');
-            
-            if (currentAgg === 'CES') {
-                cesParams.forEach(param => param.style.display = 'block');
-                psiParams.forEach(param => param.style.display = 'none');
-            } else {
-                cesParams.forEach(param => param.style.display = 'none');
-                psiParams.forEach(param => param.style.display = 'block');
-            }
+
+            cesParams.forEach(param => param.style.display = 'block');
+            psiParams.forEach(param => param.style.display = 'none');
         }
         
         function updateNestParameterVisibility() {
@@ -1811,13 +1739,9 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             const iCesParams = document.querySelectorAll('.i-ces-params');
             const iDsParams = document.querySelectorAll('.i-ds-params');
             
-            if (currentIAgg === 'CES') {
-                iCesParams.forEach(param => param.style.display = 'block');
-                iDsParams.forEach(param => param.style.display = 'none');
-            } else {
-                iCesParams.forEach(param => param.style.display = 'none');
-                iDsParams.forEach(param => param.style.display = 'block');
-            }
+            // Intelligence nest always uses DS (CES with scale)
+            iCesParams.forEach(param => param.style.display = 'none');
+            iDsParams.forEach(param => param.style.display = 'block');
         }
         
         // Update the physical equation display based on aggregation method
@@ -1836,12 +1760,8 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         // Update the intelligence equation display based on aggregation method
         function updateIntelligenceEquation() {
             const equationDiv = document.getElementById('intelligence-equation');
-            if (currentIAgg === 'CES') {
-                equationDiv.innerHTML = '$$I = \\left[\\alpha_I K_I^{\\rho_I} + (1-\\alpha_I) L_I^{\\rho_I}\\right]^{1/\\rho_I}$$';
-            } else {
-                // DS case - this is the original equation that was there before
-                equationDiv.innerHTML = '$$I = \\left[\\alpha_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\alpha_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{\\theta_I/\\rho_I}$$';
-            }
+            // Intelligence nest always uses DS (CES with scale)
+            equationDiv.innerHTML = '$$I = \\left[\\alpha_I^{1-\\rho_I} K_I^{\\rho_I} + (1-\\alpha_I)^{1-\\rho_I} L_I^{\\rho_I}\\right]^{\\theta_I/\\rho_I}$$';
             if (window.MathJax && MathJax.typesetPromise) {
                 MathJax.typesetPromise([equationDiv]);
             }
@@ -2144,8 +2064,9 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 }
             });
         }
-        
-        
+
+
+
 
         function updateCharts() {
             const statusDiv = document.getElementById('status');
@@ -2161,11 +2082,17 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                     let x_title = '';
                     
                     if (currentAIMode === 'Fixed') {
-                        // Generate alpha_I grid (original behavior)
-                        for (let i = 0; i <= 50; i++) {
-                            x_vals.push(i / 50.0);
+                        const N = 50;
+                        for (let i = 0; i <= N; i++) {
+                          const a = i / N;                  // for labels
+                          const aEval =
+                            i === 0    ? ALPHA_EPS :        // 0⁺
+                            i === N    ? 1 - ALPHA_EPS :    // 1⁻
+                                         a;                 // interior
+                          x_vals.push(aEval);
                         }
-                        x_labels = x_vals.map(b => b.toFixed(3));
+                        // keep axis labels pretty (show 0 and 1 even though we eval at 0⁺/1⁻)
+                        x_labels = Array.from({length: 51}, (_, i) => (i/50).toFixed(3));
                         x_title = 'α_I (AI share in I-nest)';
                     } else {
                         // Generate time grid
@@ -2218,12 +2145,8 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                                     const I_infinite = computeI(LI, 1.0, 1e50, params.rho_I, params.theta_I);
                                     
                                     // Calculate Y_infinite
-                                    let Y_infinite;
-                                    if (currentAgg === 'CES') {
-                                        Y_infinite = Math.pow(params.tau * Math.pow(P, params.rho) + (1 - params.tau) * Math.pow(I_infinite, params.rho), 1 / params.rho);
-                                    } else {
-                                        Y_infinite = computePSI(P, I_infinite, params);
-                                    }
+                                    // Always use CES for overall aggregation
+                                    const Y_infinite = Math.pow(params.tau * Math.pow(P, params.rho) + (1 - params.tau) * Math.pow(I_infinite, params.rho), 1 / params.rho);
                                     
                                     const saturationRatio = Y_current / Y_infinite;
                                     if (isFinite(saturationRatio) && saturationRatio >= 0 && saturationRatio <= 1) {
@@ -2524,8 +2447,8 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             
             // Update toggle visual states
             document.getElementById('p_agg_toggle').classList.remove('active');
-            document.getElementById('i_agg_toggle').classList.add('active');
-            document.getElementById('agg_toggle').classList.remove('active');
+            // i_agg_toggle removed - intelligence nest always uses DS
+            // agg_toggle removed - overall aggregation always uses CES
             document.getElementById('ai_mode_toggle').classList.remove('active');
             
             // Update visibility and charts
@@ -2555,7 +2478,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                     label.classList.remove('has-tooltip');
                     label.removeAttribute('data-tooltip');
                 });
-                toggleButton.textContent = 'Toggle Tooltips';
+                toggleButton.textContent = 'Toggle tool tips';
                 toggleButton.classList.remove('explanations-off');
             } else {
                 // Hide explanations and add tooltips
@@ -2567,7 +2490,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                         label.setAttribute('data-tooltip', desc.textContent);
                     }
                 });
-                toggleButton.textContent = 'Toggle Tooltips';
+                toggleButton.textContent = 'Toggle tool tips';
                 toggleButton.classList.add('explanations-off');
             }
         }
