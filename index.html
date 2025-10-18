@@ -42,9 +42,18 @@
         h1 {
             text-align: center;
             color: #2c3e50;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             font-size: 2.2em;
             font-weight: 300;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #5a6c7d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            font-weight: 400;
+            font-style: italic;
         }
         
         .main-content {
@@ -516,7 +525,8 @@
 <body>
     <div class="container">
         <h1>Interactive 2‑Nest CES: Physical vs. Intelligence</h1>
-        
+        <div class="subtitle">Simulations for the manuscript "Intelligence Saturation" by Ioana Marinescu and Konrad Kording</div>
+
         <div class="main-content">
             <div class="controls">
                 <div class="button-container">
@@ -594,7 +604,7 @@
                     
                     <div class="parameter-group">
                         <label class="parameter-label">P-nest Substitution (ρ<sub>P</sub>)</label>
-                        <div class="parameter-description">The substitution parameter ($\rho_P$) controls how easily physical capital can replace human labor in physical tasks. When $\rho_P\to 1$, robots can perfectly replace workers (perfect substitutes). When $\rho_P=0$, you get the standard Cobb-Douglas case where both are needed in fixed proportions. When $\rho_P\to -\infty$, capital and labor are perfect complements - you need both, like a driver and a truck. Our baseline $\rho_P=-0.67$ gives an elasticity of substitution $\sigma=0.6$, matching empirical estimates from US manufacturing where machines and workers are somewhat complementary but not perfectly so. Lower $\rho_P$ means it's harder for robots to replace physical workers.</div>
+                        <div class="parameter-description">The substitution parameter ($\rho_P$) controls how easily physical capital can replace human labor in physical tasks. When $\rho_P=1$, robots can perfectly replace workers (perfect substitutes). When $\rho_P=0$, you get the standard Cobb-Douglas case (intermediate substitutability). When $\rho_P \to -\infty$, capital and labor are perfect complements - you need both in fixed proportions, like a driver and a truck. Our baseline $\rho_P=-0.67$ gives an elasticity of substitution $\sigma=0.6$, matching empirical estimates from US manufacturing where machines and workers are somewhat complementary but not perfectly so. Lower $\rho_P$ means it's harder for robots to replace physical workers.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_P" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_P_value">-0.67</span>
@@ -604,7 +614,7 @@
 
                     <div class="parameter-group">
                         <label class="parameter-label">Capital Share in P-nest (α<sub>P</sub>)</label>
-                        <div class="parameter-description">Capital share ($\alpha_P$) determines how much physical production relies on capital versus labor in the CES production function. It's the relative importance of machines vs workers in creating physical output. $\alpha_P=0$ means production uses only labor (pure handicraft economy), $\alpha_P=1$ means only capital matters (fully automated physical production). $\alpha_P=0.7$ reflects that in the US economy, about 42% of income goes to capital owners while 58% goes to workers.</div>
+                        <div class="parameter-description">The capital share $\alpha_P$ represents the distribution parameter in the physical CES production function. It is calibrated to be consistent with the capital share of income and the capital/labor ratio in the US economy.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="alpha_P" min="0.1" max="0.9" step="0.05" value="0.7">
                             <span class="slider-value" id="alpha_P_value">0.7</span>
@@ -648,7 +658,7 @@
                 <div class="tab-content intelligence-tab">
                     <div class="parameter-group">
                         <label class="parameter-label">AI Capital (K<sub>I</sub>)</label>
-                        <div class="parameter-description">AI capital ($K_I$) represents the effective computational capacity available for intelligence tasks - think of it as the total "brain power" from all AI systems combined. This includes hardware (GPUs, servers), software efficiency, and algorithmic improvements. $K_I=9$ represents an "abundant AI" scenario where there's about 5 times more AI capital than physical capital. Higher $K_I$ means more tasks can be automated and AI can substitute for human cognitive work more easily. Unlike physical capital, AI capital has been growing exponentially - costs halving every 3 months in some domains.</div>
+                        <div class="parameter-description">AI capital ($K_I$) represents the effective computational capacity available for intelligence tasks - think of it as the total "brain power" from all AI systems combined. This includes hardware (GPUs, servers), software efficiency, and algorithmic improvements. $K_I=9$ represents an "abundant AI" scenario where there's 9 times more AI capital than human labor. Higher $K_I$ means more AI available to automate tasks.</div>
                         <div id="ai-capital-note" class="parameter-note" style="display: none; margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="AI" min="0" max="5" step="0.1" value="0.95">
@@ -657,18 +667,8 @@
                     </div>
                     
                     <div class="parameter-group">
-                        <label class="parameter-label">AI Share in I-nest (α<sub>I</sub>)</label>
-                        <div class="parameter-description">Automation share ($\alpha_I$) is the fraction of intelligence tasks that have been automated by AI. This is the key parameter that increases as AI capabilities expand over time. $\alpha_I=0$ means no tasks are automated (all intelligence work done by humans), $\alpha_I=0.5$ means half of cognitive tasks are automated, and $\alpha_I=1$ means full automation of intelligence work. Our baseline $\alpha_I=0.2$ represents a near-term scenario where 20% of cognitive tasks can be done by AI. This parameter drives the main dynamics in our model - as it increases, workers reallocate from intelligence to physical tasks.</div>
-                        <div class="parameter-note" style="margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="alpha_I" min="0" max="1" step="0.05" value="0.2">
-                            <span class="slider-value" id="alpha_I_value">0.2</span>
-                        </div>
-                    </div>
-                    
-                    <div class="parameter-group">
                         <label class="parameter-label">I-nest Substitution (ρ<sub>I</sub>)</label>
-                        <div class="parameter-description">Intelligence substitution parameter ($\rho_I$) controls how easily AI can replace humans in cognitive tasks and how different intelligence tasks substitute for each other. High $\rho_I$ means AI and human intelligence are nearly perfect substitutes - AI can easily replace human cognitive work. Low $\rho_I$ means they're more complementary - humans and AI work better together. Our baseline $\rho_I=0.55$ gives an elasticity of substitution $\sigma=2.2$, reflecting high substitutability between intelligence tasks (consistent with how programming, writing, analysis, and other cognitive tasks can often substitute for each other). This parameter critically affects wage dynamics during automation.</div>
+                        <div class="parameter-description">Intelligence substitution parameter ($\rho_I$) controls how easily AI can replace humans in cognitive tasks and how different intelligence tasks substitute for each other. When $\rho_I=1$, AI can perfectly replace humans in intelligence tasks (perfect substitutes). When $\rho_I=0$, you get the standard Cobb-Douglas case (intermediate substitutability). Low $\rho_I$ means AI and humans are more complementary - they work better together. Our baseline $\rho_I=0.55$ gives an elasticity of substitution $\sigma=2.2$, reflecting high substitutability between intelligence tasks (consistent with how programming, writing, analysis, and other cognitive tasks can often substitute for each other).</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho_I" min="-2.0" max="2.0" step="0.05" value="0.55">
                             <span class="slider-value" id="rho_I_value">0.55</span>
@@ -679,7 +679,7 @@
                     
                     <div class="parameter-group i-ds-params">
                         <label class="parameter-label">I-nest Scaling (θ<sub>I</sub>)</label>
-                        <div class="parameter-description">Intelligence scaling parameter ($\theta_I$) captures the diminishing returns to AI observed in machine learning research. $\theta_I=1$ means constant returns - doubling AI compute doubles intelligence output. $\theta_I<1$ means decreasing returns, consistent with AI scaling laws where performance follows power laws in compute. Our baseline $\theta_I=0.94$ reflects empirical estimates from professional services sectors. Lower $\theta_I$ means stronger diminishing returns to AI investment, leading to earlier intelligence saturation. This parameter bridges economic modeling with computer science scaling laws, explaining why exponential AI progress might not translate to exponential economic growth.</div>
+                        <div class="parameter-description">Intelligence scaling parameter ($\theta_I$) captures diminishing returns to AI and labor in the production of intelligence. $\theta_I=1$ means constant returns - doubling both AI and human labor doubles intelligence. $\theta_I<1$ means decreasing returns, so that doubling both inputs increases intelligence less than proportionally. Our baseline $\theta_I=0.94$ reflects empirical estimates from professional services sectors. Lower $\theta_I$ implies stronger diminishing returns to AI investment in terms of producing intelligence.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="theta_I" min="0.1" max="1.0" step="0.02" value="0.94">
                             <span class="slider-value" id="theta_I_value">0.94</span>
@@ -703,22 +703,13 @@
                     
                     <div class="parameter-group">
                         <label class="parameter-label">Total Labor (L)</label>
-                        <div class="parameter-description">Total labor supply ($L$) represents the size of the workforce, normalized to $L=1$ as baseline. Unlike traditional models where labor allocation is fixed, here labor endogenously reallocates between physical and intelligence tasks to equalize marginal productivity (wages) across sectors. As AI automates more intelligence tasks, workers optimally shift toward physical production. Increasing $L$ simulates population growth or immigration; decreasing $L$ simulates demographic decline. The model solves for the optimal allocation $\beta^*$ that balances wages between sectors.</div>
+                        <div class="parameter-description">Total labor supply ($L$) represents the size of the workforce, normalized to $L=1$ as baseline. Labor endogenously reallocates between physical and intelligence tasks to equalize marginal productivity (wages) across physical and intelligence sectors. As AI automates more intelligence tasks, workers optimally shift toward physical production. The model solves for the optimal allocation $\beta^*$ that balances wages between sectors. Increasing $L$ leads to more labor relative to capital, which makes workers less productive when they reallocate to the capital-limited physical sector.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="L" min="0.5" max="2.0" step="0.1" value="1.0">
                             <span class="slider-value" id="L_value">1.0</span>
                         </div>
                     </div>
-                    
-                    <div class="parameter-group ces-params">
-                        <label class="parameter-label">P-weight in Top CES (τ)</label>
-                        <div class="parameter-description">Physical weight ($\tau$) determines how much the economy depends on physical versus intelligence inputs in final production. $\tau=0$ would be a pure virtual economy (like a metaverse) where only intelligence matters. $\tau=1$ would be a pure physical economy where intelligence adds no value. Our baseline $\tau=0.20$ reflects that about 26% of US workers are in manual occupations. This parameter is crucial for wage effects: higher $\tau$ protects workers during automation by giving them more physical tasks to move into. Lower $\tau$ makes automation more beneficial for output but potentially harmful for wages.</div>
-                        <div class="slider-container">
-                            <input type="range" class="slider" id="tau" min="0.15" max="0.4" step="0.01" value="0.20">
-                            <span class="slider-value" id="tau_value">0.20</span>
-                        </div>
-                    </div>
-                    
+
                     <div class="parameter-group ces-params">
                         <label class="parameter-label">Top-level Substitution (ρ)</label>
                         <div class="parameter-description">The macro substitution parameter ($\rho$) is the most important parameter in the model - it determines whether we get intelligence saturation or explosive AI growth. When $\rho<0$, physical and intelligence inputs are complements, leading to intelligence saturation where additional AI yields diminishing returns. When $\rho>0$, they're substitutes, allowing unbounded growth as AI replaces physical production. Our baseline $\rho=-0.67$ ($\sigma=0.6$ elasticity) treats them as complements, reflecting that you can't build cars with pure intelligence - you need both smart control systems AND physical materials/assembly. This parameter determines whether we get the economists' 'bounded growth' view or the AI experts' 'singularity' scenario.</div>
@@ -726,6 +717,15 @@
                             <input type="range" class="slider" id="rho" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_value">-0.67</span>
                             <span class="elasticity-display" id="sigma_display" style="margin-left: 10px; font-size: 0.9em; color: #666;">σ = 0.6</span>
+                        </div>
+                    </div>
+
+                    <div class="parameter-group ces-params">
+                        <label class="parameter-label">P-weight in Top CES (τ)</label>
+                        <div class="parameter-description">The physical share $\tau$ represents the distribution parameter in the overall CES production function. It is calibrated to be consistent with the share of earnings in manual occupations, and the manual/cognitive employment ratio proxying for P/I.</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="tau" min="0.1" max="0.9" step="0.01" value="0.20">
+                            <span class="slider-value" id="tau_value">0.20</span>
                         </div>
                     </div>
                     
@@ -1296,7 +1296,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 },
                 scales: {
                     x: { 
-                        title: { display: true, text: 'α_I (AI share in I-nest)', font: { size: 11 } },
+                        title: { display: true, text: 'α_I (AI share in intelligence production)', font: { size: 11 } },
                         ticks: { font: { size: 10 } }
                     },
                     y: { 
@@ -1343,7 +1343,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 },
                 scales: {
                     x: { 
-                        title: { display: true, text: 'α_I (AI share in I-nest)', font: { size: 11 } },
+                        title: { display: true, text: 'α_I (AI share in intelligence production)', font: { size: 11 } },
                         ticks: { font: { size: 10 } }
                     },
                     y: { 
@@ -1398,7 +1398,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 },
                 scales: {
                     x: { 
-                        title: { display: true, text: 'α_I (AI share in I-nest)', font: { size: 11 } },
+                        title: { display: true, text: 'α_I (AI share in intelligence production)', font: { size: 11 } },
                         ticks: { font: { size: 10 } }
                     },
                     y: { 
@@ -1445,7 +1445,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 },
                 scales: {
                     x: { 
-                        title: { display: true, text: 'α_I (AI share in I-nest)', font: { size: 11 } },
+                        title: { display: true, text: 'α_I (AI share in intelligence production)', font: { size: 11 } },
                         ticks: { font: { size: 10 } }
                     },
                     y: { 
@@ -1913,7 +1913,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         // Time evolution functions
         function alpha_I_evolution(t_years, transition_time_years) {
             if (currentAIMode === 'Fixed') {
-                return parseFloat(document.getElementById('alpha_I').value);
+                return 0.2; // Default alpha_I value for fixed mode
             }
             return Math.min(1.0, Math.max(0.0, t_years / transition_time_years));
         }
@@ -1939,7 +1939,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 theta_I: parseFloat(document.getElementById('theta_I').value),
                 tau: parseFloat(document.getElementById('tau').value),
                 rho: parseFloat(document.getElementById('rho').value),
-                alpha_I: parseFloat(document.getElementById('alpha_I').value),
+                alpha_I: 0.2, // Default alpha_I value
                 agg: currentAgg,
                 transition_time: parseFloat(document.getElementById('transition_time').value),
                 doubling_time: parseFloat(document.getElementById('doubling_time').value)
@@ -2038,7 +2038,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            title: { display: true, text: 'α_I (AI share in I-nest)' },
+                            title: { display: true, text: 'α_I (AI share in intelligence production)' },
                             ticks: { maxTicksLimit: 6 }
                         },
                         y: {
@@ -2091,7 +2091,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                         }
                         // keep axis labels pretty (show 0 and 1 even though we eval at 0⁺/1⁻)
                         x_labels = Array.from({length: 51}, (_, i) => (i/50).toFixed(3));
-                        x_title = 'α_I (AI share in I-nest)';
+                        x_title = 'α_I (AI share in intelligence production)';
                     } else {
                         // Generate time grid
                         const max_time = base_params.transition_time + 5; // Show 5 years past when alpha_I reaches 1
@@ -2412,8 +2412,6 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             // Intelligence tab
             document.getElementById('AI').value = '0.95';
             document.getElementById('AI_value').textContent = '9.0';
-            document.getElementById('alpha_I').value = '0.2';
-            document.getElementById('alpha_I_value').textContent = '0.2';
             document.getElementById('rho_I').value = '0.55';
             document.getElementById('rho_I_value').textContent = '0.55';
             document.getElementById('theta_I').value = '0.94';
