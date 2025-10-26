@@ -595,10 +595,10 @@
                 <div class="tab-content active physical-tab">
                     <div class="parameter-group">
                         <label class="parameter-label">Physical Capital (K<sub>P</sub>)</label>
-                        <div class="parameter-description">Physical capital ($K_P$) represents traditional capital goods like machines, buildings, and equipment used in physical production. This is distinct from AI/intelligence capital. Higher $K_P$ means more physical infrastructure per worker - think factories with more machines, construction with better equipment, or restaurants with more kitchen tools. $K_P=1.74$ is calibrated to match the 2023 US economy's capital-to-labor ratio of about 5.8. Increasing $K_P$ helps maintain wages as workers shift to physical tasks during AI automation.</div>
+                        <div class="parameter-description">Physical capital ($K_P$) represents traditional capital goods like machines, buildings, and equipment used in physical production. This is distinct from AI/intelligence capital. Higher $K_P$ means more physical infrastructure per worker - think factories with more machines, construction with better equipment, or restaurants with more kitchen tools. $K_P=1.38$ is calibrated to match the 2023 US economy's capital-to-labor ratio of about 4.6.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="K" min="0.5" max="3.0" step="0.1" value="1.74">
-                            <span class="slider-value" id="K_value">1.74</span>
+                            <input type="range" class="slider" id="K" min="0.5" max="3.0" step="0.1" value="1.38">
+                            <span class="slider-value" id="K_value">1.38</span>
                         </div>
                     </div>
                     
@@ -614,7 +614,7 @@
 
                     <div class="parameter-group">
                         <label class="parameter-label">Capital Share in P-nest (α<sub>P</sub>)</label>
-                        <div class="parameter-description">The capital share $\alpha_P$ represents the distribution parameter in the physical CES production function. It is calibrated to be consistent with the capital share of income and the capital/labor ratio in the US economy.</div>
+                        <div class="parameter-description">The capital weight $\alpha_P$ represents the distribution parameter in the physical CES production function. It is calibrated to be consistent with the capital share of income and the capital/labor ratio in the US economy.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="alpha_P" min="0.1" max="0.9" step="0.05" value="0.7">
                             <span class="slider-value" id="alpha_P_value">0.7</span>
@@ -712,7 +712,7 @@
 
                     <div class="parameter-group ces-params">
                         <label class="parameter-label">Top-level Substitution (ρ)</label>
-                        <div class="parameter-description">The macro substitution parameter ($\rho$) is the most important parameter in the model - it determines whether we get intelligence saturation or explosive AI growth. When $\rho<0$, physical and intelligence inputs are complements, leading to intelligence saturation where additional AI yields diminishing returns. When $\rho>0$, they're substitutes, allowing unbounded growth as AI replaces physical production. Our baseline $\rho=-0.67$ ($\sigma=0.6$ elasticity) treats them as complements, reflecting that you can't build cars with pure intelligence - you need both smart control systems AND physical materials/assembly. This parameter determines whether we get the economists' 'bounded growth' view or the AI experts' 'singularity' scenario.</div>
+                        <div class="parameter-description">The macro substitution parameter ($\rho$) is the most important parameter in the model - it determines whether we get intelligence saturation or explosive AI growth. When $\rho<0$, physical and intelligence inputs are complements, leading to intelligence saturation where additional AI yields diminishing returns. When $\rho>0$, they're substitutes, allowing unbounded growth as the growth effects of AI are not dragged down by physical production. Our baseline $\rho=-0.67$ ($\sigma=0.6$ elasticity) treats them as complements, reflecting that you can't build cars with pure intelligence - you need both smart control systems AND physical materials/assembly. This parameter determines whether we get the economists' 'bounded growth' view or the AI experts' 'singularity' scenario.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="rho" min="-2.0" max="2.0" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_value">-0.67</span>
@@ -722,7 +722,7 @@
 
                     <div class="parameter-group ces-params">
                         <label class="parameter-label">P-weight in Top CES (τ)</label>
-                        <div class="parameter-description">The physical share $\tau$ represents the distribution parameter in the overall CES production function. It is calibrated to be consistent with the share of earnings in manual occupations, and the manual/cognitive employment ratio proxying for P/I.</div>
+                        <div class="parameter-description">The physical weight $\tau$ represents the distribution parameter in the overall CES production function.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="tau" min="0.1" max="0.9" step="0.01" value="0.20">
                             <span class="slider-value" id="tau_value">0.20</span>
@@ -764,7 +764,7 @@
                     
                     <div class="parameter-group exponential-params" style="display: none;">
                         <label class="parameter-label">Transition Time (years)</label>
-                        <div class="parameter-description">Transition time sets how quickly automation progresses from $\alpha_I=0$ (no automation) to $\alpha_I=1$ (full automation of intelligence tasks). Shorter transitions (2-5 years) reflect rapid AI development scenarios like the current LLM revolution. Longer transitions (20-50 years) reflect more gradual technological adoption considering institutional inertia, regulation, and training time. The speed affects wage dynamics: very fast automation can cause sharp wage declines as workers can't reallocate quickly enough, while slower automation allows smoother labor market adjustment.</div>
+                        <div class="parameter-description">Transition time sets how quickly automation progresses from $\alpha_I=0$ (no automation) to $\alpha_I=1$ (full automation of intelligence tasks). Shorter transitions (2-5 years) reflect rapid AI development scenarios like the current LLM revolution. Longer transitions (20-50 years) reflect more gradual technological adoption considering institutional inertia, regulation, and training time.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="transition_time" min="2" max="100" step="1" value="10">
                             <span class="slider-value" id="transition_time_value">10</span>
@@ -773,7 +773,7 @@
                     
                     <div class="parameter-group exponential-params" style="display: none;">
                         <label class="parameter-label">AI Capital Doubling Time (months)</label>
-                        <div class="parameter-description">AI capital doubling time reflects the exponential cost improvements observed in AI deployment. Current AI costs halve every 3-6 months in some domains, driven by hardware improvements (faster chips), software advances (better algorithms), and scale economies (larger deployments). Faster doubling (1-6 months) reflects the breakneck pace of current AI development. Slower doubling (12-24 months) reflects more mature technology phases or potential slowdowns due to physical limits or economic constraints. This parameter captures the computer science scaling that economists typically don't model.</div>
+                        <div class="parameter-description">This parameter controls how long it takes in months to double the amount of AI capital, $K_I$. Faster doubling (1-6 months) reflects the breakneck pace of AI development around 2025. Slower doubling (12-24 months) reflects more mature technology phases or potential slowdowns due to e.g. physical limits or economic constraints.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="doubling_time" min="1" max="24" step="1" value="3">
                             <span class="slider-value" id="doubling_time_value">3</span>
@@ -1708,7 +1708,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             } else {
                 exponentialParams.forEach(param => param.style.display = 'block');
                 aiCapitalNote.style.display = 'block';
-                scenarioText.textContent = `We assume that AI will over time replace human workers (α_I: 0→1). Over that same time, AI capital K_I becomes more plentiful (exogenously), doubling every ${doublingTime} months.`;
+                scenarioText.textContent = ``;
             }
         }
         
@@ -2400,8 +2400,8 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         // Reset all parameters to defaults
         function resetAllParameters() {
             // Physical tab
-            document.getElementById('K').value = '1.74';
-            document.getElementById('K_value').textContent = '1.74';
+            document.getElementById('K').value = '1.38';
+            document.getElementById('K_value').textContent = '1.38';
             document.getElementById('alpha_P').value = '0.7';
             document.getElementById('alpha_P_value').textContent = '0.7';
             document.getElementById('rho_P').value = '-0.67';
