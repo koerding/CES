@@ -606,14 +606,14 @@
                         <label class="parameter-label">P-nest Substitution (ρ<sub>P</sub>)</label>
                         <div class="parameter-description">The substitution parameter ($\rho_P$) controls how easily physical capital can replace human labor in physical tasks. When $\rho_P=1$, robots can perfectly replace workers (perfect substitutes). When $\rho_P=0$, you get the standard Cobb-Douglas case (intermediate substitutability). When $\rho_P \to -\infty$, capital and labor are perfect complements - you need both in fixed proportions, like a driver and a truck. Our baseline $\rho_P=-0.67$ gives an elasticity of substitution $\sigma=0.6$, matching empirical estimates from US manufacturing where machines and workers are somewhat complementary but not perfectly so. Lower $\rho_P$ means it's harder for robots to replace physical workers.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="rho_P" min="-2.0" max="2.0" step="0.05" value="-0.67">
+                            <input type="range" class="slider" id="rho_P" min="-2.0" max="0.99" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_P_value">-0.67</span>
                             <span class="elasticity-display" id="sigma_P_display" style="margin-left: 10px; font-size: 0.9em; color: #666;">σ = 0.6</span>
                         </div>
                     </div>
 
                     <div class="parameter-group">
-                        <label class="parameter-label">Capital Share in P-nest (α<sub>P</sub>)</label>
+                        <label class="parameter-label">Capital Weight in P-nest (α<sub>P</sub>)</label>
                         <div class="parameter-description">The capital weight $\alpha_P$ represents the distribution parameter in the physical CES production function.</div>
                         <div class="slider-container">
                             <input type="range" class="slider" id="alpha_P" min="0.1" max="0.9" step="0.05" value="0.7">
@@ -670,7 +670,7 @@
                         <label class="parameter-label">I-nest Substitution (ρ<sub>I</sub>)</label>
                         <div class="parameter-description">Intelligence substitution parameter ($\rho_I$) controls how easily AI can replace humans in cognitive tasks and how different intelligence tasks substitute for each other. When $\rho_I=1$, AI can perfectly replace humans in intelligence tasks (perfect substitutes). When $\rho_I=0$, you get the standard Cobb-Douglas case (intermediate substitutability). Low $\rho_I$ means AI and humans are more complementary - they work better together. Our baseline $\rho_I=0.55$ gives an elasticity of substitution $\sigma=2.2$, reflecting high substitutability between intelligence tasks (consistent with how programming, writing, analysis, and other cognitive tasks can often substitute for each other).</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="rho_I" min="-2.0" max="2.0" step="0.05" value="0.55">
+                            <input type="range" class="slider" id="rho_I" min="-2.0" max="0.99" step="0.05" value="0.55">
                             <span class="slider-value" id="rho_I_value">0.55</span>
                             <span class="elasticity-display" id="sigma_I_display" style="margin-left: 10px; font-size: 0.9em; color: #666;">σ = 2.2</span>
                         </div>
@@ -714,7 +714,7 @@
                         <label class="parameter-label">Top-level Substitution (ρ)</label>
                         <div class="parameter-description">The macro substitution parameter ($\rho$) is the most important parameter in the model - it determines whether we get intelligence saturation or explosive AI growth. When $\rho<0$, physical and intelligence inputs are complements, leading to intelligence saturation where additional AI yields diminishing returns. When $\rho>0$, they're substitutes, allowing unbounded growth as the growth effects of AI are not dragged down by physical production. Our baseline $\rho=-0.67$ ($\sigma=0.6$ elasticity) treats them as complements, reflecting that you can't build cars with pure intelligence - you need both smart control systems AND physical materials/assembly. This parameter determines whether we get the economists' 'bounded growth' view or the AI experts' 'singularity' scenario.</div>
                         <div class="slider-container">
-                            <input type="range" class="slider" id="rho" min="-2.0" max="2.0" step="0.05" value="-0.67">
+                            <input type="range" class="slider" id="rho" min="-2.0" max="0.99" step="0.05" value="-0.67">
                             <span class="slider-value" id="rho_value">-0.67</span>
                             <span class="elasticity-display" id="sigma_display" style="margin-left: 10px; font-size: 0.9em; color: #666;">σ = 0.6</span>
                         </div>
@@ -2453,6 +2453,11 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             updatePhysicalEquation();
             updateIntelligenceEquation();
             updateAIModeVisibility();
+            // Update elasticity displays
+            document.getElementById('sigma_P_display').textContent = 'σ = 0.6';
+            document.getElementById('sigma_I_display').textContent = 'σ = 2.2';
+            document.getElementById('sigma_display').textContent = 'σ = 0.6';
+
             updatePhysicalChart();
             updateIntelligenceChart();
             updateFunctionChart();
