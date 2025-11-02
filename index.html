@@ -2458,10 +2458,13 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             document.getElementById('sigma_I_display').textContent = 'σ = 2.2';
             document.getElementById('sigma_display').textContent = 'σ = 0.6';
 
-            updatePhysicalChart();
-            updateIntelligenceChart();
-            updateFunctionChart();
-            updateCharts();
+            // Force chart redraw with small delay to ensure DOM updates are processed
+            setTimeout(function() {
+                updatePhysicalChart();
+                updateIntelligenceChart();
+                updateFunctionChart();
+                updateCharts();
+            }, 10);
         }
         
         // Toggle explanations visibility
