@@ -665,7 +665,17 @@
                             <span class="slider-value" id="AI_value">9.0</span>
                         </div>
                     </div>
-                    
+
+                    <div class="parameter-group">
+                        <label class="parameter-label">AI Share in I-nest (α<sub>I</sub>)</label>
+                        <div class="parameter-description">Automation share ($\alpha_I$) is the fraction of intelligence tasks that have been automated by AI. This is the key parameter that increases as AI capabilities expand over time. $\alpha_I=0$ means no tasks are automated (all intelligence work done by humans), $\alpha_I=0.5$ means half of cognitive tasks are automated, and $\alpha_I=1$ means full automation of intelligence work. Our baseline $\alpha_I=0.2$ represents a near-term scenario where 20% of cognitive tasks can be done by AI. This parameter drives the main dynamics in our model - as it increases, workers reallocate from intelligence to physical tasks.</div>
+                        <div class="parameter-note" style="margin-top: 5px; font-style: italic; color: #666;">This gets changed during simulation on right.</div>
+                        <div class="slider-container">
+                            <input type="range" class="slider" id="alpha_I" min="0" max="1" step="0.05" value="0.2">
+                            <span class="slider-value" id="alpha_I_value">0.2</span>
+                        </div>
+                    </div>
+
                     <div class="parameter-group">
                         <label class="parameter-label">I-nest Substitution (ρ<sub>I</sub>)</label>
                         <div class="parameter-description">Intelligence substitution parameter ($\rho_I$) controls how easily AI can replace humans in cognitive tasks and how different intelligence tasks substitute for each other. When $\rho_I=1$, AI can perfectly replace humans in intelligence tasks (perfect substitutes). When $\rho_I=0$, you get the standard Cobb-Douglas case (intermediate substitutability). Low $\rho_I$ means AI and humans are more complementary - they work better together. Our baseline $\rho_I=0.55$ gives an elasticity of substitution $\sigma=2.2$, reflecting high substitutability between intelligence tasks (consistent with how programming, writing, analysis, and other cognitive tasks can often substitute for each other).</div>
@@ -1913,7 +1923,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         // Time evolution functions
         function alpha_I_evolution(t_years, transition_time_years) {
             if (currentAIMode === 'Fixed') {
-                return 0.2; // Default alpha_I value for fixed mode
+                return parseFloat(document.getElementById('alpha_I').value); // Read current alpha_I value for fixed mode
             }
             return Math.min(1.0, Math.max(0.0, t_years / transition_time_years));
         }
@@ -1939,7 +1949,7 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
                 theta_I: parseFloat(document.getElementById('theta_I').value),
                 tau: parseFloat(document.getElementById('tau').value),
                 rho: parseFloat(document.getElementById('rho').value),
-                alpha_I: 0.2, // Default alpha_I value
+                alpha_I: parseFloat(document.getElementById('alpha_I').value),
                 agg: currentAgg,
                 transition_time: parseFloat(document.getElementById('transition_time').value),
                 doubling_time: parseFloat(document.getElementById('doubling_time').value)
