@@ -2466,13 +2466,25 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
             document.getElementById('sigma_I_display').textContent = 'σ = 2.2';
             document.getElementById('sigma_display').textContent = 'σ = 0.6';
 
-            // Force chart redraw with small delay to ensure DOM updates are processed
+            // Force chart redraw by triggering slider events and direct updates
+            // Trigger input events to ensure all chart update listeners fire
+            document.getElementById('K').dispatchEvent(new Event('input'));
+            document.getElementById('alpha_P').dispatchEvent(new Event('input'));
+            document.getElementById('rho_P').dispatchEvent(new Event('input'));
+            document.getElementById('AI').dispatchEvent(new Event('input'));
+            document.getElementById('alpha_I').dispatchEvent(new Event('input'));
+            document.getElementById('rho_I').dispatchEvent(new Event('input'));
+            document.getElementById('L').dispatchEvent(new Event('input'));
+            document.getElementById('tau').dispatchEvent(new Event('input'));
+            document.getElementById('rho').dispatchEvent(new Event('input'));
+
+            // Also call chart updates directly with a small delay
             setTimeout(function() {
                 updatePhysicalChart();
                 updateIntelligenceChart();
                 updateFunctionChart();
                 updateCharts();
-            }, 10);
+            }, 50);
         }
         
         // Toggle explanations visibility
