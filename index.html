@@ -2689,19 +2689,23 @@ function dI_dLI(LI, alpha_I, AI, rho_I, theta_I) {
         // Add secret keypress listener
         document.addEventListener('keydown', handleSecretKeypress);
 
-        // Initialize
-        // Initialize the first tab as active
-        switchTab(0);
-        setupSliders();
-        updateParameterVisibility();
-        updateNestParameterVisibility();
-        updatePhysicalEquation();
-        updateIntelligenceEquation();
-        updateAIModeVisibility();
-        updatePhysicalChart();
-        updateIntelligenceChart();
-        updateFunctionChart();
-        updateCharts();
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the first tab as active
+            switchTab(0);
+            setupSliders();
+            updateParameterVisibility();
+            updateNestParameterVisibility();
+            updatePhysicalEquation();
+            updateIntelligenceEquation();
+            updateAIModeVisibility();
+
+            // Force chart redraw on initial load
+            updatePhysicalChart();
+            updateIntelligenceChart();
+            updateFunctionChart();
+            updateCharts();
+        });
     </script>
 </body>
 </html>
